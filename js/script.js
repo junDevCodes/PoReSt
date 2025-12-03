@@ -1,63 +1,55 @@
 document.addEventListener('DOMContentLoaded', () => {
-  // Smooth scrolling for navigation links
-  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-      e.preventDefault();
-      const targetId = this.getAttribute('href');
-      const targetElement = document.querySelector(targetId);
-      
-      if (targetElement) {
-        window.scrollTo({
-          top: targetElement.offsetTop - 80, // Offset for fixed header
-          behavior: 'smooth'
-        });
-      }
+  
+  /* --- Tab Switching Logic --- */
+  const navBtns = document.querySelectorAll('.nav-btn');
+  const tabPanes = document.querySelectorAll('.tab-pane');
+
+  navBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetTabId = btn.getAttribute('data-tab');
+
+      // 1. Update Buttons
+      navBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      // 2. Update Content Panes
+      tabPanes.forEach(pane => {
+        if (pane.id === targetTabId) {
+          pane.classList.add('active');
+        } else {
+          pane.classList.remove('active');
+        }
+      });
     });
   });
 
-  // Active link highlighting on scroll
-  const sections = document.querySelectorAll('section');
-  const navLinks = document.querySelectorAll('.nav-links a');
+  /* --- Modal Logic --- */
+  const modalOverlay = document.getElementById('modal-overlay');
+  const modalContents = document.querySelectorAll('.modal-content');
 
-  const onScroll = () => {
-    let current = '';
-    const scrollPosition = window.scrollY + 100; // Offset
-
-    sections.forEach(section => {
-      const sectionTop = section.offsetTop;
-      const sectionHeight = section.clientHeight;
-      
-      if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
-        current = section.getAttribute('id');
-      }
-    });
-
-    navLinks.forEach(link => {
-      link.classList.remove('active');
-      if (link.getAttribute('href').includes(current)) {
-        link.classList.add('active');
-      }
-    });
+  // Open Modal Function (Expose to global scope for HTML onclick attributes)
+  window.openModal = (projectId) => {
+    const targetModal = document.getElementById(projectId);
+    if (targetModal) {
+      modalOverlay.classList.add('active');
+      // Hide all other modals first just in case
+      modalContents.forEach(m => m.classList.remove('active'));
+      // Show target
+      targetModal.classList.add('active');
+    }
   };
 
-  window.addEventListener('scroll', onScroll);
-
-  // Intersection Observer for Animations
-  const observerOptions = {
-    threshold: 0.1,
-    rootMargin: "0px 0px -50px 0px"
+  // Close Modal Function
+  window.closeModal = () => {
+    modalOverlay.classList.remove('active');
+    modalContents.forEach(m => m.classList.remove('active'));
   };
 
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('visible');
-        observer.unobserve(entry.target); // Only animate once
-      }
-    });
-  }, observerOptions);
-
-  document.querySelectorAll('.fade-in-up').forEach(el => {
-    observer.observe(el);
+  // Close on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      window.closeModal();
+    }
   });
+
 });
