@@ -1,0 +1,169 @@
+/* 
+  Engineering Documentation Theme
+  Concept: Documentation-first, Research-oriented
+  Tone: Calm, Precise, Reliable
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  /* Palette */
+  --c-paper: #f9f9f8;
+  /* Off-white / Paper Ivory */
+  --c-ink: #1f2937;
+  /* Dark Gray / Black for text */
+  --c-ink-light: #4b5563;
+  /* Muted text */
+  --c-navy: #2c3e50;
+  /* Deep Navy - Headings / Accents */
+  --c-teal: #34495e;
+  /* Dark Teal / Slate - Sub-accents */
+  --c-blue: #0366d6;
+  /* Link Blue - Classic Academic */
+  --c-border: #e5e5e5;
+  /* Subtle borders */
+  --c-code-bg: #f3f3f2;
+  /* Slightly darker paper for code blocks */
+
+  /* Typography */
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Spacing */
+  --spacing-section: 4rem;
+  --spacing-element: 1.5rem;
+}
+
+/* Reset & Base */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--c-paper);
+  color: var(--c-ink);
+  font-family: var(--font-body);
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--c-blue);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s;
+}
+
+a:hover {
+  border-bottom-color: var(--c-blue);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--c-navy);
+  font-weight: 700;
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+  line-height: 1.3;
+}
+
+h1 {
+  font-size: 2.25rem;
+  letter-spacing: -0.02em;
+}
+
+h2 {
+  font-size: 1.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--c-border);
+}
+
+h3 {
+  font-size: 1.25rem;
+}
+
+p {
+  margin-bottom: 1.2rem;
+  max-width: 70ch;
+}
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--c-code-bg);
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  color: var(--c-teal);
+}
+
+pre {
+  background: var(--c-code-bg);
+  padding: 1.5rem;
+  border-radius: 4px;
+  overflow-x: auto;
+  border: 1px solid var(--c-border);
+}
+
+/* Layout Utilities */
+.container {
+  max-width: 860px;
+  /* Readability focused width */
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.section {
+  margin-bottom: var(--spacing-section);
+}
+
+/* Specific Typography Classes */
+.text-mono {
+  font-family: var(--font-mono);
+}
+
+.text-muted {
+  color: var(--c-ink-light);
+}
+
+.text-small {
+  font-size: 0.875rem;
+}
+
+/* Table Styles - For "Specs" */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 2rem;
+  font-size: 0.95rem;
+}
+
+th,
+td {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--c-border);
+  text-align: left;
+}
+
+th {
+  font-weight: 600;
+  color: var(--c-navy);
+  white-space: nowrap;
+  padding-right: 1.5rem;
+  width: 25%;
+  /* Fixed width for labels usually looks organized */
+}
+
+/* Button / Action Reset */
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: inherit;
+}
