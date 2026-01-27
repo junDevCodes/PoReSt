@@ -1,122 +1,157 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { getEntry, getCollection } from 'astro:content';
+
+// 1. Fetch Data from Content Collections
+const profileEntry = await getEntry('profile', 'jylee');
+const profile = profileEntry?.data;
+
+const workEntries = await getCollection('work', ({ data }) => data.visible);
+const work = workEntries.sort((a, b) => a.data.order - b.data.order).map(e => e.data);
+
+const educationEntries = await getCollection('education', ({ data }) => data.visible);
+const education = educationEntries.sort((a, b) => a.data.order - b.data.order).map(e => e.data);
+
+const certEntries = await getCollection('certifications', ({ data }) => data.visible);
+const certs = certEntries.sort((a, b) => a.data.order - b.data.order).map(e => e.data);
+
+const projectEntries = await getCollection('projects', ({ data }) => data.visible);
+const projects = await Promise.all(
+  projectEntries.sort((a, b) => a.data.order - b.data.order).map(async (entry) => {
+    const { Content } = await entry.render();
+    return { ...entry.data, Content };
+  })
+);
+
+// Format date helper (optional, if needed, but data is already strings/dates)
+const formatDate = (date) => {
+  if (!date) return '';
+  // implementation if needed, but simple string output is fine for now
+  return new Date(date).toISOString().split('T')[0]; 
+};
 ---
 
-<BaseLayout pageTitle="이준영 | Embedded Vision Engineer">
+<BaseLayout pageTitle={profile?.title ? `${profile.name} | ${profile.title}` : "이력서"}>
+  
   <!-- 1. Profile Summary (Abstract) -->
   <section class="section" id="abstract">
     <h2>Abstract</h2>
     <div class="profile-container">
-      <img src="/assets/profile.jpg" alt="이준영 프로필" class="profile-img" />
+      <img src={profile?.photo || "/assets/profile.jpg"} alt={profile?.name} class="profile-img" />
       <div class="profile-text">
         <p class="profile-summary">
-          안녕하세요, <strong>이준영</strong>입니다. 
-          STM32 임베디드 제어부터 엣지 AI 모델 최적화까지, <strong>데이터가 흐르는 모든 순간</strong>을 엔지니어링합니다.
-          하드웨어 신호(Signal)와 AI 지능(Intelligence)을 통합하여 실제 문제를 해결하는 시스템을 구축하는 데 주력하고 있습니다.
+          {profile?.summary}
         </p>
         <div class="status-block">
           <span class="status-label">Area:</span>
-          <span class="status-value">Embedded Systems, Edge AI, Backend Integration</span>
+          <span class="status-value">{profile?.area?.join(', ')}</span>
+        </div>
+        <div class="status-block contact-info">
+             {profile?.email && <span>📧 {profile.email}</span>}
+             {profile?.phone && <span>📞 {profile.phone}</span>}
         </div>
       </div>
     </div>
   </section>
 
-  <!-- 2. Core Competencies -->
-  <section class="section" id="competencies">
-    <h2>Core Competencies</h2>
-    <div class="competency-list">
-      <div class="competency-item">
-        <h3>Embedded & MCU</h3>
-        <p>C/C++ 기반의 펌웨어 개발. STM32 HAL 라이브러리 활용 및 Interrupt/DMA/Timer 제어. FreeRTOS를 이용한 실시간 멀티태스킹 시스템 설계.</p>
+  <!-- 2. Work Experience -->
+  {work && work.length > 0 && (
+    <section class="section" id="work">
+      <h2>Work Experience</h2>
+      <div class="timeline-list">
+        {work.map((item) => (
+          <div class="timeline-item">
+            <div class="timeline-header">
+              <h3>{item.company}</h3>
+              <span class="timeline-date text-mono">
+                {item.start_date.toISOString().split('T')[0]} ~ {item.is_current ? 'Present' : item.end_date?.toISOString().split('T')[0]}
+              </span>
+            </div>
+            <div class="timeline-sub">
+                <span class="role">{item.position}</span>
+                {item.department && <span class="dept">| {item.department}</span>}
+            </div>
+            {item.description && <p class="timeline-desc">{item.description}</p>}
+            {item.achievements && item.achievements.length > 0 && (
+              <ul class="timeline-achievements">
+                {item.achievements.map(ach => <li>{ach}</li>)}
+              </ul>
+            )}
+          </div>
+        ))}
       </div>
-      <div class="competency-item">
-        <h3>AI & Data</h3>
-        <p>Python(PyTorch/TensorFlow)을 활용한 비전 모델 학습 및 추론. LLM/VLM 파인튜닝 경험(LoRA) 및 RAG 파이프라인 구축.</p>
-      </div>
-      <div class="competency-item">
-        <h3>Backend & DevOps</h3>
-        <p>Django/Docker 기반의 백엔드 서버 구축 및 배포. AWS EC2 및 PostgreSQL 데이터베이스 운용 경험.</p>
-      </div>
-    </div>
-  </section>
+    </section>
+  )}
 
-  <!-- 3. Projects & Case Studies -->
-  <section class="section" id="projects">
-    <h2>Projects & Case Studies</h2>
+  <!-- 3. Projects -->
+  {projects && projects.length > 0 && (
+    <section class="section" id="projects">
+      <h2>Projects & Case Studies</h2>
+      {projects.map((project) => (
+        <article class="case-study">
+          <header class="case-header">
+            <h3>{project.title}</h3>
+            <div class="case-meta-group">
+                <span class="case-category text-mono">{project.category}</span>
+                {project.github_url && <a href={project.github_url} class="case-link" target="_blank">GitHub</a>}
+                {project.demo_url && <a href={project.demo_url} class="case-link" target="_blank">Demo</a>}
+            </div>
+          </header>
+          <div class="case-content">
+            <project.Content />
+          </div>
+          <ul class="tech-tags text-mono text-small">
+            {project.tech_stack?.map((tech) => (
+              <li>{tech}</li>
+            ))}
+          </ul>
+        </article>
+      ))}
+    </section>
+  )}
 
-    <!-- Project 1 -->
-    <article class="case-study">
-      <header class="case-header">
-        <h3>산업용 세탁기 제어 시스템</h3>
-        <span class="case-meta text-mono">STM32 Embedded • C language</span>
-      </header>
-      <div class="case-content">
-        <p>상태머신(FSM) 기반의 공정 제어 시스템 설계. 타이머 인터럽트를 활용하여 급수, 세탁, 배수 등 각 공정의 정밀한 시간 제어를 구현했습니다.</p>
-        <ul class="tech-tags text-mono text-small">
-          <li>STM32</li><li>State Machine</li><li>Interrupts</li>
-        </ul>
+   <!-- 4. Education -->
+   {education && education.length > 0 && (
+    <section class="section" id="education">
+      <h2>Education</h2>
+      <div class="timeline-list">
+        {education.map((edu) => (
+          <div class="timeline-item">
+            <div class="timeline-header">
+              <h3>{edu.school}</h3>
+              <span class="timeline-date text-mono">
+                {edu.start_date.toISOString().split('T')[0]} ~ {edu.end_date ? edu.end_date.toISOString().split('T')[0] : 'Present'}
+              </span>
+            </div>
+             <div class="timeline-sub">
+                <span class="role">{edu.major}</span>
+                <span class="dept">| {edu.degree} ({edu.status})</span>
+                {edu.gpa && <span class="gpa"> (GPA: {edu.gpa})</span>}
+            </div>
+          </div>
+        ))}
       </div>
-    </article>
+    </section>
+  )}
 
-    <!-- Project 2 -->
-    <article class="case-study">
-      <header class="case-header">
-        <h3>SSAFY AI Challenge (VQA)</h3>
-        <span class="case-meta text-mono">AI Vision • Python</span>
-      </header>
-      <div class="case-content">
-        <p>시각적 질의응답(VQA) 모델 성능 최적화 프로젝트. Qwen2.5-VL 모델을 LoRA 기법으로 파인튜닝하여 기존 0.76에서 0.94로 정확도를 대폭 향상시켰습니다.</p>
-        <ul class="tech-tags text-mono text-small">
-          <li>Qwen-VL</li><li>LoRA</li><li>Fine-tuning</li>
-        </ul>
-      </div>
-    </article>
+  <!-- 5. Certifications -->
+  {certs && certs.length > 0 && (
+    <section class="section" id="certs">
+      <h2>Certifications & Awards</h2>
+       <ul class="cert-list">
+        {certs.map((cert) => (
+            <li class="cert-item">
+                <span class="cert-date text-mono">{cert.date.toISOString().split('T')[0]}</span>
+                <strong class="cert-name">{cert.name}</strong>
+                <span class="cert-issuer"> - {cert.issuer}</span>
+                {cert.score && <span class="cert-score">({cert.score})</span>}
+            </li>
+        ))}
+       </ul>
+    </section>
+  )}
 
-    <!-- Project 3 -->
-    <article class="case-study">
-      <header class="case-header">
-        <h3>스마트워치 모의 시스템</h3>
-        <span class="case-meta text-mono">RTOS Logic • C</span>
-      </header>
-      <div class="case-content">
-        <p>다중 인터럽트 상황에서의 우선순위 설계를 통한 실시간 처리 시스템 구현. 제한된 리소스 내에서 버튼 입력과 디스플레이 갱신이 지연 없이 동작하도록 최적화했습니다.</p>
-        <ul class="tech-tags text-mono text-small">
-          <li>Interrupt Priority</li><li>Resource Constraints</li>
-        </ul>
-      </div>
-    </article>
-
-    <!-- Project 4 -->
-    <article class="case-study">
-      <header class="case-header">
-        <h3>재난 피해 규모 예측</h3>
-        <span class="case-meta text-mono">Data Analysis • Python</span>
-      </header>
-      <div class="case-content">
-        <p>공공데이터를 활용한 재난 피해 규모 예측 모델링. XGBoost 알고리즘을 적용하여 데이터 특성을 분석하고 예측 정확도를 높였습니다.</p>
-        <ul class="tech-tags text-mono text-small">
-          <li>XGBoost</li><li>Pandas</li><li>Scikit-learn</li>
-        </ul>
-      </div>
-    </article>
-
-    <!-- Project 5 -->
-    <article class="case-study">
-      <header class="case-header">
-        <h3>SelF 이커머스 플랫폼</h3>
-        <span class="case-meta text-mono">Backend • Django</span>
-      </header>
-      <div class="case-content">
-        <p>Django와 Docker를 활용한 풀스택 이커머스 웹 애플리케이션 개발. 회원가입, 상품 등록, 결제 프로세스 등 전체 쇼핑몰 로직을 구현했습니다.</p>
-        <ul class="tech-tags text-mono text-small">
-          <li>Django</li><li>Docker</li><li>Fullstack</li>
-        </ul>
-      </div>
-    </article>
-  </section>
-
-  <!-- 4. Technical Stack -->
+  <!-- 6. Technical Stack -->
   <section class="section" id="stack">
     <h2>Technical Stack</h2>
     <table>
@@ -139,83 +174,58 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 </BaseLayout>
 
 <style>
-  .profile-container {
-    display: flex;
-    gap: 2rem;
-    align-items: flex-start;
-  }
-
-  .profile-img {
-    width: 120px;
-    height: 150px;
-    object-fit: cover;
-    border: 1px solid var(--c-border);
-    border-radius: 2px;
-    flex-shrink: 0;
-    filter: grayscale(100%);
-  }
-
-  .profile-summary {
-    font-size: 1.1rem;
-    line-height: 1.8;
-    margin-top: 0;
-  }
-
+  /* Use existing styles + new timeline styles */
+  .profile-container { display: flex; gap: 2rem; align-items: flex-start; }
+  .profile-img { width: 120px; height: 150px; object-fit: cover; border: 1px solid var(--c-border); border-radius: 2px; flex-shrink: 0; filter: grayscale(100%); }
+  .profile-summary { font-size: 1.1rem; line-height: 1.8; margin-top: 0; white-space: pre-line; }
+  
   @media (max-width: 600px) {
-    .profile-container {
-      flex-direction: column;
-      gap: 1rem;
-    }
-    .profile-img {
-      width: 100px;
-      height: 125px;
-    }
+    .profile-container { flex-direction: column; gap: 1rem; }
+    .profile-img { width: 100px; height: 125px; }
   }
   
-  .status-block {
-    margin-top: 1rem;
-    font-size: 0.9rem;
-    color: var(--c-ink-light);
-  }
+  .status-block { margin-top: 1rem; font-size: 0.9rem; color: var(--c-ink-light); }
   .status-label { font-weight: 600; color: var(--c-navy); }
+  .contact-info { margin-top: 0.5rem; display: flex; gap: 1rem; flex-wrap: wrap; }
 
-  .competency-item { margin-bottom: 2rem; }
-  .competency-item h3 { margin-top: 0; font-size: 1.1rem; color: var(--c-teal); }
-  .competency-item p { margin: 0; font-size: 1rem; }
-
-  .case-study {
-    margin-bottom: 3rem;
-    padding-bottom: 2rem;
-    border-bottom: 1px dashed var(--c-border);
+  /* Timeline Styles (Work & Edu) */
+  .timeline-list { border-left: 2px solid var(--c-border); padding-left: 1.5rem; margin-left: 0.5rem; }
+  .timeline-item { margin-bottom: 2rem; position: relative; }
+  .timeline-item::before {
+    content: ''; position: absolute; left: -1.85rem; top: 0.4rem;
+    width: 0.7rem; height: 0.7rem; background: var(--c-paper); border: 2px solid var(--c-blue); border-radius: 50%;
   }
+  .timeline-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.3rem; }
+  .timeline-header h3 { margin: 0; font-size: 1.1rem; color: var(--c-navy); }
+  .timeline-date { font-size: 0.85rem; color: var(--c-ink-light); }
+  .timeline-sub { font-size: 0.95rem; color: var(--c-ink); margin-bottom: 0.5rem; }
+  .role { font-weight: 600; }
+  .timeline-desc { font-size: 0.95rem; color: var(--c-ink-light); line-height: 1.6; white-space: pre-line; }
+  .timeline-achievements { margin-top: 0.5rem; padding-left: 1.2rem; }
+  .timeline-achievements li { font-size: 0.9rem; color: var(--c-ink); margin-bottom: 0.3rem; }
+
+  /* Cert Styles */
+  .cert-list { list-style: none; padding: 0; }
+  .cert-item { margin-bottom: 0.5rem; font-size: 0.95rem; }
+  .cert-date { color: var(--c-ink-light); margin-right: 0.8rem; font-size: 0.9rem; }
+  .cert-name { color: var(--c-navy); }
+
+  /* Case Study Styles (Projects) */
+  .case-study { margin-bottom: 3rem; padding-bottom: 2rem; border-bottom: 1px dashed var(--c-border); }
   .case-study:last-child { border-bottom: none; }
-
-  .case-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: 1rem;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
+  .case-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem; }
   .case-header h3 { margin: 0; font-size: 1.25rem; }
-  .case-meta { font-size: 0.85rem; color: var(--c-teal); }
+  .case-meta-group { display: flex; gap: 1rem; align-items: center; }
+  .case-category { font-size: 0.85rem; color: var(--c-teal); }
+  .case-link { font-size: 0.85rem; text-decoration: none; border-bottom: 1px solid; }
 
-  .case-content p { margin-bottom: 1rem; color: var(--c-ink); }
+  /* Markdown Content Styles */
+  .case-content :global(p) { margin-bottom: 1rem; color: var(--c-ink); line-height: 1.7; }
+  .case-content :global(ul) { padding-left: 1.5rem; margin-bottom: 1rem; }
+  .case-content :global(li) { margin-bottom: 0.4rem; list-style-type: disc; }
+  .case-content :global(h1), .case-content :global(h2), .case-content :global(h3) { margin-top: 1.5rem; margin-bottom: 0.8rem; font-size: 1.1rem; font-weight: 600; }
+  .case-content :global(strong) { font-weight: 700; color: var(--c-navy); }
   
-  .tech-tags {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    gap: 0.8rem;
-    flex-wrap: wrap;
-  }
-  .tech-tags li {
-    color: var(--c-ink-light);
-    background: var(--c-code-bg);
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 0.85rem;
-  }
+  .tech-tags { list-style: none; padding: 0; margin: 0; display: flex; gap: 0.8rem; flex-wrap: wrap; margin-top: 1.5rem; }
+  .tech-tags li { color: var(--c-ink-light); background: var(--c-code-bg); padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; }
 </style>
