@@ -9,5 +9,19 @@ import keystatic from '@keystatic/astro';
 // https://astro.build/config
 export default defineConfig({
   adapter: cloudflare(),
-  integrations: [tailwind(), react(), mdx(), keystatic()]
+  integrations: [tailwind(), react(), mdx(), keystatic()],
+  output: 'server',
+  
+  vite: {
+    resolve: {
+      alias: {
+        'yjs': 'yjs'
+      }
+    },
+    build: {
+      commonjsOptions: {
+        transformMixedEsModules: true,
+      }
+    }
+  }
 });
