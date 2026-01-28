@@ -1,36 +1,9 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { getEntry, getCollection } from 'astro:content';
+import { getResumePageData } from '../utils/content';
 
-// 콘텐츠 컬렉션에서 데이터 로드
-const profileEntry = await getEntry('profile', 'jylee');
-const profile = profileEntry?.data;
+const { profile, work, education, certifications, projects } = await getResumePageData();
 const pageTitle = profile ? `${profile.name} | ${profile.title}` : '이력서';
-
-const workEntries = await getCollection('work', ({ data }) => data.visible);
-const work = workEntries
-  .sort((a, b) => a.data.order - b.data.order)
-  .map((entry) => entry.data);
-
-const educationEntries = await getCollection('education', ({ data }) => data.visible);
-const education = educationEntries
-  .sort((a, b) => a.data.order - b.data.order)
-  .map((entry) => entry.data);
-
-const certEntries = await getCollection('certifications', ({ data }) => data.visible);
-const certs = certEntries
-  .sort((a, b) => a.data.order - b.data.order)
-  .map((entry) => entry.data);
-
-const projectEntries = await getCollection('projects', ({ data }) => data.visible);
-const projects = await Promise.all(
-  projectEntries
-    .sort((a, b) => a.data.order - b.data.order)
-    .map(async (entry) => {
-      const rendered = await entry.render();
-      return { ...entry.data, Content: rendered.Content };
-    })
-);
 ---
 
 <BaseLayout pageTitle={pageTitle}>
@@ -106,16 +79,20 @@ const projects = await Promise.all(
       {projects.map((project) => (
         <article class="mb-12 pb-8 border-b border-dashed border-border last:border-b-0">
           <header class="flex flex-wrap items-baseline justify-between gap-3">
-            <h3 class="m-0 text-xl font-bold text-heading">{project.title}</h3>
+            <h3 class="m-0 text-xl font-bold text-heading">
+              <a href={`/projects/${project.slug}/`} class="border-0 hover:underline">
+                {project.title}
+              </a>
+            </h3>
             <div class="flex flex-wrap items-center gap-4">
               <span class="text-sm font-mono text-teal">{project.category}</span>
-              {project.github_url && (
-                <a href={project.github_url} class="text-sm border-0 hover:underline" target="_blank">
+              {project.githubUrl && (
+                <a href={project.githubUrl} class="text-sm border-0 hover:underline" target="_blank">
                   GitHub
                 </a>
               )}
-              {project.demo_url && (
-                <a href={project.demo_url} class="text-sm border-0 hover:underline" target="_blank">
+              {project.demoUrl && (
+                <a href={project.demoUrl} class="text-sm border-0 hover:underline" target="_blank">
                   Demo
                 </a>
               )}
@@ -127,8 +104,8 @@ const projects = await Promise.all(
           </div>
 
           <ul class="mt-6 list-none p-0 m-0 flex flex-wrap gap-2 font-mono text-sm">
-            {project.tech_stack?.map((tech) => (
-              <li class="text-muted bg-code px-2 py-0.5 rounded">{tech}</li>
+            {project.techs.map((tech) => (
+              <li class="text-muted bg-code px-2 py-0.5 rounded">{tech.displayName}</li>
             ))}
           </ul>
         </article>
@@ -168,11 +145,11 @@ const projects = await Promise.all(
   )}
 
   <!-- 5. 자격/수상 -->
-  {certs.length > 0 && (
+  {certifications.length > 0 && (
     <section class="mb-16 scroll-mt-24" id="certs">
       <h2>Certifications & Awards</h2>
       <ul class="list-none p-0 m-0 space-y-2">
-        {certs.map((cert) => (
+        {certifications.map((cert) => (
           <li class="text-sm">
             <span class="font-mono text-muted mr-3">{cert.date.toISOString().split('T')[0]}</span>
             <strong class="text-heading">{cert.name}</strong>

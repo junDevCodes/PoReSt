@@ -1,39 +1,54 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getCollection, type CollectionEntry } from 'astro:content';
+import { getProject, listProjects } from '../../utils/content';
 
-interface Props {
-  entry: CollectionEntry<'projects'>;
-}
+export const prerender = true;
 
 export async function getStaticPaths() {
-  const entries = await getCollection('projects', ({ data }) => data.visible);
-  return entries.map((entry) => ({
-    params: { slug: entry.slug },
-    props: { entry },
+  const projects = await listProjects();
+  return projects.map((project) => ({
+    params: { slug: project.slug },
   }));
 }
 
-const { entry } = Astro.props as Props;
-const rendered = await entry.render();
-const Content = rendered.Content;
+const rawSlug = Astro.params.slug;
+const slug = Array.isArray(rawSlug) ? rawSlug.join('/') : rawSlug;
+if (!slug) {
+  throw new Error('프로젝트 슬러그를 찾을 수 없습니다');
+}
+const project = await getProject(slug);
+if (!project) {
+  throw new Error('프로젝트를 찾을 수 없습니다');
+}
+const Content = project.Content;
 ---
 
-<BaseLayout pageTitle={`Projects | ${entry.data.title}`}>
+<BaseLayout pageTitle={`Projects | ${project.title}`}>
+
   <header class="mb-10">
-    <h1 class="mt-0">{entry.data.title}</h1>
+    <h1 class="mt-0">{project.title}</h1>
     <div class="mt-3 flex flex-wrap items-center gap-4 text-sm text-muted">
-      <span class="font-mono">{entry.data.category}</span>
-      {entry.data.github_url && (
-        <a href={entry.data.github_url} class="border-0 hover:underline" target="_blank">GitHub</a>
+      <span class="font-mono">{project.category}</span>
+      {project.githubUrl && (
+        <a href={project.githubUrl} class="border-0 hover:underline" target="_blank">GitHub</a>
       )}
-      {entry.data.demo_url && (
-        <a href={entry.data.demo_url} class="border-0 hover:underline" target="_blank">Demo</a>
+      {project.demoUrl && (
+        <a href={project.demoUrl} class="border-0 hover:underline" target="_blank">Demo</a>
       )}
     </div>
     <ul class="mt-4 list-none p-0 m-0 flex flex-wrap gap-2 font-mono text-sm">
-      {entry.data.tech_stack?.map((tech) => (
-        <li class="text-muted bg-code px-2 py-0.5 rounded">{tech}</li>
+      {project.techs.map((tech) => (
+        <li class="flex items-center gap-1.5 text-muted bg-code px-2 py-1 rounded border border-gray-100 dark:border-gray-700">
+          {tech.icon && (
+            <img 
+              src={tech.icon} 
+              alt={tech.displayName} 
+              class="w-4 h-4 object-contain" 
+            />
+          )}
+          
+          <span>{tech.displayName}</span>
+        </li>
       ))}
     </ul>
   </header>
