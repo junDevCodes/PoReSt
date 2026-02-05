@@ -1,4 +1,4 @@
-# Dev OS# Portfolio v2 (Next.js)
+﻿# PoReSt (Next.js)
 
 A modern, full-stack portfolio website built with **Next.js 16**, **Prisma**, and **PostgreSQL**.  
 Features a public portfolio page and a private admin hub for content management.
@@ -156,3 +156,5 @@ See the `docs/` directory for detailed planning and design documents.
 
 **Version**: 2.0.0  
 **Last Updated**: 2026-02-04t
+
+
