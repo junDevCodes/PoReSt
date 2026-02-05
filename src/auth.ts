@@ -9,6 +9,7 @@ const ownerEmail = process.env.OWNER_EMAIL?.toLowerCase();
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   secret: process.env.AUTH_SECRET,
+  debug: process.env.NEXTAUTH_DEBUG === "true",
   session: {
     strategy: "jwt",
   },
