@@ -27,10 +27,11 @@
 ## 🗄️ 데이터베이스 & ORM
 
 ### Prisma
-- **Prisma Client**: `^5.0.0` (5.x 최신)
-- **Prisma CLI**: `^5.0.0` (devDependencies)
+- **Prisma Client**: `^5.23.0` (5.x latest stable)
+- **Prisma CLI**: `^5.23.0` (devDependencies)
 - **이유**: PostgreSQL 완벽 지원, Next.js 서버리스 환경 최적화
 - **주요 기능**: Type-safe queries, Migration, Prisma Studio
+- **참고**: Prisma 6/7은 실험 단계, Production에서는 5.x 사용
 
 ### PostgreSQL
 - **추천 버전**: PostgreSQL 15.x 또는 16.x
@@ -44,11 +45,12 @@
 
 ## 🔐 인증
 
-### Auth.js (NextAuth v5)
-- **next-auth**: `^5.0.0`
-- **@auth/prisma-adapter**: `^1.0.0`
-- **이유**: Next.js 14+ App Router 공식 지원
-- **주요 기능**: Prisma Adapter, 오너 전용 인증
+### NextAuth.js
+- **next-auth**: `^4.24.13` (v4 stable)
+- **@prisma/adapter**: `^2.11.1` (v4용)
+- **이유**: 검증된 안정 버전, Next.js 13+ App Router 지원
+- **주요 기능**: Prisma Adapter, Session 관리, 오너 전용 인증
+- **참고**: v5는 beta 상태로 production 사용 보류
 
 ---
 
@@ -75,8 +77,8 @@
 - **이유**: Next.js 16 호환, 최신 린트 규칙
 
 ### Prettier
-- **prettier**: `^3.0.0`
-- **이유**: 코드 포맷팅 일관성
+- **prettier**: `^3.8.1`
+- **이유**: 코드 포맷팅 일관성, TypeScript/JSX 지원
 
 ---
 
@@ -129,8 +131,8 @@
 |--------|------|-----------|----------|---------|--------------|
 | next | 16.1.6 | ✅ | ✅ | ✅ | ✅ |
 | react | 19.2.3 | ✅ | ✅ | ✅ | ✅ |
-| prisma | ^5.0.0 | ✅ | ✅ | ✅ | ✅ |
-| next-auth | ^5.0.0 | ✅ | ✅ | ✅ | ✅ |
+| prisma | ^5.23.0 | ✅ | ✅ | ✅ | ✅ |
+| next-auth | ^4.24.13 | ✅ | ✅ | ✅ | ✅ |
 | tailwindcss | ^4 | ✅ | ✅ | ✅ | ✅ |
 
 ---
@@ -145,9 +147,10 @@
 - **서버리스**: Pooled connection 필수
 - **환경변수**: `DATABASE_URL` (direct), `DATABASE_URL_UNPOOLED` (pooled)
 
-### 3. Auth.js v5
-- **주의**: v4와 호환 안 됨
-- **필수**: `@auth/prisma-adapter` v1.0.0 이상
+### 3. NextAuth.js v4
+- **안정성**: Production-ready stable 버전
+- **필수**: `@prisma/adapter` v2.11.1 (Prisma v7 호환)
+- **v5**: Beta 단계로 production 사용 권장하지 않음
 
 ### 4. Tailwind CSS v4
 - **변경사항**: PostCSS 설정 방식 변경
@@ -160,10 +163,11 @@
 ### dependencies
 ```json
 {
-  "@auth/prisma-adapter": "^1.0.0",
-  "@prisma/client": "^5.0.0",
+  "@prisma/adapter-neon": "^5.23.0",
+  "@prisma/client": "^5.23.0",
+  "@auth/prisma-adapter": "^2.11.1",
   "next": "16.1.6",
-  "next-auth": "^5.0.0",
+  "next-auth": "^4.24.13",
   "react": "19.2.3",
   "react-dom": "19.2.3"
 }
@@ -178,8 +182,8 @@
   "@types/react-dom": "^19",
   "eslint": "^9",
   "eslint-config-next": "16.1.6",
-  "prettier": "^3.0.0",
-  "prisma": "^5.0.0",
+  "prettier": "^3.8.1",
+  "prisma": "^5.23.0",
   "tailwindcss": "^4",
   "typescript": "^5"
 }
