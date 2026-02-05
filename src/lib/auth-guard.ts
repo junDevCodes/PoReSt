@@ -11,11 +11,14 @@ export async function getAuthSession(): Promise<Session | null> {
   return getServerSession(authOptions);
 }
 
-export function unauthorizedResponse(message = "Unauthorized") {
+const UNAUTHORIZED_MESSAGE = "인증이 필요합니다.";
+const FORBIDDEN_MESSAGE = "오너 권한이 필요합니다.";
+
+export function unauthorizedResponse(message = UNAUTHORIZED_MESSAGE) {
   return NextResponse.json({ error: message }, { status: 401 });
 }
 
-export function forbiddenResponse(message = "Forbidden") {
+export function forbiddenResponse(message = FORBIDDEN_MESSAGE) {
   return NextResponse.json({ error: message }, { status: 403 });
 }
 
