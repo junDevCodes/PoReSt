@@ -6,12 +6,21 @@ const globalForPrisma = globalThis as unknown as {
   prisma?: PrismaClient;
 };
 
-// Validate DATABASE_URL
-const databaseUrl = process.env.DATABASE_URL;
+// DATABASE_URL 확인
+const databaseUrl = process.env.DATABASE_URL ?? "";
 if (!databaseUrl) {
   throw new Error(
     "DATABASE_URL 환경변수가 설정되지 않았습니다. Vercel 환경변수를 확인해주세요."
   );
+}
+
+if (process.env.NEXTAUTH_DEBUG === "true") {
+  try {
+    const host = new URL(databaseUrl).host;
+    console.log(`DATABASE_URL 확인: ${host}`);
+  } catch (error) {
+    console.log("DATABASE_URL 파싱 실패");
+  }
 }
 
 const adapter = new PrismaNeon(new Pool({ connectionString: databaseUrl }) as any);
