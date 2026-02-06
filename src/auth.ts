@@ -5,6 +5,21 @@ import { prisma } from "@/lib/prisma";
 
 const isProd = process.env.NODE_ENV === "production";
 const ownerEmail = process.env.OWNER_EMAIL?.toLowerCase();
+const shouldDebug = process.env.NEXTAUTH_DEBUG === "true";
+
+if (shouldDebug) {
+  const rawDatabaseUrl = process.env.DATABASE_URL ?? "";
+  if (!rawDatabaseUrl) {
+    console.log("DATABASE_URL 상태: 미설정");
+  } else {
+    try {
+      const host = new URL(rawDatabaseUrl).host;
+      console.log(`DATABASE_URL 상태: 설정됨 (${host})`);
+    } catch (error) {
+      console.log("DATABASE_URL 상태: 파싱 실패");
+    }
+  }
+}
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
