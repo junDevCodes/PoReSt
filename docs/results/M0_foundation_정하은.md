@@ -10,6 +10,13 @@
 
 M0 Foundation 단계의 DevOps 기반 구축 작업을 완료했습니다. PostgreSQL 데이터베이스 설정, Vercel 배포 파이프라인 구성, Prisma 마이그레이션 자동화, 그리고 환경변수 템플릿 작성을 포함한 모든 인프라 기반이 준비되었습니다.
 
+## 🔄 2026-02-05 업데이트
+
+- DB 비밀번호 회전 완료
+- Vercel 환경변수 갱신 완료
+- Vercel 재배포 후 `prisma migrate deploy` 성공 확인
+- Neon SQL Editor에서 public 테이블 생성 확인
+
 ---
 
 ## ✅ 완료된 작업 항목
