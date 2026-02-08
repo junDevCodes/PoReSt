@@ -1,12 +1,37 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
+import { getMetadataBase } from "@/lib/site-url";
 import { createProjectsService } from "@/modules/projects";
 import { toPublicHomeViewModel } from "@/view-models/public-portfolio";
 
+const DEFAULT_OG_IMAGE_PATH = "/favicon.ico";
+
 export const metadata: Metadata = {
-  title: "홈 | Dev OS 포트폴리오",
+  metadataBase: getMetadataBase(),
+  title: "홈",
   description: "대표 프로젝트와 기본 프로필 정보를 제공하는 공개 포트폴리오 홈입니다.",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    siteName: "Dev OS",
+    url: "/",
+    title: "홈 | Dev OS 포트폴리오",
+    description: "대표 프로젝트와 기본 프로필 정보를 제공하는 공개 포트폴리오 홈입니다.",
+    images: [
+      {
+        url: DEFAULT_OG_IMAGE_PATH,
+      },
+    ],
+  },
+  twitter: {
+    card: "summary",
+    title: "홈 | Dev OS 포트폴리오",
+    description: "대표 프로젝트와 기본 프로필 정보를 제공하는 공개 포트폴리오 홈입니다.",
+    images: [DEFAULT_OG_IMAGE_PATH],
+  },
 };
 
 export const revalidate = 60;

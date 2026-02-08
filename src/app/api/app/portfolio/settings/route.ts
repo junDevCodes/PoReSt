@@ -1,12 +1,15 @@
 import { NextResponse } from "next/server";
 import { requireOwner } from "@/lib/auth-guard";
 import { prisma } from "@/lib/prisma";
+import { parseJsonBodyWithLimit } from "@/lib/request-json";
+import { revalidatePublicPortfolio } from "@/lib/revalidate-public";
 import {
   createPortfolioSettingsService,
 } from "@/modules/portfolio-settings/implementation";
 import {
   createPortfolioSettingsErrorResponse,
   createPortfolioSettingsInvalidJsonResponse,
+  createPortfolioSettingsPayloadTooLargeResponse,
 } from "@/modules/portfolio-settings/http";
 
 const portfolioSettingsService = createPortfolioSettingsService({ prisma });
@@ -33,18 +36,20 @@ export async function PUT(request: Request) {
     return authResult.response;
   }
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
+  const parsedBody = await parseJsonBodyWithLimit(request);
+  if (!parsedBody.ok) {
+    if (parsedBody.reason === "PAYLOAD_TOO_LARGE") {
+      return createPortfolioSettingsPayloadTooLargeResponse();
+    }
     return createPortfolioSettingsInvalidJsonResponse();
   }
 
   try {
     const settings = await portfolioSettingsService.upsertPortfolioSettingsForOwner(
       authResult.session.user.id,
-      body,
+      parsedBody.value,
     );
+    revalidatePublicPortfolio();
     return NextResponse.json({ data: settings });
   } catch (error) {
     return createPortfolioSettingsErrorResponse(error);

@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireOwner } from "@/lib/auth-guard";
+import { parseJsonBodyWithLimit } from "@/lib/request-json";
+import { revalidatePublicPortfolio } from "@/lib/revalidate-public";
 import {
   createInvalidJsonResponse,
+  createProjectPayloadTooLargeResponse,
   createProjectErrorResponse,
   createProjectsService,
 } from "@/modules/projects";
@@ -34,16 +37,22 @@ export async function PUT(request: Request, context: ProjectIdRouteContext) {
     return authResult.response;
   }
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
+  const parsedBody = await parseJsonBodyWithLimit(request);
+  if (!parsedBody.ok) {
+    if (parsedBody.reason === "PAYLOAD_TOO_LARGE") {
+      return createProjectPayloadTooLargeResponse();
+    }
     return createInvalidJsonResponse();
   }
 
   try {
     const params = await context.params;
-    const project = await projectsService.updateProject(authResult.session.user.id, params.id, body);
+    const project = await projectsService.updateProject(
+      authResult.session.user.id,
+      params.id,
+      parsedBody.value,
+    );
+    revalidatePublicPortfolio(project.slug);
     return NextResponse.json({ data: project });
   } catch (error) {
     return createProjectErrorResponse(error);
@@ -59,6 +68,7 @@ export async function DELETE(_: Request, context: ProjectIdRouteContext) {
   try {
     const params = await context.params;
     const deleted = await projectsService.deleteProject(authResult.session.user.id, params.id);
+    revalidatePublicPortfolio();
     return NextResponse.json({ data: deleted });
   } catch (error) {
     return createProjectErrorResponse(error);
