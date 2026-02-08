@@ -107,12 +107,12 @@
 
 # 4) Portfolio Admin
 
-## 4.1 Projects 관리 `/app/portfolio/projects`
+## 4.1 Projects 관리 `/app/projects`
 ### 리스트
 - 컬럼: Title / Visibility / Featured / UpdatedAt
 - 기능: 검색(Title), 필터(visibility=PUBLIC), 정렬(UpdatedAt)
 
-### 생성/편집 `/app/portfolio/projects/[id]`
+### 생성/편집 `/app/projects/[id]`
 **필드**
 - title (필수, 2~80자)
 - slug (필수, 유니크, 영문/숫자/하이픈 권장)
@@ -133,12 +133,12 @@
 
 ---
 
-## 4.2 Experiences 관리 `/app/portfolio/experiences`
+## 4.2 Experiences 관리 `/app/experiences`
 ### 리스트
 - 컬럼: Title / Period / Featured / UpdatedAt
 - 기능: 검색(Title), 태그 필터(techTags)
 
-### 생성/편집 `/app/portfolio/experiences/[id]`
+### 생성/편집 `/app/experiences/[id]`
 **필드**
 - role (필수)
 - company (선택)

@@ -200,10 +200,10 @@ Rules:
 
 ## 6.2 프로젝트 단건 조회/수정/삭제
 GET    `/api/app/projects/{id}`
-PATCH  `/api/app/projects/{id}`
+PUT    `/api/app/projects/{id}`
 DELETE `/api/app/projects/{id}`
 
-PATCH body: 변경 필드만 (partial)
+PUT body: 변경 필드만 (partial)
 
 ---
 
@@ -229,7 +229,7 @@ POST body:
 
 ## 6.4 경험 단건 조회/수정/삭제
 GET    `/api/app/experiences/{id}`
-PATCH  `/api/app/experiences/{id}`
+PUT    `/api/app/experiences/{id}`
 DELETE `/api/app/experiences/{id}`
 
 ---

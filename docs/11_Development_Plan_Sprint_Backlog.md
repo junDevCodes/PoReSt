@@ -77,7 +77,7 @@
 ### M1 — Portfolio Public + Admin (최우선)
 **범위**
 - Public: `/`, `/projects`, `/projects/[slug]`
-- Private: `/app/portfolio/*` (Projects/Experiences/Settings)
+- Private: `/app/projects*`, `/app/experiences*`, `/app/portfolio/settings`
 
 **핵심 작업**
 - PortfolioSettings CRUD(홈 구성/링크)

@@ -21,7 +21,7 @@ if (shouldDebug) {
       const host = new URL(databaseUrl).host;
       const source = primaryUrl ? "DATABASE_URL" : "DATABASE_URL_UNPOOLED";
       console.log(`DATABASE_URL 상태: 설정됨 (${source}, ${host})`);
-    } catch (error) {
+    } catch {
       console.log("DATABASE_URL 상태: 파싱 실패");
     }
   }

@@ -15,7 +15,7 @@ if (shouldDebug) {
     try {
       const host = new URL(rawDatabaseUrl).host;
       console.log(`DATABASE_URL 상태: 설정됨 (${host})`);
-    } catch (error) {
+    } catch {
       console.log("DATABASE_URL 상태: 파싱 실패");
     }
   }
@@ -29,7 +29,7 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
   },
   pages: {
-    signIn: "/auth/signin",
+    signIn: "/login",
   },
   providers: [
     GitHub({

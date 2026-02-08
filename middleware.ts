@@ -1,7 +1,7 @@
 ﻿import { type NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 
-const SIGN_IN_PATH = "/auth/signin";
+const SIGN_IN_PATH = "/login";
 const AUTH_REQUIRED_MESSAGE = "인증이 필요합니다.";
 const OWNER_REQUIRED_MESSAGE = "오너 권한이 필요합니다.";
 

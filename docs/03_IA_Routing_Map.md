@@ -17,9 +17,8 @@
 
 ### 1.2 Private (오너 전용: 로그인 필수)
 - Dashboard `/app`
-- Portfolio 관리 `/app/portfolio`
-  - Projects 관리: `/app/portfolio/projects`
-  - Experiences 관리: `/app/portfolio/experiences`
+- Projects 관리: `/app/projects`
+- Experiences 관리: `/app/experiences`
 - Resume 관리 `/app/resumes`
   - Resume 목록: `/app/resumes`
   - Resume 편집: `/app/resumes/[id]`
@@ -56,7 +55,7 @@
 | URL | 접근 | 목적 | 데이터 | 보안 |
 |---|---|---|---|---|
 | `/app` | Owner only | 대시보드 요약 | counts/recent | middleware 보호 |
-| `/app/portfolio/*` | Owner only | 포트폴리오 원본 관리 | Project/Experience CRUD | middleware + API 권한 |
+| `/app/projects*`, `/app/experiences*` | Owner only | 포트폴리오 원본 관리 | Project/Experience CRUD | middleware + API 권한 |
 | `/app/resumes/*` | Owner only | 회사/직무별 이력서 버전 | ResumeVersion CRUD | middleware + API 권한 |
 | `/app/notes/*` | Owner only | 지식노트 + 그래프 | Note/Edge CRUD | middleware + API 권한 |
 | `/app/blog/*` | Owner only | 블로그 작성/검수/Export | BlogPost CRUD + lint | middleware + API 권한 |
@@ -81,16 +80,14 @@ app/
     layout.tsx               # PrivateLayout (사이드바/탑바)
     app/
       page.tsx               # /app
-      portfolio/
-        page.tsx             # /app/portfolio (index)
-        projects/
-          page.tsx           # /app/portfolio/projects
-          [id]/
-            page.tsx         # edit
-        experiences/
+      projects/
+        page.tsx             # /app/projects
+        [id]/
           page.tsx
-          [id]/
-            page.tsx
+      experiences/
+        page.tsx             # /app/experiences
+        [id]/
+          page.tsx
       resumes/
         page.tsx             # /app/resumes
         [id]/
@@ -147,7 +144,7 @@ app/
 ---
 
 ## 6) 리다이렉트/에러 처리 규칙
-- `/app` 진입 시: 최근 작업 화면 또는 `/app/portfolio`로 이동(선호)
+- `/app` 진입 시: 최근 작업 화면 또는 `/app/projects`로 이동(선호)
 - 세션 만료: `/login?next=/app/...` 형태로 복귀 지원
 - 권한 없음: 403 페이지 또는 `/login`
 - Public 404: 프로젝트 slug 미존재 시 404 + 검색/목록 링크 제공
@@ -161,8 +158,8 @@ app/
 - `/projects/[slug]`: Problem→Approach→Architecture→Results→Links 템플릿
 
 ### 7.2 Private (초기)
-- `/app/portfolio/projects`: 목록/검색/정렬 + 생성 버튼
-- `/app/portfolio/experiences`: 목록/정렬 + 생성 버튼
+- `/app/projects`: 목록/검색/정렬 + 생성 버튼
+- `/app/experiences`: 목록/정렬 + 생성 버튼
 - `/app/resumes`: 버전 목록 + 생성(회사/직무)
 - `/app/notes`: 목록 + 작성 + 연관 후보(상세에서)
 - `/app/blog`: 목록 + 작성 + lint 패널(편집 화면)

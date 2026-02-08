@@ -1,4 +1,4 @@
-# PoReSt 개발 체크리스트
+﻿# PoReSt 개발 체크리스트
 
 ---
 
@@ -109,82 +109,82 @@
 - [ ] 마이그레이션 실행
 
 ### Public API
-- [ ] `GET /api/public/portfolio`
-  - [ ] PortfolioSettings 조회
-  - [ ] 대표 프로젝트 (visibility=PUBLIC + isFeatured=true)
-  - [ ] 대표 경험 (visibility=PUBLIC + isFeatured=true)
-  - [ ] DTO select (공개 필드만)
-- [ ] `GET /api/public/projects`
-  - [ ] visibility=PUBLIC 필터
+- [x] `GET /api/public/portfolio`
+  - [x] PortfolioSettings 조회
+  - [x] 대표 프로젝트 (visibility=PUBLIC + isFeatured=true)
+  - [x] 대표 경험 (visibility=PUBLIC + isFeatured=true)
+  - [x] DTO select (공개 필드만)
+- [x] `GET /api/public/projects`
+  - [x] visibility=PUBLIC 필터
   - [ ] 페이지네이션 (선택)
-  - [ ] DTO select
-- [ ] `GET /api/public/projects/[slug]`
-  - [ ] slug로 조회
-  - [ ] visibility 확인
-  - [ ] 404 처리
-  - [ ] DTO select
+  - [x] DTO select
+- [x] `GET /api/public/projects/[slug]`
+  - [x] slug로 조회
+  - [x] visibility 확인
+  - [x] 404 처리
+  - [x] DTO select
 
 ### Private API
-- [ ] `GET /api/app/portfolio/settings`
-  - [ ] 인증 가드
-  - [ ] ownerId scope
-- [ ] `PUT /api/app/portfolio/settings`
-  - [ ] 인증 가드
-  - [ ] 입력 검증 (Zod)
-- [ ] `GET /api/app/projects`
-  - [ ] 목록 조회
-  - [ ] ownerId scope
-- [ ] `POST /api/app/projects`
-  - [ ] 프로젝트 생성
-  - [ ] slug 중복 체크
-  - [ ] slug 자동 생성
-- [ ] `GET /api/app/projects/[id]`
-  - [ ] 상세 조회
-- [ ] `PUT /api/app/projects/[id]`
-  - [ ] 수정
-  - [ ] ownerId 검증
-- [ ] `DELETE /api/app/projects/[id]`
-  - [ ] 삭제
-  - [ ] ownerId 검증
-- [ ] `GET /api/app/experiences`
-- [ ] `POST /api/app/experiences`
-- [ ] `PUT /api/app/experiences/[id]`
-- [ ] `DELETE /api/app/experiences/[id]`
-- [ ] 에러 처리 (401/403/404/409/422)
+- [x] `GET /api/app/portfolio/settings`
+  - [x] 인증 가드
+  - [x] ownerId scope
+- [x] `PUT /api/app/portfolio/settings`
+  - [x] 인증 가드
+  - [x] 입력 검증 (Zod)
+- [x] `GET /api/app/projects`
+  - [x] 목록 조회
+  - [x] ownerId scope
+- [x] `POST /api/app/projects`
+  - [x] 프로젝트 생성
+  - [x] slug 중복 체크
+  - [x] slug 자동 생성
+- [x] `GET /api/app/projects/[id]`
+  - [x] 상세 조회
+- [x] `PUT /api/app/projects/[id]`
+  - [x] 수정
+  - [x] ownerId 검증
+- [x] `DELETE /api/app/projects/[id]`
+  - [x] 삭제
+  - [x] ownerId 검증
+- [x] `GET /api/app/experiences`
+- [x] `POST /api/app/experiences`
+- [x] `PUT /api/app/experiences/[id]`
+- [x] `DELETE /api/app/experiences/[id]`
+- [x] 에러 처리 (401/403/404/409/422)
 
 ### Public 페이지
-- [ ] `/` 홈 페이지
-  - [ ] Hero 섹션 (소개, 프로필)
-  - [ ] 대표 프로젝트 카드 (3개)
-  - [ ] 연락처/소셜 섹션
-  - [ ] 반응형 디자인
-- [ ] `/projects` 목록 페이지
-  - [ ] 프로젝트 그리드 레이아웃
+- [x] `/` 홈 페이지
+  - [x] Hero 섹션 (소개, 프로필)
+  - [x] 대표 프로젝트 카드 (3개)
+  - [x] 연락처/소셜 섹션
+  - [x] 반응형 디자인
+- [x] `/projects` 목록 페이지
+  - [x] 프로젝트 그리드 레이아웃
   - [ ] 필터링 UI (선택)
   - [ ] 페이지네이션 (선택)
-- [ ] `/projects/[slug]` 상세 페이지
-  - [ ] Problem 섹션
-  - [ ] Approach 섹션
-  - [ ] Results 섹션
-  - [ ] GitHub/Demo 링크
-  - [ ] 관련 기술 태그
+- [x] `/projects/[slug]` 상세 페이지
+  - [x] Problem 섹션
+  - [x] Approach 섹션
+  - [x] Results 섹션
+  - [x] GitHub/Demo 링크
+  - [x] 관련 기술 태그
 - [ ] 이미지 최적화 (Next.js Image)
 - [ ] 스크롤 애니메이션 (선택)
 
 ### SEO
-- [ ] 각 페이지 metadata export
-- [ ] title, description 작성
+- [x] 각 페이지 metadata export
+- [x] title, description 작성
 - [ ] OG 이미지 설정
-- [ ] `app/sitemap.ts` 생성
-- [ ] `app/robots.ts` 생성
+- [x] `app/sitemap.ts` 생성
+- [x] `app/robots.ts` 생성
 - [ ] Open Graph 테스트
 
 ### Admin UI
-- [ ] `/app/portfolio/settings` 설정 페이지
-  - [ ] 프로필 편집 폼
-  - [ ] 소셜 링크 편집
-- [ ] `/app/projects` 목록
-  - [ ] 테이블/카드 뷰
+- [x] `/app/portfolio/settings` 설정 페이지
+  - [x] 프로필 편집 폼
+  - [x] 소셜 링크 편집
+- [x] `/app/projects` 목록
+  - [x] 테이블/카드 뷰
   - [ ] 정렬, 필터
 - [ ] `/app/projects/new` 생성 폼
   - [ ] Markdown 에디터
@@ -192,12 +192,12 @@
   - [ ] 태그 입력
   - [ ] visibility 토글
 - [ ] `/app/projects/[id]/edit` 편집 폼
-- [ ] `/app/experiences` CRUD UI
-- [ ] 대표 프로젝트 토글 (isFeatured)
+- [x] `/app/experiences` CRUD UI
+- [x] 대표 프로젝트 토글 (isFeatured)
 - [ ] 폼 검증 (Zod + React Hook Form)
 
 ### 성능
-- [ ] ISR 적용 (`revalidate` 설정)
+- [x] ISR 적용 (`revalidate` 설정)
 - [ ] on-demand revalidate (선택)
 - [ ] 이미지 lazy loading
 - [ ] Lighthouse 90+
@@ -337,11 +337,11 @@
 
 - [x] `/app/*` 비인증 차단
 - [x] `/api/app/*` 세션 체크
-- [ ] `/api/app/*` ownerId scope 강제
-- [ ] Public API DTO 강제
+- [x] `/api/app/*` ownerId scope 강제
+- [x] Public API DTO 강제
 - [x] 세션 쿠키 보안
-- [ ] slug 길이 제한 (100자)
-- [ ] slug 허용 문자 검증
+- [x] slug 길이 제한 (100자)
+- [x] slug 허용 문자 검증
 - [ ] JSON 크기 제한 (1MB)
 - [ ] XSS 방어
 
@@ -350,7 +350,7 @@
 ## 📊 성능 (Public)
 
 - [ ] Lighthouse Performance 90+
-- [ ] ISR 적용
+- [x] ISR 적용
 - [ ] 이미지 최적화
 - [ ] Core Web Vitals (LCP, FID, CLS)
 
@@ -359,10 +359,11 @@
 ## 📈 DoD (작업 완료 기준)
 
 - [ ] 기능 동작 확인
-- [ ] 예외 처리 (401/403/404/409/422)
-- [ ] 타입 에러 0건
-- [ ] 린트 에러 0건
-- [ ] 빌드 성공
-- [ ] 테스트 1개 이상
+- [x] 예외 처리 (401/403/404/409/422)
+- [x] 타입 에러 0건
+- [x] 린트 에러 0건
+- [x] 빌드 성공
+- [x] 테스트 1개 이상
 - [ ] PR 리뷰 승인
 - [ ] CI 통과
+
