@@ -245,6 +245,22 @@
 - [x] 통합 테스트 추가 (`src/modules/resumes/tests/implementation.integration.test.ts`)
 - [x] 통합 테스트 실통과 (DATABASE_URL_TEST 인증정보 정상화 완료)
 
+### 문서/배포 체크
+- [x] M2 Preview 체크리스트 작성 (`results/deploy_checklist_m2.md`)
+- [x] M2 Production 체크리스트 작성 (`results/deploy_checklist_m2_production.md`)
+- [x] M2 완료 상태를 `plans/task.md`와 동기화
+
+---
+
+## 실행 우선순위 (2026-02-11 확정)
+
+- [x] M1 핵심 + M2 핵심 완료
+- [ ] M3 완료
+- [ ] M4 완료
+- [ ] M5 완료
+- [ ] M1.1 Deferred 항목 수행 (M5 완료 후)
+- [ ] 세부 UI/UX 개선 작업 수행 (M5 완료 후)
+
 ---
 
 ## M3 — Notes

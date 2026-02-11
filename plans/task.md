@@ -1,6 +1,6 @@
 ﻿# PoReSt 작업 현황
 
-## 현재 마일스톤: M1 - Portfolio
+## 현재 마일스톤: M3 - Notes (착수 준비)
 
 ---
 
@@ -218,6 +218,21 @@
 - [x] `src/modules/resumes/tests/validation.test.ts`
 - [x] `src/modules/resumes/tests/implementation.integration.test.ts` 추가
 - [x] 통합 테스트 실통과 (DATABASE_URL_TEST 인증정보 정상화 완료)
+
+### 운영/문서 마감
+- [x] M2 배포 체크리스트 작성 (`results/deploy_checklist_m2.md`)
+- [x] M2 Production 체크리스트 작성 (`results/deploy_checklist_m2_production.md`)
+- [x] 로컬 게이트 확인 (`lint`, `build`, `jest --runInBand`)
+
+---
+
+## 다음 실행 순서 (고정)
+
+- [x] M2 핵심 완료 및 문서 마감
+- [ ] M3 구현/검증/배포
+- [ ] M4 구현/검증/배포
+- [ ] M5 구현/검증/배포
+- [ ] M1.1 Deferred + UI/UX 고도화 (M5 완료 후 수행)
 
 ---
 
