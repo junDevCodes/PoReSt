@@ -1,6 +1,6 @@
 ﻿# PoReSt 작업 현황
 
-## 현재 마일스톤: M5 - Feedback 🚧 로컬 완료, 배포 대기
+## 현재 마일스톤: M5 - Feedback ✅ 완료, 리뷰 대기
 
 ---
 
@@ -232,8 +232,9 @@
 - [x] M3 구현/검증/배포
 - [x] M4 구현/검증/배포
 - [x] M5 구현/로컬 검증
-- [ ] M5 Preview/Production 배포
-- [ ] M1.1 Deferred + UI/UX 고도화 (M5 완료 후 수행)
+- [x] M5 Preview 배포 및 스모크 검증
+- [x] M5 Production 배포 및 스모크 검증
+- [ ] M1.1 Deferred + UI/UX 고도화 (리뷰 반영 후 수행)
 
 ---
 
@@ -392,7 +393,7 @@
 
 ---
 
-## M5 - Feedback ✅ 핵심 구현 완료 (배포 대기)
+## M5 - Feedback ✅ 핵심 완료
 
 ### Prisma 스키마
 - [x] FeedbackRequest 모델
