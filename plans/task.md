@@ -1,6 +1,6 @@
 ﻿# PoReSt 작업 현황
 
-## 현재 마일스톤: M3 - Notes ✅ 핵심 마감
+## 현재 마일스톤: M5 - Feedback 📋 예정
 
 ---
 
@@ -230,7 +230,7 @@
 
 - [x] M2 핵심 완료 및 문서 마감
 - [x] M3 구현/검증/배포
-- [ ] M4 구현/검증/배포
+- [x] M4 구현/검증/배포
 - [ ] M5 구현/검증/배포
 - [ ] M1.1 Deferred + UI/UX 고도화 (M5 완료 후 수행)
 
@@ -309,73 +309,85 @@
 
 ---
 
-## M4 - Blog 📋 예정
+## M4 - Blog ✅ 핵심 마감
 
 ### Prisma 스키마
-- [ ] BlogPost 모델
-  - [ ] title, contentMd
-  - [ ] status (DRAFT/PUBLISHED/ARCHIVED)
-  - [ ] lintResultJson
-  - [ ] publishedAt
-- [ ] BlogExternalPost 모델 (선택)
-  - [ ] externalUrl, platform
-  - [ ] syncStatus
-- [ ] 마이그레이션 실행
+- [x] BlogPost 모델
+  - [x] title, contentMd
+  - [x] status (DRAFT/PUBLISHED/ARCHIVED)
+  - [x] lintReportJson
+  - [x] createdAt/updatedAt/deletedAt
+- [x] BlogExternalPost 모델 (선택)
+  - [x] externalUrl, integration 연계
+  - [ ] syncStatus 전용 필드 (M4.1 Deferred)
+- [x] 마이그레이션 실행 (기존 통합 체인 적용)
 
 ### API
-- [ ] `GET /api/app/blog/posts`
-- [ ] `POST /api/app/blog/posts`
-- [ ] `GET /api/app/blog/posts/[id]`
-- [ ] `PUT /api/app/blog/posts/[id]`
-- [ ] `DELETE /api/app/blog/posts/[id]`
-- [ ] `POST /api/app/blog/posts/[id]/lint`
-  - [ ] Lint 실행
-  - [ ] lintResultJson 저장
-- [ ] `GET /api/app/blog/posts/[id]/export`
-  - [ ] HTML/MD Export
-  - [ ] ZIP 아카이브
+- [x] `GET /api/app/blog/posts`
+- [x] `POST /api/app/blog/posts`
+- [x] `GET /api/app/blog/posts/[id]`
+- [x] `PUT /api/app/blog/posts/[id]`
+- [x] `DELETE /api/app/blog/posts/[id]`
+- [x] `POST /api/app/blog/posts/[id]/lint`
+  - [x] Lint 실행
+  - [x] lintResultJson 저장
+- [x] `GET /api/app/blog/posts/[id]/export`
+  - [x] HTML/MD Export
+  - [x] ZIP 아카이브
 - [ ] `CRUD /api/app/blog/external` (선택)
 
+### 테스트
+- [x] `src/modules/blog/tests/validation.test.ts`
+- [x] `src/modules/blog/tests/implementation.integration.test.ts`
+- [x] `src/modules/blog/tests/lint.test.ts`
+- [x] `src/modules/blog/tests/export.test.ts`
+
 ### Lint 엔진
-- [ ] Rule Interface 정의
-- [ ] Rule 구현
-  - [ ] Rule 1: Long sentence (45자 이상)
-  - [ ] Rule 2: 반복 표현 (n-gram)
-  - [ ] Rule 3: 모호 표현 ("같다", "느낌")
-  - [ ] Rule 4: 근거 없는 단정
-  - [ ] Rule 5: 문단 과다 길이
-  - [ ] Rule 6: 단위/숫자 불일치
-  - [ ] Rule 7: 코드블록만 있고 설명 부족
-  - [ ] Rule 8: 금칙어 리스트
-  - [ ] Rule 9: 제목-본문 불일치
+- [x] Rule Interface 정의
+- [x] Rule 구현
+  - [x] Rule 1: Long sentence (45자 이상)
+  - [x] Rule 2: 반복 표현 (n-gram)
+  - [x] Rule 3: 모호 표현 ("같다", "느낌")
+  - [x] Rule 4: 근거 없는 단정
+  - [x] Rule 5: 문단 과다 길이
+  - [x] Rule 6: 단위/숫자 불일치
+  - [x] Rule 7: 코드블록만 있고 설명 부족
+  - [x] Rule 8: 금칙어 리스트
+  - [x] Rule 9: 제목-본문 불일치
   - [ ] Rule 10: 맞춤법 (선택)
-- [ ] Lint Pipeline 구현
+- [x] Lint Pipeline 구현
 - [ ] Ignore 사유 저장 (선택)
 
 ### Export 기능
-- [ ] HTML Export
-  - [ ] 템플릿 적용
-  - [ ] 스타일 포함
-- [ ] Markdown Export
-- [ ] ZIP 아카이브
-  - [ ] HTML + MD + 이미지
-- [ ] Export URL 반환
+- [x] HTML Export
+  - [x] 템플릿 적용
+  - [x] 스타일 포함
+- [x] Markdown Export
+- [x] ZIP 아카이브
+  - [x] HTML + MD
+  - [ ] 이미지 번들링 (M4.1 Deferred)
+- [x] Export URL 반환
 
 ### UI
-- [ ] `/app/blog`
-  - [ ] 글 목록 (status별 필터)
-  - [ ] 생성/편집/삭제 버튼
-- [ ] `/app/blog/new`
-  - [ ] Markdown 에디터
-  - [ ] 실시간 프리뷰
-- [ ] `/app/blog/[id]/edit`
-  - [ ] 편집 폼
-  - [ ] Lint 결과 표시
-    - [ ] severity 색상 구분
-    - [ ] message, line 표시
-  - [ ] Lint 재실행 버튼
-- [ ] Export 다운로드 버튼
+- [x] `/app/blog`
+  - [x] 글 목록 (status/visibility 표시)
+  - [x] 생성/편집/삭제 버튼
+- [x] `/app/blog/new`
+  - [x] Markdown 입력 UI
+  - [ ] 실시간 프리뷰 (M4.1 Deferred)
+- [x] `/app/blog/[id]/edit`
+  - [x] 편집 폼
+  - [x] Lint 결과 표시
+    - [x] severity/message/line 표시
+  - [x] Lint 재실행 버튼
+- [x] Export 다운로드 버튼
 - [ ] 외부 URL 등록 UI (선택)
+
+### M4.1 Deferred
+- [ ] Rule 10(맞춤법) 추가
+- [ ] 외부 블로그 연동 API/UI
+- [ ] ZIP 내 이미지 번들링
+- [ ] 실시간 Markdown 프리뷰 고도화
 
 ---
 
@@ -465,4 +477,5 @@
 - [x] ISR 적용
 - [ ] 이미지 최적화
 - [ ] Core Web Vitals
+
 
