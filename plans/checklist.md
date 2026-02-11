@@ -256,7 +256,7 @@
 
 - [x] M1 핵심 + M2 핵심 완료
 - [x] M3 완료
-- [ ] M4 완료
+- [x] M4 완료
 - [ ] M5 완료
 - [ ] M1.1 Deferred 항목 수행 (M5 완료 후)
 - [ ] 세부 UI/UX 개선 작업 수행 (M5 완료 후)
@@ -300,39 +300,39 @@
 ## M4 — Blog
 
 ### 스키마
-- [ ] BlogPost 모델 (title, contentMd, status, lintResultJson)
-- [ ] BlogExternalPost 모델 (선택)
-- [ ] status enum (DRAFT/PUBLISHED/ARCHIVED)
+- [x] BlogPost 모델 (title, contentMd, status, lintReportJson)
+- [x] BlogExternalPost 모델 (선택)
+- [x] status enum (DRAFT/PUBLISHED/ARCHIVED)
 
 ### API
-- [ ] `/api/app/blog/posts` CRUD
-- [ ] `/api/app/blog/posts/[id]/lint`
-- [ ] `/api/app/blog/posts/[id]/export`
+- [x] `/api/app/blog/posts` CRUD
+- [x] `/api/app/blog/posts/[id]/lint`
+- [x] `/api/app/blog/posts/[id]/export`
 
 ### Lint 엔진
-- [ ] Rule Interface 정의
-- [ ] Rule 1: Long sentence (45자 이상)
-- [ ] Rule 2: 반복 표현
-- [ ] Rule 3: 모호 표현 밀도
-- [ ] Rule 4: 근거 없는 단정
-- [ ] Rule 5: 문단 과다 길이
-- [ ] Rule 6: 단위/숫자 불일치
-- [ ] Rule 7: 코드블록만 있고 설명 부족
-- [ ] Rule 8: 금칙어 리스트
-- [ ] Rule 9: 제목-본문 불일치
+- [x] Rule Interface 정의
+- [x] Rule 1: Long sentence (45자 이상)
+- [x] Rule 2: 반복 표현
+- [x] Rule 3: 모호 표현 밀도
+- [x] Rule 4: 근거 없는 단정
+- [x] Rule 5: 문단 과다 길이
+- [x] Rule 6: 단위/숫자 불일치
+- [x] Rule 7: 코드블록만 있고 설명 부족
+- [x] Rule 8: 금칙어 리스트
+- [x] Rule 9: 제목-본문 불일치
 - [ ] Rule 10: 맞춤법 (선택)
 
 ### Export
-- [ ] HTML Export
-- [ ] Markdown Export
-- [ ] ZIP 아카이브
+- [x] HTML Export
+- [x] Markdown Export
+- [x] ZIP 아카이브
 
 ### UI
-- [ ] `/app/blog` 목록
-- [ ] `/app/blog/new` 작성
-- [ ] `/app/blog/[id]/edit` 편집
-- [ ] Lint 결과 표시
-- [ ] Export 다운로드
+- [x] `/app/blog` 목록
+- [x] `/app/blog/new` 작성
+- [x] `/app/blog/[id]/edit` 편집
+- [x] Lint 결과 표시
+- [x] Export 다운로드
 
 ---
 
@@ -397,4 +397,5 @@
 - [x] 테스트 1개 이상
 - [ ] PR 리뷰 승인
 - [ ] CI 통과
+
 
