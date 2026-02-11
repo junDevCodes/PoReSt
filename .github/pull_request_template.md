@@ -1,107 +1,61 @@
-## 📋 Pull Request Checklist
+# 📝 Pull Request Template
 
-### PR Type
-<!-- Check all that apply -->
-- [ ] 🐛 Bug fix
-- [ ] ✨ New feature
-- [ ] 🔥 Breaking change
-- [ ] 📝 Documentation update
-- [ ] 🎨 UI/UX improvement
-- [ ] ♻️ Refactoring
-- [ ] ✅ Test update
-- [ ] 🔧 Configuration change
+## #️⃣ Issue Number
 
-### Related Issues
-<!-- Link related issues/tasks -->
-Closes #
+<!-- 이 PR이 해결하는 이슈 번호를 적어주세요. -->
+<!-- ex) #123 -->
 
-### Description
-<!-- Briefly describe what this PR does -->
-
-
-### Changes Made
-<!-- List the key changes -->
-- 
-- 
-- 
-
-### Testing
-<!-- Describe how you tested these changes -->
-
-#### Local Testing
-- [ ] Tested locally with `npm run dev`
-- [ ] Ran build with `npm run build`
-- [ ] Tested production build with `npm start`
-
-#### Database Changes (if applicable)
-- [ ] Created Prisma migration
-- [ ] Tested migration locally
-- [ ] Verified schema changes in Prisma Studio
-
-#### Preview Deployment
-- [ ] Verified Preview URL (added by Vercel bot)
-- [ ] Tested all affected routes
-- [ ] Checked console for errors
-
-### Screenshots/Videos (if applicable)
-<!-- Add screenshots or screen recordings for UI changes -->
-
-
-### Checklist
-- [ ] Code follows project style guidelines
-- [ ] Self-reviewed my own code
-- [ ] Commented code in hard-to-understand areas
-- [ ] Updated documentation (if needed)
-- [ ] No new warnings generated
-- [ ] Added tests that prove my fix/feature works (if applicable)
-- [ ] New and existing tests pass locally
-
-### Database Migrations
-<!-- Only fill if this PR includes database changes -->
-- [ ] Migration file created and included
-- [ ] Migration tested locally
-- [ ] Rollback plan documented (if needed)
-
-### Deployment Notes
-<!-- Any special deployment considerations -->
-- [ ] No special deployment steps required
-- [ ] Requires environment variable updates (list below)
-- [ ] Requires manual migration (list steps below)
-
-**Environment Variables** (if any):
-```
-# Example
-NEW_API_KEY=xxx
-```
-
-**Manual Steps** (if any):
-1. 
-2. 
-
-### Reviewer Notes
-<!-- Anything specific you want reviewers to focus on -->
-
+<!-- 문제 해결 이후 브랜치 PR 시 아래 예시와 같이 작성해주세요 -->
+<!-- ex) close #123 -->
 
 ---
 
-### For Reviewers
+## 📝 요약 (Summary)
 
-**Backend (박지훈)**: 
-- [ ] API endpoints reviewed
-- [ ] Database queries optimized
-- [ ] Error handling adequate
+<!-- 변경 사항 및 관련 이슈에 대해 간단하게 작성해주세요. -->
+<!-- 무엇을 왜 변경했는지, 해당 PR의 목적을 요약해주세요. -->
 
-**Frontend (이서현)**: 
-- [ ] UI/UX consistent with design
-- [ ] Responsive design verified
-- [ ] Accessibility considered
+---
 
-**DevOps (정하은)**: 
-- [ ] Deployment config reviewed
-- [ ] Environment variables documented
-- [ ] Build process verified
+## 🛠️ PR 유형 (Type of Changes)
 
-**QA (강민서)**: 
-- [ ] Test coverage adequate
-- [ ] Edge cases considered
-- [ ] Performance acceptable
+<!-- 아래 선택지에서 해당하는 사항을 모두 선택하세요. -->
+
+- [ ] ✨ 새로운 기능 추가 (New Feature)
+- [ ] 🐛 버그 수정 (Bug Fix)
+- [ ] 🎨 UI/UX 변경 (UI/UX Update)
+- [ ] 🛠️ 코드 리팩토링 (Code Refactor)
+- [ ] 📚 문서 수정 (Documentation Update)
+- [ ] 🧪 테스트 추가 / 수정 (Testing)
+- [ ] 🔧 빌드 설정 변경 (Build/Package Manager)
+- [ ] 🚚 파일 및 폴더 구조 변경 (File/Folder Structure)
+
+---
+
+## 📸 스크린샷 (Screenshots - 선택)
+
+<!-- 변경된 UI나 주요 기능을 보여줄 수 있는 스크린샷이 있다면 첨부해주세요. -->
+<!-- ex)
+| Before | After |
+|-------|-------|
+| ![Before](url) | ![After](url) |
+-->
+
+---
+
+## 💬 리뷰 요청 사항 (Notes for Reviewers)
+
+<!-- 리뷰어가 중점적으로 봐줬으면 하는 부분이나 논의가 필요한 내용을 적어주세요. -->
+<!-- ex) "메서드 XXX의 이름을 더 명확하게 하고 싶습니다. 추천이 있으면 알려주세요!" -->
+
+---
+
+## ✅ PR 체크리스트 (PR Checklist)
+
+PR이 다음 요구 사항을 충족하는지 확인하세요.
+
+- [ ] 📖 커밋 메시지가 팀의 컨벤션에 맞게 작성되었습니다.
+- [ ] 🧪 변경 사항에 대한 테스트를 완료했습니다.
+- [ ] 🛠️ 빌드와 실행 테스트를 통과했습니다.
+- [ ] 📚 관련 문서가 최신 상태로 업데이트되었습니다. (예: README, Wiki)
+- [ ] 🤝 리뷰어와 논의한 내용이 반영되었습니다.
