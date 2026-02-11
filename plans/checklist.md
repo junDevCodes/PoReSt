@@ -339,28 +339,28 @@
 ## M5 — Feedback
 
 ### 스키마
-- [ ] FeedbackRequest 모델 (targetType, targetId, context)
-- [ ] FeedbackItem 모델 (category, severity, message)
-- [ ] targetType enum (PORTFOLIO/RESUME/NOTE/BLOG)
+- [x] FeedbackRequest 모델 (targetType, targetId, context)
+- [x] FeedbackItem 모델 (title, severity, message)
+- [x] targetType enum (PORTFOLIO/RESUME/NOTE/BLOG)
 
 ### API
-- [ ] `/api/app/feedback` 목록/생성
-- [ ] `/api/app/feedback/[id]` 상세
-- [ ] `/api/app/feedback/[id]/run` 실행
-- [ ] `/api/app/feedback/compare` 비교
+- [x] `/api/app/feedback` 목록/생성
+- [x] `/api/app/feedback/[id]` 상세
+- [x] `/api/app/feedback/[id]/run` 실행
+- [x] `/api/app/feedback/compare` 비교
 
 ### 엔진
-- [ ] Resume 체크 템플릿
-- [ ] Portfolio 체크 템플릿
-- [ ] Note 체크 템플릿
-- [ ] Blog 체크 템플릿
-- [ ] 실행 로직
+- [x] Resume 체크 템플릿
+- [x] Portfolio 체크 템플릿
+- [x] Note 체크 템플릿
+- [x] Blog 체크 템플릿
+- [x] 실행 로직
 
 ### UI
-- [ ] `/app/feedback` 목록
-- [ ] `/app/feedback/new` 실행
-- [ ] `/app/feedback/[id]` 결과
-- [ ] 비교 UI (diff)
+- [x] `/app/feedback` 목록
+- [x] `/app/feedback/new` 실행
+- [x] `/app/feedback/[id]` 결과
+- [x] 비교 UI (diff)
 
 ---
 
