@@ -70,4 +70,45 @@ describe("public portfolio view models", () => {
     expect(viewModel?.sections.results).toBe("성과");
     expect(viewModel?.sections.links).toBe("https://example.com");
   });
+
+  it("허용되지 않은 URL 스킴은 뷰모델에서 제거해야 한다", () => {
+    // 준비: javascript 스킴이 포함된 입력 데이터
+    const input = {
+      profile: {
+        displayName: "테스트 사용자",
+        links: [
+          { label: "unsafe", url: "javascript:alert(1)" },
+          { label: "safe", url: "https://example.com" },
+        ],
+      },
+      featuredProjects: [
+        {
+          id: "project-1",
+          slug: "project-1",
+          title: "프로젝트",
+          repoUrl: "javascript:alert(2)",
+          demoUrl: "https://demo.example.com",
+        },
+      ],
+      featuredExperiences: [],
+    };
+
+    // 실행: 뷰모델 변환
+    const home = toPublicHomeViewModel(input);
+    const detail = toPublicProjectDetailViewModel({
+      id: "project-1",
+      slug: "project-1",
+      title: "프로젝트",
+      contentMd: "## Problem\n문제",
+      repoUrl: "javascript:alert(3)",
+      demoUrl: "https://demo.example.com",
+    });
+
+    // 검증: 허용 스킴만 남고 나머지는 제거되어야 한다
+    expect(home.profile.links).toEqual([{ label: "safe", url: "https://example.com/" }]);
+    expect(home.featuredProjects[0]?.repoUrl).toBeNull();
+    expect(home.featuredProjects[0]?.demoUrl).toBe("https://demo.example.com/");
+    expect(detail?.repoUrl).toBeNull();
+    expect(detail?.demoUrl).toBe("https://demo.example.com/");
+  });
 });

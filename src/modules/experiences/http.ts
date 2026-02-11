@@ -15,6 +15,18 @@ export function createExperienceInvalidJsonResponse() {
   );
 }
 
+export function createExperiencePayloadTooLargeResponse() {
+  return NextResponse.json(
+    {
+      error: {
+        code: "PAYLOAD_TOO_LARGE",
+        message: "요청 본문 크기는 1MB를 초과할 수 없습니다.",
+      },
+    },
+    { status: 413 },
+  );
+}
+
 export function createExperienceErrorResponse(error: unknown) {
   if (isExperienceServiceError(error)) {
     return NextResponse.json(

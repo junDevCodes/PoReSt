@@ -8,7 +8,8 @@
 ## 게이트 결과
 - `npm run lint` 통과
 - `npm run build` 통과
-- `.env.local` 로드 후 `npx jest --runInBand` 통과 (9/9 suite, 34/34 test)
+- `npx jest --runInBand` 통과
+- 참고: 통합 테스트 4개 스위트는 `DATABASE_URL_TEST` 인증정보 유효성에 따라 성공/실패가 갈림
 
 ## FR 매트릭스
 | ID | 판정 | 근거 |
@@ -17,7 +18,7 @@
 | FR-PUB-02 | Pass | 프로젝트 목록 페이지 렌더: `src/app/(public)/projects/page.tsx` |
 | FR-PUB-03 | Pass | slug 상세 페이지 렌더/404 처리: `src/app/(public)/projects/[slug]/page.tsx` |
 | FR-PUB-04 | Pass | 상세 템플릿(Problem/Approach/Architecture/Results/Links) 렌더: `src/app/(public)/projects/[slug]/page.tsx` |
-| FR-PUB-05 | Partial | metadata/sitemap/robots 구현 완료(`src/app/sitemap.ts`, `src/app/robots.ts`), OG/canonical 보강 필요 |
+| FR-PUB-05 | Pass | metadata/sitemap/robots + canonical/OG 보강 완료(`src/app/(public)/layout.tsx`, `src/app/(public)/page.tsx`, `src/app/(public)/projects/page.tsx`, `src/app/(public)/projects/[slug]/page.tsx`, `src/app/sitemap.ts`, `src/app/robots.ts`) |
 | FR-PUB-06 | Pass | Public index + Private noindex: `src/app/(private)/layout.tsx` |
 | FR-AUTH-01 | Pass | `/app/*` 비인증 접근 시 `/login?next=...` 리다이렉트: `middleware.ts`, `src/lib/__tests__/middleware-auth-flow.test.ts` |
 | FR-AUTH-02 | Pass | 로그인 시 `next` 우선 callback 적용: `src/components/auth/OwnerSignInView.tsx` |
@@ -34,12 +35,14 @@
 |---|---|---|
 | AC-01 | Pass | Public 3페이지 구현 및 빌드 통과: `src/app/(public)/page.tsx`, `src/app/(public)/projects/page.tsx`, `src/app/(public)/projects/[slug]/page.tsx` |
 | AC-02 | Pass | `/app/*`, `/api/app/*` 차단/401/403 검증: `middleware.ts`, `src/lib/__tests__/middleware-auth-flow.test.ts` |
-| AC-03 | Partial | CRUD 반영은 충족하나 Public ISR(`revalidate=60`)로 최대 60초 지연 가능, 즉시 반영 보장은 on-demand revalidate 필요 |
+| AC-03 | Pass | on-demand revalidate 엔드포인트와 변경 이벤트 연계 반영: `src/app/api/app/revalidate/route.ts`, `src/lib/revalidate-public.ts`, `src/app/api/app/projects/route.ts`, `src/app/api/app/projects/[id]/route.ts`, `src/app/api/app/experiences/route.ts`, `src/app/api/app/experiences/[id]/route.ts`, `src/app/api/app/portfolio/settings/route.ts` |
 
 ## 배포 증거
-- Preview URL: `미등록 (로컬 검증 완료, 배포 미실행)`
-- Production URL: `미등록 (Preview 승인 후 진행)`
+- Preview URL: `https://porest-ivxws22k6-joonaengs-projects.vercel.app`
+- Production URL: `https://porest-eight.vercel.app`
+- Production 커스텀 도메인: `https://www.jundevcodes.info`
+- 배포 기준 커밋: `c5f30fd` (배포일: 2026-02-08)
 
 ## 보류(Deferred)
-- OG 이미지/Canonical 정책 강화 (FR-PUB-05 잔여)
-- Public 즉시 반영(on-demand revalidate) (AC-03 잔여)
+- OG 이미지 자산 고도화 및 Open Graph 테스트
+- 이미지 최적화/지연 로딩 및 Lighthouse 90+

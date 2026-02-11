@@ -2,10 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import {
-  createProjectsService,
-  isProjectServiceError,
-} from "@/modules/projects";
+import { getMetadataBase } from "@/lib/site-url";
+import { createProjectsService, isProjectServiceError } from "@/modules/projects";
 import { toPublicProjectDetailViewModel } from "@/view-models/public-portfolio";
 
 type ProjectDetailProps = {
@@ -15,22 +13,76 @@ type ProjectDetailProps = {
 export const revalidate = 60;
 
 const projectsService = createProjectsService({ prisma });
+const DEFAULT_OG_IMAGE_PATH = "/favicon.ico";
 
 export async function generateMetadata({
   params,
 }: ProjectDetailProps): Promise<Metadata> {
   const resolvedParams = await params;
+  const canonicalPath = `/projects/${encodeURIComponent(resolvedParams.slug)}`;
 
   try {
     const project = await projectsService.getPublicProjectBySlug(resolvedParams.slug);
+    const title = project.title;
+    const socialTitle = `${project.title} | Dev OS`;
+    const description = project.subtitle ?? "프로젝트 상세 페이지";
+
     return {
-      title: `${project.title} | Dev OS`,
-      description: project.subtitle ?? "프로젝트 상세 페이지",
+      metadataBase: getMetadataBase(),
+      title,
+      description,
+      alternates: {
+        canonical: canonicalPath,
+      },
+      openGraph: {
+        type: "article",
+        siteName: "Dev OS",
+        url: canonicalPath,
+        title: socialTitle,
+        description,
+        images: [
+          {
+            url: DEFAULT_OG_IMAGE_PATH,
+          },
+        ],
+      },
+      twitter: {
+        card: "summary",
+        title: socialTitle,
+        description,
+        images: [DEFAULT_OG_IMAGE_PATH],
+      },
     };
   } catch {
+    const title = "프로젝트 상세";
+    const socialTitle = "프로젝트 상세 | Dev OS";
+    const description = "프로젝트 상세 페이지";
+
     return {
-      title: "프로젝트 상세 | Dev OS",
-      description: "프로젝트 상세 페이지",
+      metadataBase: getMetadataBase(),
+      title,
+      description,
+      alternates: {
+        canonical: canonicalPath,
+      },
+      openGraph: {
+        type: "article",
+        siteName: "Dev OS",
+        url: canonicalPath,
+        title: socialTitle,
+        description,
+        images: [
+          {
+            url: DEFAULT_OG_IMAGE_PATH,
+          },
+        ],
+      },
+      twitter: {
+        card: "summary",
+        title: socialTitle,
+        description,
+        images: [DEFAULT_OG_IMAGE_PATH],
+      },
     };
   }
 }
@@ -121,9 +173,7 @@ export default async function ProjectDetailPage({ params }: ProjectDetailProps) 
               </a>
             ) : null}
             {!viewModel.repoUrl && !viewModel.demoUrl ? (
-              <p className="text-sm text-black/60">
-                외부 링크를 준비 중입니다.
-              </p>
+              <p className="text-sm text-black/60">외부 링크를 준비 중입니다.</p>
             ) : null}
           </div>
           {viewModel.sections.links ? (

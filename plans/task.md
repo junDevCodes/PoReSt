@@ -51,28 +51,28 @@
 
 ---
 
-## M1 - Portfolio 🔄 진행 중
+## M1 - Portfolio ✅ 핵심 마감
 
 ### 선행 작업
-- [ ] 문서 정합성 확정 (docs/plan/*, 06/07/08/09, 00_README)
+- [x] 문서 정합성 확정 (docs/plan/*, 06/07/08/09, 00_README)
 
 ### Prisma 스키마
-- [ ] PortfolioSettings 모델
-  - [ ] publicSlug, displayName, headline, bio, avatarUrl
-  - [ ] isPublic, layoutJson
-  - [ ] links (PortfolioLink: label, url, order)
-- [ ] Project 모델
-  - [ ] slug (unique), title, subtitle, description, contentMd
-  - [ ] techStack, repoUrl, demoUrl, thumbnailUrl
-  - [ ] visibility (PUBLIC/UNLISTED/PRIVATE)
-  - [ ] isFeatured, order
-- [ ] Experience 모델
-  - [ ] visibility (PUBLIC/UNLISTED/PRIVATE)
-  - [ ] company, role, startDate, endDate, isCurrent
-  - [ ] summary, bulletsJson, metricsJson, techTags
-  - [ ] isFeatured, order
-- [ ] 관계 및 인덱스 설정
-- [ ] 마이그레이션 실행
+- [x] PortfolioSettings 모델
+  - [x] publicSlug, displayName, headline, bio, avatarUrl
+  - [x] isPublic, layoutJson
+  - [x] links (PortfolioLink: label, url, order)
+- [x] Project 모델
+  - [x] slug (unique), title, subtitle, description, contentMd
+  - [x] techStack, repoUrl, demoUrl, thumbnailUrl
+  - [x] visibility (PUBLIC/UNLISTED/PRIVATE)
+  - [x] isFeatured, order
+- [x] Experience 모델
+  - [x] visibility (PUBLIC/UNLISTED/PRIVATE)
+  - [x] company, role, startDate, endDate, isCurrent
+  - [x] summary, bulletsJson, metricsJson, techTags
+  - [x] isFeatured, order
+- [x] 관계 및 인덱스 설정
+- [x] 마이그레이션 실행
 
 ### 테스트
 - [x] slug unique 충돌 시 409
@@ -118,18 +118,19 @@
   - [x] 연락처/소셜 섹션
 - [x] `/projects` 목록 페이지
   - [x] 프로젝트 그리드 레이아웃
-  - [ ] 필터링 UI (선택)
+  - [ ] 필터링 UI (선택, M1.1)
 - [x] `/projects/[slug]` 상세 페이지
   - [x] Problem 섹션
   - [x] Approach 섹션
   - [x] Results 섹션
   - [x] GitHub/Demo 링크
 - [x] 반응형 디자인
-- [ ] 이미지 최적화 (Next.js Image)
+- [ ] 이미지 최적화 (Next.js Image, M1.1)
 
 ### SEO
 - [x] 각 페이지 metadata export
-- [ ] OG 이미지 설정
+- [x] OG/Canonical 기본 메타데이터 적용
+- [ ] OG 이미지 자산 고도화 (M1.1)
 - [x] sitemap.xml 생성
 - [x] robots.txt 설정
 
@@ -139,73 +140,84 @@
   - [x] 소셜 링크 편집
 - [x] `/app/projects` 목록
   - [x] 테이블/카드 뷰
-  - [ ] 정렬, 필터
-- [ ] `/app/projects/new`
-  - [ ] Markdown 에디터
-  - [ ] 이미지 업로드 (선택)
-  - [ ] 태그 입력
-  - [ ] visibility 토글
-- [ ] `/app/projects/[id]/edit`
+  - [x] 정렬, 필터 (M1.1)
+- [x] `/app/projects/new` (M1.1)
+  - [x] Markdown 입력 필드 (M1.1)
+  - [ ] 이미지 업로드 (선택, M1.1)
+  - [x] 태그 입력 (M1.1)
+  - [x] visibility 토글 (M1.1)
+- [x] `/app/projects/[id]/edit` (M1.1)
 - [x] `/app/experiences` CRUD UI
 - [x] 대표 프로젝트 토글 (isFeatured)
-- [ ] 폼 검증 (Zod + React Hook Form)
+- [x] 폼 검증 (Zod + React Hook Form, M1.1)
 
 ### 성능
 - [x] ISR 적용 (`revalidate`)
-- [ ] Lighthouse 90+
+- [x] on-demand revalidate (M1.1)
+- [ ] Lighthouse 90+ (M1.1)
 
 ### Seed 확장
-- [ ] 대표 프로젝트 3개 샘플
-- [ ] Experience 5개 샘플
-- [ ] PortfolioSettings 샘플
+- [ ] 대표 프로젝트 3개 샘플 (M1.1)
+- [ ] Experience 5개 샘플 (M1.1)
+- [ ] PortfolioSettings 샘플 (M1.1)
+
+### M1.1 Deferred (후속)
+- [ ] OG 이미지 자산 고도화 및 Open Graph 검증
+- [ ] Public 이미지 최적화와 Lighthouse 90+ 달성
+- [ ] Markdown 리치 에디터/이미지 업로드 고도화
 
 ---
 
-## M2 - Resume 📋 예정
+## M2 - Resume ✅ 핵심 완료
 
 ### Prisma 스키마
-- [ ] ResumeVersion 모델
-  - [ ] company, jobTitle, title
-  - [ ] createdAt, updatedAt
-- [ ] ResumeItem 모델
-  - [ ] experienceId, order
-  - [ ] overrideText (원본 수정)
-- [ ] Experience 확장
-  - [ ] metricsJson (정량 지표)
-  - [ ] techTags 배열
-- [ ] 마이그레이션 실행
+- [x] Resume 모델
+  - [x] status, title, targetCompany, targetRole, level, summaryMd
+  - [x] createdAt, updatedAt
+- [x] ResumeItem 모델
+  - [x] experienceId, sortOrder
+  - [x] overrideBulletsJson, overrideMetricsJson, overrideTechTags, notes
+- [x] Experience 확장
+  - [x] metricsJson (정량 지표)
+  - [x] techTags 배열
+- [x] 마이그레이션 체인 반영 (기존 통합 스키마 기준)
 
 ### API
-- [ ] `GET /api/app/resumes`
-- [ ] `POST /api/app/resumes`
-- [ ] `GET /api/app/resumes/[id]`
-- [ ] `PUT /api/app/resumes/[id]`
-- [ ] `DELETE /api/app/resumes/[id]`
-- [ ] `GET /api/app/resumes/[id]/items`
-- [ ] `POST /api/app/resumes/[id]/items`
-- [ ] `PUT /api/app/resumes/[id]/items/[itemId]`
-- [ ] `DELETE /api/app/resumes/[id]/items/[itemId]`
-- [ ] `GET /api/app/resumes/[id]/preview`
+- [x] `GET /api/app/resumes`
+- [x] `POST /api/app/resumes`
+- [x] `GET /api/app/resumes/[id]`
+- [x] `PUT /api/app/resumes/[id]`
+- [x] `DELETE /api/app/resumes/[id]`
+- [x] `GET /api/app/resumes/[id]/items`
+- [x] `POST /api/app/resumes/[id]/items`
+- [x] `PUT /api/app/resumes/[id]/items/[itemId]`
+- [x] `DELETE /api/app/resumes/[id]/items/[itemId]`
+- [x] `GET /api/app/resumes/[id]/preview`
 
 ### UI
-- [ ] `/app/resumes` 목록
-  - [ ] 이력서 버전 카드
-  - [ ] 생성/편집/삭제 버튼
-- [ ] `/app/resumes/new`
-  - [ ] 회사명, 직무 입력
-  - [ ] 제목 입력
-- [ ] `/app/resumes/[id]/edit`
-  - [ ] Experience 선택 체크박스
-  - [ ] Drag & Drop 순서 정렬
-  - [ ] Override 텍스트 편집
-  - [ ] 원본 vs 수정본 비교
-- [ ] HTML Preview
-  - [ ] 인쇄 가능 스타일
-  - [ ] PDF 다운로드 (선택)
+- [x] `/app/resumes` 목록
+  - [x] 이력서 버전 카드
+  - [x] 생성/편집/삭제 버튼
+- [x] `/app/resumes/new`
+  - [x] 회사명, 직무 입력
+  - [x] 제목 입력
+- [x] `/app/resumes/[id]/edit`
+  - [x] Experience 선택 입력
+  - [x] Drag & Drop 순서 정렬
+  - [x] Override 텍스트 편집
+  - [x] 원본 vs 수정본 비교
+- [x] HTML Preview (기본 JSON 프리뷰)
+  - [x] 인쇄 가능 스타일
+  - [x] PDF 다운로드 (브라우저 인쇄 기반)
 
 ### 동기화
-- [ ] 원본 Experience 변경 시 배지 표시
-- [ ] 동기화 알림 UI (선택)
+- [x] 원본 Experience 변경 시 배지 표시
+- [x] 동기화 알림 UI (선택)
+
+### 테스트
+- [x] `src/modules/resumes/tests/validation.test.ts`
+- [x] `src/modules/resumes/tests/implementation.integration.test.ts` 추가
+- [x] 통합 테스트 실통과 (DATABASE_URL_TEST 인증정보 정상화 완료)
 
 ---
 
@@ -427,8 +439,8 @@
 - [x] `/api/app/*` ownerId scope 강제
 - [x] Public API DTO 강제
 - [x] slug 길이/문자 검증
-- [ ] JSON 크기 제한
-- [ ] XSS 방어
+- [x] JSON 크기 제한
+- [x] XSS 방어
 
 ### 성능
 - [ ] Lighthouse 90+

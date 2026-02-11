@@ -340,6 +340,36 @@ NEXT_PUBLIC_SITE_URL="http://localhost:3000"
 
 ### 자주 발생하는 문제
 
+#### 0. `P3005: The database schema is not empty`
+
+**증상**: `prisma migrate deploy` 단계에서 `P3005`가 발생하며 배포가 중단됨
+
+**원인**:
+- 대상 DB 스키마가 이미 비어 있지 않은 상태인데 `_prisma_migrations` 이력과 맞지 않음
+- Preview/Production 환경변수 스코프가 섞여 의도하지 않은 DB 브랜치에 마이그레이션이 적용됨
+
+**해결 절차**:
+1. Vercel Environment Variables에서 아래 스코프를 분리 확인
+   - Preview: `DATABASE_URL`, `DATABASE_URL_UNPOOLED` -> Preview DB 브랜치
+   - Production: `DATABASE_URL`, `DATABASE_URL_UNPOOLED` -> Production DB 브랜치
+2. `DATABASE_URL_UNPOOLED`가 반드시 direct URL(비-pooler)인지 확인
+3. baseline 전 스키마 diff 확인
+   ```bash
+   DATABASE_URL_UNPOOLED="<PROD_DIRECT_URL>" \
+   npx prisma migrate diff \
+     --from-url "$DATABASE_URL_UNPOOLED" \
+     --to-schema-datamodel prisma/schema.prisma \
+     --script > prod_diff.sql
+   ```
+4. 큰 불일치가 없을 때만 baseline 수행
+   ```bash
+   DATABASE_URL_UNPOOLED="<PROD_DIRECT_URL>" npx prisma migrate resolve --applied 20260205130450_init
+   DATABASE_URL_UNPOOLED="<PROD_DIRECT_URL>" npx prisma migrate resolve --applied 20260206170000_m1_schema_reset
+   DATABASE_URL_UNPOOLED="<PROD_DIRECT_URL>" npx prisma migrate status
+   DATABASE_URL_UNPOOLED="<PROD_DIRECT_URL>" npx prisma migrate deploy
+   ```
+5. Vercel에서 Redeploy 실행 후 Production 스모크 테스트 수행
+
 #### 1. 배포 시 Prisma 에러
 
 **증상**: `Error: P1001: Can't reach database server`

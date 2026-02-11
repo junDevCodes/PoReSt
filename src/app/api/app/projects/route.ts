@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireOwner } from "@/lib/auth-guard";
+import { parseJsonBodyWithLimit } from "@/lib/request-json";
+import { revalidatePublicPortfolio } from "@/lib/revalidate-public";
 import {
   createInvalidJsonResponse,
+  createProjectPayloadTooLargeResponse,
   createProjectErrorResponse,
   createProjectsService,
 } from "@/modules/projects";
@@ -29,15 +32,17 @@ export async function POST(request: Request) {
     return authResult.response;
   }
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
+  const parsedBody = await parseJsonBodyWithLimit(request);
+  if (!parsedBody.ok) {
+    if (parsedBody.reason === "PAYLOAD_TOO_LARGE") {
+      return createProjectPayloadTooLargeResponse();
+    }
     return createInvalidJsonResponse();
   }
 
   try {
-    const project = await projectsService.createProject(authResult.session.user.id, body);
+    const project = await projectsService.createProject(authResult.session.user.id, parsedBody.value);
+    revalidatePublicPortfolio(project.slug);
     return NextResponse.json({ data: project }, { status: 201 });
   } catch (error) {
     return createProjectErrorResponse(error);

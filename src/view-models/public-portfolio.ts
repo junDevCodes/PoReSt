@@ -43,6 +43,23 @@ function toStringArray(value: unknown): string[] {
     .filter((item) => item.length > 0);
 }
 
+function sanitizeExternalUrl(value: unknown): string | null {
+  const raw = toNullableString(value);
+  if (!raw) {
+    return null;
+  }
+
+  try {
+    const parsed = new URL(raw);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      return null;
+    }
+    return parsed.toString();
+  } catch {
+    return null;
+  }
+}
+
 function extractSections(contentMd: string): Record<SectionKey, string> {
   const sections: Record<SectionKey, string[]> = {
     problem: [],
@@ -143,12 +160,12 @@ export function toPublicHomeViewModel(input: unknown): PublicHomeViewModel {
       displayName: toNullableString(profileRaw.displayName) ?? "이름을 준비 중입니다.",
       headline: toNullableString(profileRaw.headline) ?? "헤드라인을 준비 중입니다.",
       bio: toNullableString(profileRaw.bio) ?? "자기소개를 준비 중입니다.",
-      avatarUrl: toNullableString(profileRaw.avatarUrl),
+      avatarUrl: sanitizeExternalUrl(profileRaw.avatarUrl),
       links: profileLinks
         .map((link) => {
           const record = isRecord(link) ? link : {};
           const label = toNullableString(record.label);
-          const url = toNullableString(record.url);
+          const url = sanitizeExternalUrl(record.url);
           if (!label || !url) {
             return null;
           }
@@ -174,8 +191,8 @@ export function toPublicHomeViewModel(input: unknown): PublicHomeViewModel {
           subtitle: toNullableString(record.subtitle),
           description: toNullableString(record.description),
           techStack: toStringArray(record.techStack),
-          repoUrl: toNullableString(record.repoUrl),
-          demoUrl: toNullableString(record.demoUrl),
+          repoUrl: sanitizeExternalUrl(record.repoUrl),
+          demoUrl: sanitizeExternalUrl(record.demoUrl),
         };
       })
       .filter((project): project is PublicHomeViewModel["featuredProjects"][number] => project !== null)
@@ -227,7 +244,7 @@ export function toPublicProjectsListViewModel(input: unknown): PublicProjectsLis
         title,
         description: toNullableString(record.description),
         techStack: toStringArray(record.techStack),
-        thumbnailUrl: toNullableString(record.thumbnailUrl),
+        thumbnailUrl: sanitizeExternalUrl(record.thumbnailUrl),
         updatedAtLabel: toDateLabel(record.updatedAt),
       };
     })
@@ -252,8 +269,8 @@ export function toPublicProjectDetailViewModel(input: unknown): PublicProjectDet
     title,
     subtitle: toNullableString(root.subtitle),
     techStack: toStringArray(root.techStack),
-    repoUrl: toNullableString(root.repoUrl),
-    demoUrl: toNullableString(root.demoUrl),
+    repoUrl: sanitizeExternalUrl(root.repoUrl),
+    demoUrl: sanitizeExternalUrl(root.demoUrl),
     updatedAtLabel: toDateLabel(root.updatedAt),
     sections,
   };

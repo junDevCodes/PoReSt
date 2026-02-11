@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
 import { requireOwner } from "@/lib/auth-guard";
 import { prisma } from "@/lib/prisma";
+import { parseJsonBodyWithLimit } from "@/lib/request-json";
+import { revalidatePublicPortfolio } from "@/lib/revalidate-public";
 import {
   createExperienceErrorResponse,
   createExperienceInvalidJsonResponse,
+  createExperiencePayloadTooLargeResponse,
   createExperiencesService,
 } from "@/modules/experiences";
 
@@ -19,10 +22,11 @@ export async function PUT(request: Request, context: ExperienceIdRouteContext) {
     return authResult.response;
   }
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
+  const parsedBody = await parseJsonBodyWithLimit(request);
+  if (!parsedBody.ok) {
+    if (parsedBody.reason === "PAYLOAD_TOO_LARGE") {
+      return createExperiencePayloadTooLargeResponse();
+    }
     return createExperienceInvalidJsonResponse();
   }
 
@@ -31,8 +35,9 @@ export async function PUT(request: Request, context: ExperienceIdRouteContext) {
     const experience = await experiencesService.updateExperience(
       authResult.session.user.id,
       params.id,
-      body,
+      parsedBody.value,
     );
+    revalidatePublicPortfolio();
     return NextResponse.json({ data: experience });
   } catch (error) {
     return createExperienceErrorResponse(error);
@@ -48,6 +53,7 @@ export async function DELETE(_: Request, context: ExperienceIdRouteContext) {
   try {
     const params = await context.params;
     const deleted = await experiencesService.deleteExperience(authResult.session.user.id, params.id);
+    revalidatePublicPortfolio();
     return NextResponse.json({ data: deleted });
   } catch (error) {
     return createExperienceErrorResponse(error);

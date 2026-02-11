@@ -1,12 +1,37 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { getMetadataBase } from "@/lib/site-url";
 import { createProjectsService } from "@/modules/projects";
 import { toPublicProjectsListViewModel } from "@/view-models/public-portfolio";
 
+const DEFAULT_OG_IMAGE_PATH = "/favicon.ico";
+
 export const metadata: Metadata = {
-  title: "프로젝트 목록 | Dev OS",
+  metadataBase: getMetadataBase(),
+  title: "프로젝트 목록",
   description: "공개 프로젝트 목록과 주요 기술 스택을 확인할 수 있습니다.",
+  alternates: {
+    canonical: "/projects",
+  },
+  openGraph: {
+    type: "website",
+    siteName: "Dev OS",
+    url: "/projects",
+    title: "프로젝트 목록 | Dev OS",
+    description: "공개 프로젝트 목록과 주요 기술 스택을 확인할 수 있습니다.",
+    images: [
+      {
+        url: DEFAULT_OG_IMAGE_PATH,
+      },
+    ],
+  },
+  twitter: {
+    card: "summary",
+    title: "프로젝트 목록 | Dev OS",
+    description: "공개 프로젝트 목록과 주요 기술 스택을 확인할 수 있습니다.",
+    images: [DEFAULT_OG_IMAGE_PATH],
+  },
 };
 
 export const revalidate = 60;
