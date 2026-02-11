@@ -66,6 +66,11 @@ export default async function AppHome() {
                 /app/blog
               </Link>
             </li>
+            <li>
+              <Link href="/app/feedback" className="hover:text-white">
+                /app/feedback
+              </Link>
+            </li>
           </ul>
         </div>
       </section>

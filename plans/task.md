@@ -1,6 +1,6 @@
 ﻿# PoReSt 작업 현황
 
-## 현재 마일스톤: M5 - Feedback 📋 예정
+## 현재 마일스톤: M5 - Feedback 🚧 로컬 완료, 배포 대기
 
 ---
 
@@ -231,7 +231,8 @@
 - [x] M2 핵심 완료 및 문서 마감
 - [x] M3 구현/검증/배포
 - [x] M4 구현/검증/배포
-- [ ] M5 구현/검증/배포
+- [x] M5 구현/로컬 검증
+- [ ] M5 Preview/Production 배포
 - [ ] M1.1 Deferred + UI/UX 고도화 (M5 완료 후 수행)
 
 ---
@@ -391,73 +392,73 @@
 
 ---
 
-## M5 - Feedback 📋 예정
+## M5 - Feedback ✅ 핵심 구현 완료 (배포 대기)
 
 ### Prisma 스키마
-- [ ] FeedbackRequest 모델
-  - [ ] targetType (PORTFOLIO/RESUME/NOTE/BLOG)
-  - [ ] targetId
-  - [ ] context (JSON)
-  - [ ] createdAt
-- [ ] FeedbackItem 모델
-  - [ ] requestId
-  - [ ] category
-  - [ ] severity (INFO/WARNING/ERROR)
-  - [ ] message
-  - [ ] suggestion (선택)
-- [ ] 마이그레이션 실행
+- [x] FeedbackRequest 모델
+  - [x] targetType (PORTFOLIO/RESUME/NOTE/BLOG)
+  - [x] targetId
+  - [x] context (JSON)
+  - [x] createdAt
+- [x] FeedbackItem 모델
+  - [x] requestId
+  - [x] title
+  - [x] severity (INFO/WARNING/CRITICAL)
+  - [x] message
+  - [x] suggestion (선택)
+- [x] 마이그레이션 실행
 
 ### API
-- [ ] `GET /api/app/feedback`
-- [ ] `POST /api/app/feedback`
-- [ ] `GET /api/app/feedback/[id]`
-  - [ ] FeedbackItem 포함
-- [ ] `POST /api/app/feedback/[id]/run`
-  - [ ] 피드백 실행
-  - [ ] FeedbackItem 생성
-- [ ] `GET /api/app/feedback/compare`
-  - [ ] Run 비교 (diff)
+- [x] `GET /api/app/feedback`
+- [x] `POST /api/app/feedback`
+- [x] `GET /api/app/feedback/[id]`
+  - [x] FeedbackItem 포함
+- [x] `POST /api/app/feedback/[id]/run`
+  - [x] 피드백 실행
+  - [x] FeedbackItem 생성
+- [x] `GET /api/app/feedback/compare`
+  - [x] Run 비교 (diff)
 
 ### 엔진 템플릿
-- [ ] `lib/feedback/templates.ts`
-- [ ] Resume 체크 템플릿
-  - [ ] 회사/직무 컨텍스트 반영
-  - [ ] 정량화 지표 체크
-  - [ ] 누락 항목 체크
-- [ ] Portfolio 체크 템플릿
-  - [ ] 프로젝트 구조 검증
-  - [ ] 결과물 명확성 체크
-- [ ] Note 체크 템플릿
-  - [ ] 출처 확인
-  - [ ] 단정 표현 검출
-- [ ] Blog 체크 템플릿
-  - [ ] 상충 가능성 체크
-  - [ ] 근거 확인
+- [x] `src/modules/feedback/implementation.ts` 템플릿 로직
+- [x] Resume 체크 템플릿
+  - [x] 회사/직무 컨텍스트 반영
+  - [x] 정량화 지표 체크
+  - [x] 누락 항목 체크
+- [x] Portfolio 체크 템플릿
+  - [x] 프로젝트 구조 검증
+  - [x] 결과물 명확성 체크
+- [x] Note 체크 템플릿
+  - [x] 출처 확인
+  - [x] 단정 표현 검출
+- [x] Blog 체크 템플릿
+  - [x] 상충 가능성 체크
+  - [x] 근거 확인
 
 ### 실행 로직
-- [ ] `lib/feedback/executor.ts`
-- [ ] `executeFeedback(targetType, targetId, context)`
-- [ ] targetType별 분기 로직
-- [ ] FeedbackItem 생성
-  - [ ] category, severity, message
-- [ ] 결과 저장
+- [x] `createFeedbackService` 실행 로직
+- [x] `runFeedbackRequestForOwner(targetType, targetId, context)`
+- [x] targetType별 분기 로직
+- [x] FeedbackItem 생성
+  - [x] title, severity, message
+- [x] 결과 저장
 
 ### UI
-- [ ] `/app/feedback`
-  - [ ] 피드백 요청 목록
+- [x] `/app/feedback`
+  - [x] 피드백 요청 목록
   - [ ] targetType별 필터
-- [ ] `/app/feedback/new`
-  - [ ] 대상 선택 (타입/ID)
-  - [ ] 컨텍스트 입력 (선택)
-  - [ ] 실행 버튼
-- [ ] `/app/feedback/[id]`
-  - [ ] 피드백 결과 상세
-  - [ ] FeedbackItem 목록
-  - [ ] severity별 색상 구분
-- [ ] 비교 UI
-  - [ ] 이전 Run 선택
-  - [ ] 현재 vs 이전 diff
-  - [ ] 개선/악화 표시
+- [x] `/app/feedback/new`
+  - [x] 대상 선택 (타입/ID)
+  - [x] 컨텍스트 입력 (선택)
+  - [x] 실행 버튼
+- [x] `/app/feedback/[id]`
+  - [x] 피드백 결과 상세
+  - [x] FeedbackItem 목록
+  - [x] severity별 색상 구분
+- [x] 비교 UI
+  - [x] 이전 Run 선택
+  - [x] 현재 vs 이전 diff
+  - [x] 개선/악화 표시
 
 ---
 
