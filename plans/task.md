@@ -1,6 +1,6 @@
 ﻿# PoReSt 작업 현황
 
-## 현재 마일스톤: M1 - Portfolio
+## 현재 마일스톤: M3 - Notes ✅ 핵심 마감
 
 ---
 
@@ -219,75 +219,93 @@
 - [x] `src/modules/resumes/tests/implementation.integration.test.ts` 추가
 - [x] 통합 테스트 실통과 (DATABASE_URL_TEST 인증정보 정상화 완료)
 
+### 운영/문서 마감
+- [x] M2 배포 체크리스트 작성 (`results/deploy_checklist_m2.md`)
+- [x] M2 Production 체크리스트 작성 (`results/deploy_checklist_m2_production.md`)
+- [x] 로컬 게이트 확인 (`lint`, `build`, `jest --runInBand`)
+
 ---
 
-## M3 - Notes 📋 예정
+## 다음 실행 순서 (고정)
+
+- [x] M2 핵심 완료 및 문서 마감
+- [x] M3 구현/검증/배포
+- [ ] M4 구현/검증/배포
+- [ ] M5 구현/검증/배포
+- [ ] M1.1 Deferred + UI/UX 고도화 (M5 완료 후 수행)
+
+---
+
+## M3 - Notes ✅ 핵심 마감
 
 ### Prisma 스키마
-- [ ] Notebook 모델
-  - [ ] name, description
-  - [ ] ownerId
-- [ ] Note 모델
-  - [ ] title, contentMd (Markdown)
-  - [ ] tags (배열), domain
-  - [ ] notebookId
-- [ ] NoteEdge 모델
-  - [ ] fromId, toId
-  - [ ] relationType
-  - [ ] status (CANDIDATE/CONFIRMED/REJECTED)
-  - [ ] similarity (float)
-- [ ] NoteEmbedding 모델 (선택)
-  - [ ] noteId, embedding (vector)
-- [ ] 마이그레이션 실행
+- [x] Notebook 모델
+  - [x] name, description
+  - [x] ownerId
+- [x] Note 모델
+  - [x] title, contentMd (Markdown)
+  - [x] tags (배열), domain
+  - [x] notebookId
+- [x] NoteEdge 모델
+  - [x] fromId, toId
+  - [x] relationType
+  - [x] status (CANDIDATE/CONFIRMED/REJECTED)
+  - [x] similarity (float)
+- [x] NoteEmbedding 모델 (선택)
+  - [x] noteId, embedding (vector)
+- [x] 마이그레이션 실행
 
 ### API
-- [ ] `GET /api/app/notes`
-- [ ] `POST /api/app/notes`
-- [ ] `GET /api/app/notes/[id]`
-- [ ] `PUT /api/app/notes/[id]`
-- [ ] `DELETE /api/app/notes/[id]`
-- [ ] `GET /api/app/notes/search`
-  - [ ] q (검색어), tag, domain 필터
-- [ ] `GET /api/app/notes/edges`
-  - [ ] CANDIDATE 상태만 조회
-- [ ] `POST /api/app/notes/edges/confirm`
-  - [ ] status → CONFIRMED
-- [ ] `POST /api/app/notes/edges/reject`
-  - [ ] status → REJECTED
+- [x] `GET /api/app/notes`
+- [x] `POST /api/app/notes`
+- [x] `GET /api/app/notes/[id]`
+- [x] `PUT /api/app/notes/[id]`
+- [x] `DELETE /api/app/notes/[id]`
+- [x] `GET /api/app/notes/search`
+  - [x] q (검색어), tag, domain 필터
+- [x] `GET /api/app/notes/edges`
+  - [x] CANDIDATE 상태만 조회
+- [x] `POST /api/app/notes/edges/confirm`
+  - [x] status → CONFIRMED
+- [x] `POST /api/app/notes/edges/reject`
+  - [x] status → REJECTED
 
 ### Candidate Generator
-- [ ] `lib/notes/candidate-generator.ts`
-- [ ] 태그 매칭 알고리즘
-  - [ ] 공통 태그 개수 계산
-  - [ ] Jaccard 유사도 계산
-- [ ] Threshold 0.7 적용
-- [ ] Top-N 제한 (10~20개)
-- [ ] 중복 후보 제거
-- [ ] 자기 자신 제외
-- [ ] Domain 필터링
-  - [ ] 같은 domain 우선순위
-  - [ ] 가중치 로직
-- [ ] 성능 최적화 (인덱스 활용)
+- [x] 태그 매칭 알고리즘
+  - [x] 공통 태그 개수 계산
+  - [x] Jaccard 유사도 계산
+- [x] Threshold 0.7 적용
+- [x] Top-N 제한 (10~20개)
+- [x] 중복 후보 제거
+- [x] 자기 자신 제외
+- [x] Domain 필터링
+  - [x] 같은 domain 우선순위
+  - [x] 가중치 로직
+- [x] 성능 최적화 (인덱스 활용)
 
-### pgvector 파이프라인 (선택)
+### pgvector 파이프라인 (선택, M3.1 Deferred)
 - [ ] Embedding 모델 선정
 - [ ] `lib/notes/embedding.ts`
 - [ ] Note 저장 시 임베딩 생성
 - [ ] 코사인 유사도 계산
 - [ ] HNSW 인덱스 생성
 
+### 테스트
+- [x] `src/modules/notes/tests/validation.test.ts`
+- [x] `src/modules/notes/tests/implementation.integration.test.ts` 추가
+- [x] 통합 테스트 실통과 확인 (DATABASE_URL_TEST 로컬 환경에서 수행)
+
 ### UI
-- [ ] `/app/notes`
-  - [ ] Notebook 목록
-  - [ ] Note 목록 (선택된 Notebook)
-- [ ] `/app/notes/[id]`
-  - [ ] 노트 상세 뷰
-  - [ ] 연관 개념 리스트 (CONFIRMED)
-  - [ ] 연관 후보 표시 (CANDIDATE)
-  - [ ] Confirm/Reject 버튼
-- [ ] 그래프 시각화 (선택)
-  - [ ] D3.js 또는 React Flow
-  - [ ] 노드/엣지 시각화
+- [x] `/app/notes`
+  - [x] Notebook 목록
+  - [x] Note 목록 (선택된 Notebook)
+- [x] `/app/notes/[id]`
+  - [x] 노트 상세 뷰
+  - [x] 연관 개념 리스트 (CONFIRMED)
+  - [x] 연관 후보 표시 (CANDIDATE)
+  - [x] Confirm/Reject 버튼
+- [x] 그래프 시각화 (선택)
+  - [x] SVG 기반 노드/엣지 시각화
 
 ---
 

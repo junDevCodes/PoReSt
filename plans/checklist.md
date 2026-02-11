@@ -245,38 +245,55 @@
 - [x] 통합 테스트 추가 (`src/modules/resumes/tests/implementation.integration.test.ts`)
 - [x] 통합 테스트 실통과 (DATABASE_URL_TEST 인증정보 정상화 완료)
 
+### 문서/배포 체크
+- [x] M2 Preview 체크리스트 작성 (`results/deploy_checklist_m2.md`)
+- [x] M2 Production 체크리스트 작성 (`results/deploy_checklist_m2_production.md`)
+- [x] M2 완료 상태를 `plans/task.md`와 동기화
+
+---
+
+## 실행 우선순위 (2026-02-11 확정)
+
+- [x] M1 핵심 + M2 핵심 완료
+- [x] M3 완료
+- [ ] M4 완료
+- [ ] M5 완료
+- [ ] M1.1 Deferred 항목 수행 (M5 완료 후)
+- [ ] 세부 UI/UX 개선 작업 수행 (M5 완료 후)
+
 ---
 
 ## M3 — Notes
 
 ### 스키마
-- [ ] Notebook 모델
-- [ ] Note 모델 (title, contentMd, tags, domain)
-- [ ] NoteEdge 모델 (fromId, toId, status)
-- [ ] NoteEmbedding 모델 (선택)
-- [ ] Edge status enum (CANDIDATE/CONFIRMED/REJECTED)
+- [x] Notebook 모델
+- [x] Note 모델 (title, contentMd, tags, domain)
+- [x] NoteEdge 모델 (fromId, toId, status)
+- [x] NoteEmbedding 모델 (선택)
+- [x] Edge status enum (CANDIDATE/CONFIRMED/REJECTED)
 
 ### API
-- [ ] `/api/app/notes` CRUD
-- [ ] `/api/app/notes/[id]`
-- [ ] `/api/app/notes/search`
-- [ ] `/api/app/notes/edges`
-- [ ] `/api/app/notes/edges/confirm`
-- [ ] `/api/app/notes/edges/reject`
+- [x] `/api/app/notes` CRUD
+- [x] `/api/app/notes/[id]`
+- [x] `/api/app/notes/search`
+- [x] `/api/app/notes/edges`
+- [x] `/api/app/notes/edges/confirm`
+- [x] `/api/app/notes/edges/reject`
 
 ### Candidate Generator
-- [ ] 태그 기반 후보 생성
-- [ ] Jaccard 유사도 계산
-- [ ] Threshold 0.7 적용
-- [ ] Top-N 제한 (10~20개)
-- [ ] Domain 필터링
+- [x] 태그 기반 후보 생성
+- [x] Jaccard 유사도 계산
+- [x] Threshold 0.7 적용
+- [x] Top-N 제한 (10~20개)
+- [x] Domain 필터링
+- [x] 인덱스 기반 성능 최적화
 
 ### UI
-- [ ] `/app/notes` Notebook/Note 목록
-- [ ] Note 상세 (연관 개념 리스트)
-- [ ] 연관 후보 UI (CANDIDATE)
-- [ ] Confirm/Reject 버튼
-- [ ] 그래프 시각화 (선택)
+- [x] `/app/notes` Notebook/Note 목록
+- [x] Note 상세 (연관 개념 리스트)
+- [x] 연관 후보 UI (CANDIDATE)
+- [x] Confirm/Reject 버튼
+- [x] 그래프 시각화 (선택)
 
 ---
 

@@ -389,6 +389,7 @@ model Note {
   incomingEdges NoteEdge[] @relation("NoteEdgesTo")
 
   @@index([ownerId, notebookId, visibility, updatedAt])
+  @@index([ownerId, deletedAt, updatedAt])
   @@index([title])
   @@map("notes")
 }
@@ -416,8 +417,9 @@ model NoteEdge {
   updatedAt DateTime      @updatedAt
 
   @@unique([fromId, toId, relationType])
-  @@index([fromId, status])
-  @@index([toId, status])
+  @@index([fromId, status, weight, updatedAt])
+  @@index([toId, status, weight, updatedAt])
+  @@index([status, weight, updatedAt])
   @@map("note_edges")
 }
 
