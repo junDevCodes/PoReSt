@@ -168,51 +168,56 @@
 
 ---
 
-## M2 - Resume 📋 예정
+## M2 - Resume ✅ 핵심 완료
 
 ### Prisma 스키마
-- [ ] ResumeVersion 모델
-  - [ ] company, jobTitle, title
-  - [ ] createdAt, updatedAt
-- [ ] ResumeItem 모델
-  - [ ] experienceId, order
-  - [ ] overrideText (원본 수정)
-- [ ] Experience 확장
-  - [ ] metricsJson (정량 지표)
-  - [ ] techTags 배열
-- [ ] 마이그레이션 실행
+- [x] Resume 모델
+  - [x] status, title, targetCompany, targetRole, level, summaryMd
+  - [x] createdAt, updatedAt
+- [x] ResumeItem 모델
+  - [x] experienceId, sortOrder
+  - [x] overrideBulletsJson, overrideMetricsJson, overrideTechTags, notes
+- [x] Experience 확장
+  - [x] metricsJson (정량 지표)
+  - [x] techTags 배열
+- [x] 마이그레이션 체인 반영 (기존 통합 스키마 기준)
 
 ### API
-- [ ] `GET /api/app/resumes`
-- [ ] `POST /api/app/resumes`
-- [ ] `GET /api/app/resumes/[id]`
-- [ ] `PUT /api/app/resumes/[id]`
-- [ ] `DELETE /api/app/resumes/[id]`
-- [ ] `GET /api/app/resumes/[id]/items`
-- [ ] `POST /api/app/resumes/[id]/items`
-- [ ] `PUT /api/app/resumes/[id]/items/[itemId]`
-- [ ] `DELETE /api/app/resumes/[id]/items/[itemId]`
-- [ ] `GET /api/app/resumes/[id]/preview`
+- [x] `GET /api/app/resumes`
+- [x] `POST /api/app/resumes`
+- [x] `GET /api/app/resumes/[id]`
+- [x] `PUT /api/app/resumes/[id]`
+- [x] `DELETE /api/app/resumes/[id]`
+- [x] `GET /api/app/resumes/[id]/items`
+- [x] `POST /api/app/resumes/[id]/items`
+- [x] `PUT /api/app/resumes/[id]/items/[itemId]`
+- [x] `DELETE /api/app/resumes/[id]/items/[itemId]`
+- [x] `GET /api/app/resumes/[id]/preview`
 
 ### UI
-- [ ] `/app/resumes` 목록
-  - [ ] 이력서 버전 카드
-  - [ ] 생성/편집/삭제 버튼
-- [ ] `/app/resumes/new`
-  - [ ] 회사명, 직무 입력
-  - [ ] 제목 입력
-- [ ] `/app/resumes/[id]/edit`
-  - [ ] Experience 선택 체크박스
-  - [ ] Drag & Drop 순서 정렬
-  - [ ] Override 텍스트 편집
-  - [ ] 원본 vs 수정본 비교
-- [ ] HTML Preview
-  - [ ] 인쇄 가능 스타일
-  - [ ] PDF 다운로드 (선택)
+- [x] `/app/resumes` 목록
+  - [x] 이력서 버전 카드
+  - [x] 생성/편집/삭제 버튼
+- [x] `/app/resumes/new`
+  - [x] 회사명, 직무 입력
+  - [x] 제목 입력
+- [x] `/app/resumes/[id]/edit`
+  - [x] Experience 선택 입력
+  - [x] Drag & Drop 순서 정렬
+  - [x] Override 텍스트 편집
+  - [x] 원본 vs 수정본 비교
+- [x] HTML Preview (기본 JSON 프리뷰)
+  - [x] 인쇄 가능 스타일
+  - [x] PDF 다운로드 (브라우저 인쇄 기반)
 
 ### 동기화
-- [ ] 원본 Experience 변경 시 배지 표시
-- [ ] 동기화 알림 UI (선택)
+- [x] 원본 Experience 변경 시 배지 표시
+- [x] 동기화 알림 UI (선택)
+
+### 테스트
+- [x] `src/modules/resumes/tests/validation.test.ts`
+- [x] `src/modules/resumes/tests/implementation.integration.test.ts` 추가
+- [x] 통합 테스트 실통과 (DATABASE_URL_TEST 인증정보 정상화 완료)
 
 ---
 

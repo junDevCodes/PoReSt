@@ -215,27 +215,35 @@
 
 ---
 
-## M2 — Resume
+## M2 — Resume ✅ 핵심 완료
 
 ### 스키마
-- [ ] ResumeVersion 모델 (company, jobTitle)
-- [ ] ResumeItem 모델 (experienceId, order, overrideText)
-- [ ] Experience 필드 확장 (metricsJson, techTags)
+- [x] Resume 모델 (status, title, targetCompany, targetRole, level, summaryMd)
+- [x] ResumeItem 모델 (experienceId, sortOrder, overrideBulletsJson, overrideMetricsJson, overrideTechTags, notes)
+- [x] Experience 필드 확장 (metricsJson, techTags)
 
 ### API
-- [ ] `/api/app/resumes` CRUD
-- [ ] `/api/app/resumes/[id]/items` CRUD
-- [ ] `/api/app/resumes/[id]/preview`
+- [x] `/api/app/resumes` CRUD
+- [x] `/api/app/resumes/[id]/items` CRUD
+- [x] `/api/app/resumes/[id]/preview`
 
 ### UI
-- [ ] `/app/resumes` 목록
-- [ ] `/app/resumes/new` 생성
-- [ ] `/app/resumes/[id]/edit` 편집
-- [ ] Experience 선택 체크박스
-- [ ] Drag & Drop 정렬
-- [ ] Override 편집 UI
-- [ ] HTML Preview
-- [ ] PDF 다운로드 (선택)
+- [x] `/app/resumes` 목록
+- [x] `/app/resumes/new` 생성
+- [x] `/app/resumes/[id]/edit` 편집
+- [x] Experience 선택 입력
+- [x] Drag & Drop 정렬
+- [x] Override 편집 UI
+- [x] 원본 vs 수정본 비교
+- [x] HTML Preview (기본 프리뷰)
+- [x] PDF 다운로드 (브라우저 인쇄 기반)
+- [x] 원본 Experience 변경 배지 표시
+- [x] 동기화 알림 UI (선택)
+
+### 테스트
+- [x] 단위 테스트 추가 (`src/modules/resumes/tests/validation.test.ts`)
+- [x] 통합 테스트 추가 (`src/modules/resumes/tests/implementation.integration.test.ts`)
+- [x] 통합 테스트 실통과 (DATABASE_URL_TEST 인증정보 정상화 완료)
 
 ---
 
