@@ -12,6 +12,13 @@ export type FeedbackCompareInput = {
   previousRequestId: string;
 };
 
+export type FeedbackTargetDto = {
+  id: string;
+  type: FeedbackTargetType;
+  title: string;
+  updatedAt: Date;
+};
+
 export type OwnerFeedbackRequestListItemDto = {
   id: string;
   targetType: FeedbackTargetType;
@@ -95,6 +102,7 @@ export type FeedbackServicePrismaClient = Pick<
 >;
 
 export interface FeedbackService {
+  listFeedbackTargetsForOwner(ownerId: string, targetType: FeedbackTargetType): Promise<FeedbackTargetDto[]>;
   listFeedbackRequestsForOwner(ownerId: string): Promise<OwnerFeedbackRequestListItemDto[]>;
   getFeedbackRequestForOwner(ownerId: string, requestId: string): Promise<OwnerFeedbackRequestDetailDto>;
   createFeedbackRequest(ownerId: string, input: unknown): Promise<OwnerFeedbackRequestDetailDto>;

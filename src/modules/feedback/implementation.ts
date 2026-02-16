@@ -6,6 +6,7 @@ import type {
   FeedbackRequestCreateInput,
   FeedbackService,
   FeedbackServicePrismaClient,
+  FeedbackTargetDto,
   OwnerFeedbackItemDto,
   OwnerFeedbackRequestDetailDto,
   OwnerFeedbackRequestListItemDto,
@@ -731,6 +732,103 @@ async function buildFeedbackItemsByTarget(
   }
 }
 
+async function listFeedbackTargetsByType(
+  prisma: FeedbackServicePrismaClient,
+  ownerId: string,
+  targetType: FeedbackTargetType,
+): Promise<FeedbackTargetDto[]> {
+  if (targetType === FeedbackTargetType.PORTFOLIO) {
+    const settings = await prisma.portfolioSettings.findFirst({
+      where: { ownerId },
+      select: {
+        id: true,
+        displayName: true,
+        publicSlug: true,
+        updatedAt: true,
+      },
+    });
+
+    if (!settings) {
+      return [];
+    }
+
+    return [
+      {
+        id: settings.id,
+        type: FeedbackTargetType.PORTFOLIO,
+        title: settings.displayName ?? settings.publicSlug ?? "내 포트폴리오",
+        updatedAt: settings.updatedAt,
+      },
+    ];
+  }
+
+  if (targetType === FeedbackTargetType.RESUME) {
+    const resumes = await prisma.resume.findMany({
+      where: { ownerId },
+      orderBy: [{ updatedAt: "desc" }],
+      select: {
+        id: true,
+        title: true,
+        targetRole: true,
+        updatedAt: true,
+      },
+    });
+
+    return resumes.map((resume) => ({
+      id: resume.id,
+      type: FeedbackTargetType.RESUME,
+      title: resume.targetRole ? `${resume.title} (${resume.targetRole})` : resume.title,
+      updatedAt: resume.updatedAt,
+    }));
+  }
+
+  if (targetType === FeedbackTargetType.NOTE) {
+    const notes = await prisma.note.findMany({
+      where: {
+        ownerId,
+        deletedAt: null,
+      },
+      orderBy: [{ updatedAt: "desc" }],
+      select: {
+        id: true,
+        title: true,
+        updatedAt: true,
+      },
+    });
+
+    return notes.map((note) => ({
+      id: note.id,
+      type: FeedbackTargetType.NOTE,
+      title: note.title,
+      updatedAt: note.updatedAt,
+    }));
+  }
+
+  if (targetType === FeedbackTargetType.BLOG) {
+    const posts = await prisma.blogPost.findMany({
+      where: {
+        ownerId,
+        deletedAt: null,
+      },
+      orderBy: [{ updatedAt: "desc" }],
+      select: {
+        id: true,
+        title: true,
+        updatedAt: true,
+      },
+    });
+
+    return posts.map((post) => ({
+      id: post.id,
+      type: FeedbackTargetType.BLOG,
+      title: post.title,
+      updatedAt: post.updatedAt,
+    }));
+  }
+
+  return [];
+}
+
 function fingerprintFeedbackItem(item: OwnerFeedbackItemDto): string {
   return `${item.severity}|${item.title}|${item.message}`;
 }
@@ -739,6 +837,10 @@ export function createFeedbackService(deps: { prisma: FeedbackServicePrismaClien
   const { prisma } = deps;
 
   return {
+    async listFeedbackTargetsForOwner(ownerId, targetType) {
+      return listFeedbackTargetsByType(prisma, ownerId, targetType);
+    },
+
     async listFeedbackRequestsForOwner(ownerId) {
       const items = await prisma.feedbackRequest.findMany({
         where: { ownerId },

@@ -149,6 +149,62 @@ describeWithDatabase("feedback service integration", () => {
     });
   });
 
+  it("대상 타입별 선택 목록을 조회할 수 있어야 한다", async () => {
+    await runWithRollback(async (service, tx) => {
+      const unique = `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+      const owner = await createOwner(tx, `targets-${unique}`);
+      const resume = await createResume(tx, owner.id, unique);
+
+      await tx.portfolioSettings.create({
+        data: {
+          ownerId: owner.id,
+          publicSlug: `feedback-targets-${unique}`,
+          isPublic: true,
+          displayName: "테스트 포트폴리오",
+        },
+      });
+
+      const notebook = await tx.notebook.create({
+        data: {
+          ownerId: owner.id,
+          name: `Notebook-${unique}`,
+        },
+      });
+
+      const note = await tx.note.create({
+        data: {
+          ownerId: owner.id,
+          notebookId: notebook.id,
+          visibility: "PRIVATE",
+          title: `노트-${unique}`,
+          contentMd: "노트 본문",
+          tags: [],
+        },
+      });
+
+      const blog = await tx.blogPost.create({
+        data: {
+          ownerId: owner.id,
+          status: "DRAFT",
+          visibility: "PRIVATE",
+          title: `블로그-${unique}`,
+          contentMd: "블로그 본문",
+          tags: [],
+        },
+      });
+
+      const portfolioTargets = await service.listFeedbackTargetsForOwner(owner.id, "PORTFOLIO");
+      const resumeTargets = await service.listFeedbackTargetsForOwner(owner.id, "RESUME");
+      const noteTargets = await service.listFeedbackTargetsForOwner(owner.id, "NOTE");
+      const blogTargets = await service.listFeedbackTargetsForOwner(owner.id, "BLOG");
+
+      expect(portfolioTargets).toHaveLength(1);
+      expect(resumeTargets.some((target) => target.id === resume.id)).toBe(true);
+      expect(noteTargets.some((target) => target.id === note.id)).toBe(true);
+      expect(blogTargets.some((target) => target.id === blog.id)).toBe(true);
+    });
+  });
+
   it("두 실행 결과 비교 시 추가/해결 항목 차이를 반환해야 한다", async () => {
     await runWithRollback(async (service, tx) => {
       const unique = `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
