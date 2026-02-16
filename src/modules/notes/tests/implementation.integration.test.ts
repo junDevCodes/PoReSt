@@ -63,6 +63,45 @@ describeWithDatabase("notes service integration", () => {
     });
   }
 
+  it("노트북 생성/조회/수정/삭제가 동작해야 한다", async () => {
+    await runWithRollback(async (service, tx) => {
+      const unique = `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+      const owner = await createOwner(tx, `notebook-${unique}`);
+
+      const created = await service.createNotebook(owner.id, {
+        name: `Notebook-${unique}`,
+        description: "초기 설명",
+      });
+
+      expect(created.name).toBe(`Notebook-${unique}`);
+      expect(created.noteCount).toBe(0);
+
+      const listed = await service.listNotebooksForOwner(owner.id);
+      expect(listed.some((item) => item.id === created.id)).toBe(true);
+
+      const updated = await service.updateNotebook(owner.id, created.id, {
+        description: "수정 설명",
+      });
+      expect(updated.description).toBe("수정 설명");
+
+      const note = await service.createNote(owner.id, {
+        notebookId: created.id,
+        title: `노트-${unique}`,
+        contentMd: "노트 본문",
+      });
+      expect(note.notebookId).toBe(created.id);
+
+      await expect(service.deleteNotebook(owner.id, created.id)).rejects.toMatchObject({
+        code: "CONFLICT",
+        status: 409,
+      });
+
+      await service.deleteNote(owner.id, note.id);
+      const deleted = await service.deleteNotebook(owner.id, created.id);
+      expect(deleted.id).toBe(created.id);
+    });
+  });
+
   it("노트 생성/목록/수정/삭제가 순서대로 동작해야 한다", async () => {
     await runWithRollback(async (service, tx) => {
       const unique = `${Date.now()}-${Math.floor(Math.random() * 100000)}`;

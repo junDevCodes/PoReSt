@@ -17,6 +17,13 @@ export type NoteSearchQuery = {
   domain?: string;
 };
 
+export type NotebookCreateInput = {
+  name: string;
+  description?: string | null;
+};
+
+export type NotebookUpdateInput = Partial<NotebookCreateInput>;
+
 export type NoteEdgeActionInput = {
   edgeId: string;
 };
@@ -71,6 +78,14 @@ export type OwnerCandidateEdgeDto = {
   };
 };
 
+export type OwnerNotebookDto = {
+  id: string;
+  name: string;
+  description: string | null;
+  noteCount: number;
+  updatedAt: Date;
+};
+
 export type NoteFieldErrors = Record<string, string>;
 
 export type NoteServiceErrorCode = "VALIDATION_ERROR" | "CONFLICT" | "NOT_FOUND" | "FORBIDDEN";
@@ -95,6 +110,11 @@ export function isNoteServiceError(error: unknown): error is NoteServiceError {
 export type NotesServicePrismaClient = Pick<Prisma.TransactionClient, "notebook" | "note" | "noteEdge">;
 
 export interface NotesService {
+  listNotebooksForOwner(ownerId: string): Promise<OwnerNotebookDto[]>;
+  getNotebookForOwner(ownerId: string, notebookId: string): Promise<OwnerNotebookDto>;
+  createNotebook(ownerId: string, input: unknown): Promise<OwnerNotebookDto>;
+  updateNotebook(ownerId: string, notebookId: string, input: unknown): Promise<OwnerNotebookDto>;
+  deleteNotebook(ownerId: string, notebookId: string): Promise<{ id: string }>;
   listNotesForOwner(ownerId: string): Promise<OwnerNoteListItemDto[]>;
   searchNotesForOwner(ownerId: string, query: NoteSearchQuery): Promise<OwnerNoteListItemDto[]>;
   getNoteForOwner(ownerId: string, noteId: string): Promise<OwnerNoteDetailDto>;

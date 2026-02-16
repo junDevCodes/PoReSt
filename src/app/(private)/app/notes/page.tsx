@@ -1,9 +1,28 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { parseApiResponse } from "@/app/(private)/app/_lib/admin-api";
-import { buildNotebookSections, type OwnerNoteListItemDto } from "@/app/(private)/app/notes/_lib/list";
+import {
+  buildNotebookSections,
+  type OwnerNoteListItemDto,
+} from "@/app/(private)/app/notes/_lib/list";
+
+type OwnerNotebookDto = {
+  id: string;
+  name: string;
+  description: string | null;
+  noteCount: number;
+  updatedAt: string;
+};
+
+type NoteCreateForm = {
+  notebookId: string;
+  title: string;
+  contentMd: string;
+  summary: string;
+  tags: string;
+};
 
 function formatUpdatedAtLabel(value: string): string {
   const parsed = new Date(value);
@@ -13,39 +32,146 @@ function formatUpdatedAtLabel(value: string): string {
   return parsed.toISOString().slice(0, 10);
 }
 
+function parseTags(raw: string): string[] {
+  return raw
+    .split(",")
+    .map((tag) => tag.trim())
+    .filter((tag) => tag.length > 0);
+}
+
 export default function NotesPage() {
   const [notes, setNotes] = useState<OwnerNoteListItemDto[]>([]);
+  const [notebooks, setNotebooks] = useState<OwnerNotebookDto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isCreatingNotebook, setIsCreatingNotebook] = useState(false);
+  const [isCreatingNote, setIsCreatingNote] = useState(false);
+  const [deletingNotebookId, setDeletingNotebookId] = useState<string | null>(null);
+  const [newNotebookName, setNewNotebookName] = useState("");
+  const [newNotebookDescription, setNewNotebookDescription] = useState("");
+  const [noteForm, setNoteForm] = useState<NoteCreateForm>({
+    notebookId: "",
+    title: "",
+    contentMd: "",
+    summary: "",
+    tags: "",
+  });
 
-  useEffect(() => {
-    let mounted = true;
+  async function loadData() {
+    setIsLoading(true);
+    const [notesResponse, notebooksResponse] = await Promise.all([
+      fetch("/api/app/notes", { method: "GET" }),
+      fetch("/api/app/notebooks", { method: "GET" }),
+    ]);
 
-    async function loadNotes() {
-      const response = await fetch("/api/app/notes", { method: "GET" });
-      const parsed = await parseApiResponse<OwnerNoteListItemDto[]>(response);
+    const [notesParsed, notebooksParsed] = await Promise.all([
+      parseApiResponse<OwnerNoteListItemDto[]>(notesResponse),
+      parseApiResponse<OwnerNotebookDto[]>(notebooksResponse),
+    ]);
 
-      if (!mounted) {
-        return;
-      }
-
-      if (parsed.error) {
-        setError(parsed.error);
-        setIsLoading(false);
-        return;
-      }
-
-      setNotes(parsed.data ?? []);
+    if (notesParsed.error || notebooksParsed.error) {
+      setError(notesParsed.error ?? notebooksParsed.error ?? "목록을 불러오지 못했습니다.");
       setIsLoading(false);
+      return;
     }
 
-    void loadNotes();
-    return () => {
-      mounted = false;
-    };
+    const nextNotebooks = notebooksParsed.data ?? [];
+    setNotes(notesParsed.data ?? []);
+    setNotebooks(nextNotebooks);
+    setNoteForm((prev) => ({
+      ...prev,
+      notebookId: prev.notebookId || nextNotebooks[0]?.id || "",
+    }));
+    setIsLoading(false);
+  }
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      void loadData();
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   const sections = useMemo(() => buildNotebookSections(notes), [notes]);
+
+  async function handleCreateNotebook(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    setIsCreatingNotebook(true);
+
+    const response = await fetch("/api/app/notebooks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: newNotebookName,
+        description: newNotebookDescription || null,
+      }),
+    });
+
+    const parsed = await parseApiResponse<OwnerNotebookDto>(response);
+    if (parsed.error) {
+      setError(parsed.error);
+      setIsCreatingNotebook(false);
+      return;
+    }
+
+    setNewNotebookName("");
+    setNewNotebookDescription("");
+    await loadData();
+    setIsCreatingNotebook(false);
+  }
+
+  async function handleDeleteNotebook(notebookId: string) {
+    setError(null);
+    setDeletingNotebookId(notebookId);
+
+    const response = await fetch(`/api/app/notebooks/${notebookId}`, { method: "DELETE" });
+    const parsed = await parseApiResponse<{ id: string }>(response);
+
+    if (parsed.error) {
+      setError(parsed.error);
+      setDeletingNotebookId(null);
+      return;
+    }
+
+    await loadData();
+    setDeletingNotebookId(null);
+  }
+
+  async function handleCreateNote(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    setIsCreatingNote(true);
+
+    const response = await fetch("/api/app/notes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        notebookId: noteForm.notebookId,
+        title: noteForm.title,
+        contentMd: noteForm.contentMd,
+        summary: noteForm.summary || null,
+        tags: parseTags(noteForm.tags),
+      }),
+    });
+
+    const parsed = await parseApiResponse<OwnerNoteListItemDto>(response);
+    if (parsed.error) {
+      setError(parsed.error);
+      setIsCreatingNote(false);
+      return;
+    }
+
+    setNoteForm((prev) => ({
+      ...prev,
+      title: "",
+      contentMd: "",
+      summary: "",
+      tags: "",
+    }));
+    await loadData();
+    setIsCreatingNote(false);
+  }
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6 py-12">
@@ -54,7 +180,7 @@ export default function NotesPage() {
           <p className="text-xs uppercase tracking-[0.3em] text-white/50">관리</p>
           <h1 className="mt-2 text-3xl font-semibold">노트 관리</h1>
           <p className="mt-3 text-sm text-white/65">
-            노트를 노트북별로 확인하고, 상세 페이지에서 연관 후보를 관리합니다.
+            노트북을 만들고 노트를 작성한 뒤 상세 페이지에서 연관 후보를 관리할 수 있습니다.
           </p>
         </div>
       </header>
@@ -64,6 +190,122 @@ export default function NotesPage() {
           {error}
         </p>
       ) : null}
+
+      <section className="mt-8 grid gap-6 lg:grid-cols-2">
+        <article className="rounded-2xl border border-white/10 bg-white/5 p-6">
+          <h2 className="text-lg font-semibold">노트북 생성</h2>
+          <form onSubmit={handleCreateNotebook} className="mt-4 grid gap-3">
+            <input
+              value={newNotebookName}
+              onChange={(event) => setNewNotebookName(event.target.value)}
+              className="rounded-lg border border-white/20 bg-black/20 px-3 py-2 text-sm"
+              placeholder="예: 백엔드, 자료구조"
+            />
+            <textarea
+              value={newNotebookDescription}
+              onChange={(event) => setNewNotebookDescription(event.target.value)}
+              className="min-h-24 rounded-lg border border-white/20 bg-black/20 px-3 py-2 text-sm"
+              placeholder="노트북 설명 (선택)"
+            />
+            <button
+              type="submit"
+              disabled={isCreatingNotebook || newNotebookName.trim().length === 0}
+              className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-black disabled:opacity-50"
+            >
+              {isCreatingNotebook ? "생성 중..." : "노트북 생성"}
+            </button>
+          </form>
+
+          <ul className="mt-5 space-y-2">
+            {notebooks.map((notebook) => (
+              <li
+                key={notebook.id}
+                className="flex items-center justify-between rounded-lg border border-white/10 bg-black/20 px-3 py-2"
+              >
+                <div>
+                  <p className="text-sm font-medium">{notebook.name}</p>
+                  <p className="mt-1 text-xs text-white/55">
+                    노트 {notebook.noteCount}개 · 수정일 {formatUpdatedAtLabel(notebook.updatedAt)}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => void handleDeleteNotebook(notebook.id)}
+                  disabled={deletingNotebookId === notebook.id || notebook.noteCount > 0}
+                  className="rounded-lg border border-rose-400/50 px-3 py-1 text-xs text-rose-200 disabled:opacity-50"
+                  title={
+                    notebook.noteCount > 0
+                      ? "노트가 남아 있는 노트북은 삭제할 수 없습니다."
+                      : "노트북 삭제"
+                  }
+                >
+                  {deletingNotebookId === notebook.id ? "삭제 중..." : "삭제"}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </article>
+
+        <article className="rounded-2xl border border-white/10 bg-white/5 p-6">
+          <h2 className="text-lg font-semibold">노트 작성</h2>
+          <form onSubmit={handleCreateNote} className="mt-4 grid gap-3">
+            <select
+              value={noteForm.notebookId}
+              onChange={(event) =>
+                setNoteForm((prev) => ({
+                  ...prev,
+                  notebookId: event.target.value,
+                }))
+              }
+              className="rounded-lg border border-white/20 bg-black/20 px-3 py-2 text-sm"
+            >
+              <option value="">노트북 선택</option>
+              {notebooks.map((notebook) => (
+                <option key={notebook.id} value={notebook.id}>
+                  {notebook.name}
+                </option>
+              ))}
+            </select>
+
+            <input
+              value={noteForm.title}
+              onChange={(event) => setNoteForm((prev) => ({ ...prev, title: event.target.value }))}
+              className="rounded-lg border border-white/20 bg-black/20 px-3 py-2 text-sm"
+              placeholder="노트 제목"
+            />
+            <textarea
+              value={noteForm.summary}
+              onChange={(event) => setNoteForm((prev) => ({ ...prev, summary: event.target.value }))}
+              className="min-h-20 rounded-lg border border-white/20 bg-black/20 px-3 py-2 text-sm"
+              placeholder="요약 (선택)"
+            />
+            <textarea
+              value={noteForm.contentMd}
+              onChange={(event) => setNoteForm((prev) => ({ ...prev, contentMd: event.target.value }))}
+              className="min-h-32 rounded-lg border border-white/20 bg-black/20 px-3 py-2 text-sm"
+              placeholder="노트 본문 (Markdown)"
+            />
+            <input
+              value={noteForm.tags}
+              onChange={(event) => setNoteForm((prev) => ({ ...prev, tags: event.target.value }))}
+              className="rounded-lg border border-white/20 bg-black/20 px-3 py-2 text-sm"
+              placeholder="태그 (쉼표로 구분)"
+            />
+            <button
+              type="submit"
+              disabled={
+                isCreatingNote ||
+                noteForm.notebookId.length === 0 ||
+                noteForm.title.trim().length === 0 ||
+                noteForm.contentMd.trim().length === 0
+              }
+              className="rounded-full bg-emerald-300 px-4 py-2 text-sm font-semibold text-black disabled:opacity-50"
+            >
+              {isCreatingNote ? "저장 중..." : "노트 저장"}
+            </button>
+          </form>
+        </article>
+      </section>
 
       <section className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-6">
         <h2 className="text-lg font-semibold">노트북/노트 목록</h2>

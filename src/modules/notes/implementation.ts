@@ -1,6 +1,11 @@
 import { NoteEdgeOrigin, NoteEdgeStatus, Prisma, Visibility } from "@prisma/client";
 import { z } from "zod";
-import type { NoteSearchQuery, NotesServicePrismaClient } from "@/modules/notes/interface";
+import type {
+  NoteSearchQuery,
+  NotesServicePrismaClient,
+  NotebookCreateInput,
+  NotebookUpdateInput,
+} from "@/modules/notes/interface";
 import {
   type NoteCreateInput,
   type NoteEdgeActionInput,
@@ -10,6 +15,8 @@ import {
 
 const MIN_TEXT_LENGTH = 1;
 const MAX_NOTEBOOK_ID_LENGTH = 191;
+const MAX_NOTEBOOK_NAME_LENGTH = 100;
+const MAX_NOTEBOOK_DESCRIPTION_LENGTH = 1000;
 const MAX_TITLE_LENGTH = 200;
 const MAX_CONTENT_LENGTH = 50000;
 const MAX_SUMMARY_LENGTH = 5000;
@@ -29,6 +36,11 @@ type NormalizedNoteUpdateInput = {
   contentMd?: string;
   summary?: string | null;
   tags?: string[];
+};
+
+type NormalizedNotebookUpdateInput = {
+  name?: string;
+  description?: string | null;
 };
 
 const createNoteSchema = z.object({
@@ -100,9 +112,51 @@ const updateNoteSchema = z
     path: ["root"],
   });
 
+const createNotebookSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(MIN_TEXT_LENGTH, "노트북 이름은 비어 있을 수 없습니다.")
+    .max(MAX_NOTEBOOK_NAME_LENGTH, "노트북 이름은 100자 이하여야 합니다."),
+  description: z
+    .string()
+    .trim()
+    .max(MAX_NOTEBOOK_DESCRIPTION_LENGTH, "노트북 설명은 1000자 이하여야 합니다.")
+    .optional()
+    .nullable(),
+});
+
+const updateNotebookSchema = z
+  .object({
+    name: z
+      .string()
+      .trim()
+      .min(MIN_TEXT_LENGTH, "노트북 이름은 비어 있을 수 없습니다.")
+      .max(MAX_NOTEBOOK_NAME_LENGTH, "노트북 이름은 100자 이하여야 합니다.")
+      .optional(),
+    description: z
+      .string()
+      .trim()
+      .max(MAX_NOTEBOOK_DESCRIPTION_LENGTH, "노트북 설명은 1000자 이하여야 합니다.")
+      .optional()
+      .nullable(),
+  })
+  .refine((input) => Object.keys(input).length > EMPTY_LENGTH, {
+    message: "수정할 필드를 최소 1개 이상 입력해주세요.",
+    path: ["root"],
+  });
+
 const edgeActionSchema = z.object({
   edgeId: z.string().trim().min(MIN_TEXT_LENGTH, "edgeId는 비어 있을 수 없습니다."),
 });
+
+const notebookSelect = {
+  id: true,
+  ownerId: true,
+  name: true,
+  description: true,
+  updatedAt: true,
+} as const;
 
 const noteListSelect = {
   id: true,
@@ -239,6 +293,30 @@ function normalizeUpdateInput(input: z.infer<typeof updateNoteSchema>): Normaliz
   return normalized;
 }
 
+function normalizeNotebookCreateInput(
+  input: z.infer<typeof createNotebookSchema>,
+): NotebookCreateInput {
+  return {
+    name: input.name,
+    description: toNullableString(input.description),
+  };
+}
+
+function normalizeNotebookUpdateInput(
+  input: z.infer<typeof updateNotebookSchema>,
+): NotebookUpdateInput {
+  const normalized: NormalizedNotebookUpdateInput = {};
+
+  if (input.name !== undefined) {
+    normalized.name = input.name;
+  }
+  if (input.description !== undefined) {
+    normalized.description = toNullableString(input.description);
+  }
+
+  return normalized;
+}
+
 export function parseNoteCreateInput(input: unknown): NoteCreateInput {
   try {
     const parsed = createNoteSchema.parse(input);
@@ -272,6 +350,46 @@ export function parseNoteUpdateInput(input: unknown): NormalizedNoteUpdateInput 
         "VALIDATION_ERROR",
         422,
         "노트 수정 입력값이 올바르지 않습니다.",
+        extractZodFieldErrors(error),
+      );
+    }
+    throw error;
+  }
+}
+
+export function parseNotebookCreateInput(input: unknown): NotebookCreateInput {
+  try {
+    const parsed = createNotebookSchema.parse(input);
+    return normalizeNotebookCreateInput(parsed);
+  } catch (error) {
+    if (error instanceof NoteServiceError) {
+      throw error;
+    }
+    if (error instanceof z.ZodError) {
+      throw new NoteServiceError(
+        "VALIDATION_ERROR",
+        422,
+        "노트북 입력값이 올바르지 않습니다.",
+        extractZodFieldErrors(error),
+      );
+    }
+    throw error;
+  }
+}
+
+export function parseNotebookUpdateInput(input: unknown): NotebookUpdateInput {
+  try {
+    const parsed = updateNotebookSchema.parse(input);
+    return normalizeNotebookUpdateInput(parsed);
+  } catch (error) {
+    if (error instanceof NoteServiceError) {
+      throw error;
+    }
+    if (error instanceof z.ZodError) {
+      throw new NoteServiceError(
+        "VALIDATION_ERROR",
+        422,
+        "노트북 수정 입력값이 올바르지 않습니다.",
         extractZodFieldErrors(error),
       );
     }
@@ -422,10 +540,133 @@ function buildSearchWhere(ownerId: string, query: NoteSearchQuery): Prisma.NoteW
   return where;
 }
 
+function mapNotebookDto(
+  notebook: Prisma.NotebookGetPayload<{ select: typeof notebookSelect }>,
+  noteCount: number,
+) {
+  return {
+    id: notebook.id,
+    name: notebook.name,
+    description: notebook.description,
+    noteCount,
+    updatedAt: notebook.updatedAt,
+  };
+}
+
 export function createNotesService(deps: { prisma: NotesServicePrismaClient }): NotesService {
   const { prisma } = deps;
 
   return {
+    async listNotebooksForOwner(ownerId) {
+      const notebooks = await prisma.notebook.findMany({
+        where: { ownerId },
+        orderBy: [{ updatedAt: "desc" }],
+        select: notebookSelect,
+      });
+
+      const counts = await prisma.note.groupBy({
+        by: ["notebookId"],
+        where: {
+          ownerId,
+          deletedAt: null,
+        },
+        _count: {
+          _all: true,
+        },
+      });
+
+      const countMap = new Map<string, number>(
+        counts.map((item) => [item.notebookId, item._count._all]),
+      );
+
+      return notebooks.map((notebook) => mapNotebookDto(notebook, countMap.get(notebook.id) ?? 0));
+    },
+
+    async getNotebookForOwner(ownerId, notebookId) {
+      await ensureNotebookOwner(prisma, ownerId, notebookId);
+      const notebook = await prisma.notebook.findUnique({
+        where: { id: notebookId },
+        select: notebookSelect,
+      });
+
+      if (!notebook) {
+        throw new NoteServiceError("NOT_FOUND", 404, "노트북을 찾을 수 없습니다.");
+      }
+
+      const noteCount = await prisma.note.count({
+        where: {
+          ownerId,
+          notebookId,
+          deletedAt: null,
+        },
+      });
+
+      return mapNotebookDto(notebook, noteCount);
+    },
+
+    async createNotebook(ownerId, input) {
+      const parsed = parseNotebookCreateInput(input);
+
+      try {
+        const created = await prisma.notebook.create({
+          data: {
+            ownerId,
+            name: parsed.name,
+            description: parsed.description ?? null,
+          },
+          select: { id: true },
+        });
+
+        return this.getNotebookForOwner(ownerId, created.id);
+      } catch (error) {
+        handleKnownPrismaError(error);
+      }
+    },
+
+    async updateNotebook(ownerId, notebookId, input) {
+      await ensureNotebookOwner(prisma, ownerId, notebookId);
+      const parsed = parseNotebookUpdateInput(input);
+
+      try {
+        await prisma.notebook.update({
+          where: { id: notebookId },
+          data: parsed,
+          select: { id: true },
+        });
+
+        return this.getNotebookForOwner(ownerId, notebookId);
+      } catch (error) {
+        handleKnownPrismaError(error);
+      }
+    },
+
+    async deleteNotebook(ownerId, notebookId) {
+      await ensureNotebookOwner(prisma, ownerId, notebookId);
+
+      const noteCount = await prisma.note.count({
+        where: {
+          ownerId,
+          notebookId,
+          deletedAt: null,
+        },
+      });
+
+      if (noteCount > 0) {
+        throw new NoteServiceError(
+          "CONFLICT",
+          409,
+          "노트가 남아 있는 노트북은 삭제할 수 없습니다.",
+        );
+      }
+
+      await prisma.notebook.delete({
+        where: { id: notebookId },
+        select: { id: true },
+      });
+
+      return { id: notebookId };
+    },
+
     async listNotesForOwner(ownerId) {
       return prisma.note.findMany({
         where: {
