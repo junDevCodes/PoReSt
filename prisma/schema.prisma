@@ -306,6 +306,7 @@ model Resume {
   summaryMd     String?      @db.Text  // 상단 자기소개/역량 요약
 
   items         ResumeItem[] // Experience 조합
+  shareLinks    ResumeShareLink[]
 
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
@@ -338,6 +339,22 @@ model ResumeItem {
   @@unique([resumeId, experienceId])  // 중복 방지
   @@index([resumeId, sortOrder])
   @@map("resume_items")
+}
+
+model ResumeShareLink {
+  id        String   @id @default(cuid())
+  resumeId  String
+  resume    Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  token     String   @unique
+  expiresAt DateTime?
+  isRevoked Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([resumeId, isRevoked, createdAt])
+  @@map("resume_share_links")
 }
 
 // ========== KNOWLEDGE NOTES (지식노트 + 그래프) ==========
