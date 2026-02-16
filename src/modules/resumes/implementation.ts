@@ -1,8 +1,10 @@
+import { randomBytes } from "node:crypto";
 import { Prisma, ResumeStatus } from "@prisma/client";
 import { z } from "zod";
 import {
   type ResumeCreateInput,
   type ResumeItemCreateInput,
+  type ResumeShareLinkCreateInput,
   ResumeServiceError,
   type ResumeServicePrismaClient,
   type ResumesService,
@@ -19,6 +21,8 @@ const MAX_TECH_TAG_SIZE = 100;
 const MIN_ORDER = 0;
 const MAX_ORDER = 9999;
 const EMPTY_LENGTH = 0;
+const MAX_SHARE_TOKEN_RETRY = 5;
+const SHARE_TOKEN_SIZE_BYTES = 24;
 
 type NormalizedResumeUpdateInput = {
   status?: ResumeStatus;
@@ -36,6 +40,10 @@ type NormalizedResumeItemUpdateInput = {
   overrideMetricsJson?: Prisma.InputJsonValue | Prisma.NullTypes.DbNull;
   overrideTechTags?: string[];
   notes?: string | null;
+};
+
+type ResumeShareLinkDeleteInput = {
+  shareLinkId: string;
 };
 
 const createResumeSchema = z.object({
@@ -83,6 +91,18 @@ const updateResumeItemSchema = z
     message: "수정할 필드를 최소 1개 이상 입력해주세요.",
     path: ["root"],
   });
+
+const createResumeShareLinkSchema = z.object({
+  expiresAt: z
+    .string()
+    .datetime("expiresAt은 ISO 8601 날짜 형식이어야 합니다.")
+    .optional()
+    .nullable(),
+});
+
+const deleteResumeShareLinkSchema = z.object({
+  shareLinkId: z.string().trim().min(MIN_TEXT_LENGTH, "shareLinkId는 비어 있을 수 없습니다."),
+});
 
 const resumeListSelect = {
   id: true,
@@ -144,6 +164,15 @@ const resumeDetailSelect = Prisma.validator<Prisma.ResumeSelect>()({
     orderBy: resumeItemOrderBy,
     select: resumeItemWithExperienceSelect,
   },
+});
+
+const resumeShareLinkSelect = Prisma.validator<Prisma.ResumeShareLinkSelect>()({
+  id: true,
+  token: true,
+  expiresAt: true,
+  isRevoked: true,
+  createdAt: true,
+  updatedAt: true,
 });
 
 function toNullableString(value: string | null | undefined): string | null | undefined {
@@ -286,6 +315,18 @@ function normalizeUpdateResumeItemInput(
   return normalized;
 }
 
+function normalizeCreateResumeShareLinkInput(
+  input: z.infer<typeof createResumeShareLinkSchema>,
+): ResumeShareLinkCreateInput {
+  if (!input.expiresAt) {
+    return {};
+  }
+
+  return {
+    expiresAt: new Date(input.expiresAt),
+  };
+}
+
 export function parseResumeCreateInput(input: unknown): ResumeCreateInput {
   try {
     const parsed = createResumeSchema.parse(input);
@@ -366,6 +407,60 @@ export function parseResumeItemUpdateInput(input: unknown): NormalizedResumeItem
         "VALIDATION_ERROR",
         422,
         "이력서 항목 수정 입력값이 올바르지 않습니다.",
+        extractZodFieldErrors(error),
+      );
+    }
+
+    throw error;
+  }
+}
+
+export function parseResumeShareLinkCreateInput(input: unknown): ResumeShareLinkCreateInput {
+  try {
+    const parsed = createResumeShareLinkSchema.parse(input);
+    const normalized = normalizeCreateResumeShareLinkInput(parsed);
+
+    if (normalized.expiresAt && normalized.expiresAt.getTime() <= Date.now()) {
+      throw new ResumeServiceError(
+        "VALIDATION_ERROR",
+        422,
+        "expiresAt은 현재 시각 이후여야 합니다.",
+        { expiresAt: "만료 시각은 현재보다 이후여야 합니다." },
+      );
+    }
+
+    return normalized;
+  } catch (error) {
+    if (error instanceof ResumeServiceError) {
+      throw error;
+    }
+
+    if (error instanceof z.ZodError) {
+      throw new ResumeServiceError(
+        "VALIDATION_ERROR",
+        422,
+        "공유 링크 입력값이 올바르지 않습니다.",
+        extractZodFieldErrors(error),
+      );
+    }
+
+    throw error;
+  }
+}
+
+export function parseResumeShareLinkDeleteInput(input: unknown): ResumeShareLinkDeleteInput {
+  try {
+    return deleteResumeShareLinkSchema.parse(input);
+  } catch (error) {
+    if (error instanceof ResumeServiceError) {
+      throw error;
+    }
+
+    if (error instanceof z.ZodError) {
+      throw new ResumeServiceError(
+        "VALIDATION_ERROR",
+        422,
+        "공유 링크 삭제 입력값이 올바르지 않습니다.",
         extractZodFieldErrors(error),
       );
     }
@@ -553,6 +648,94 @@ function mapResumeDetail(detail: {
   };
 }
 
+function mapResumePreview(detail: {
+  id: string;
+  title: string;
+  targetCompany: string | null;
+  targetRole: string | null;
+  level: string | null;
+  summaryMd: string | null;
+  updatedAt: Date;
+  items: Array<{
+    id: string;
+    sortOrder: number;
+    notes: string | null;
+    overrideBulletsJson: unknown;
+    overrideMetricsJson: unknown;
+    overrideTechTags: string[];
+    experience: {
+      id: string;
+      company: string;
+      role: string;
+      startDate: Date;
+      endDate: Date | null;
+      isCurrent: boolean;
+      summary: string | null;
+      bulletsJson: unknown;
+      metricsJson: unknown;
+      techTags: string[];
+      updatedAt: Date;
+    };
+  }>;
+}) {
+  const items = detail.items.map((item) => ({
+    itemId: item.id,
+    sortOrder: item.sortOrder,
+    notes: item.notes,
+    experience: {
+      id: item.experience.id,
+      company: item.experience.company,
+      role: item.experience.role,
+      startDate: item.experience.startDate,
+      endDate: item.experience.endDate,
+      isCurrent: item.experience.isCurrent,
+      summary: item.experience.summary,
+      bulletsJson: item.experience.bulletsJson,
+      metricsJson: item.experience.metricsJson,
+      techTags: item.experience.techTags,
+      updatedAt: item.experience.updatedAt,
+    },
+    resolvedBulletsJson: item.overrideBulletsJson ?? item.experience.bulletsJson,
+    resolvedMetricsJson: item.overrideMetricsJson ?? item.experience.metricsJson,
+    resolvedTechTags: item.overrideTechTags.length > 0 ? item.overrideTechTags : item.experience.techTags,
+  }));
+
+  return {
+    resume: {
+      id: detail.id,
+      title: detail.title,
+      targetCompany: detail.targetCompany,
+      targetRole: detail.targetRole,
+      level: detail.level,
+      summaryMd: detail.summaryMd,
+      updatedAt: detail.updatedAt,
+    },
+    items,
+  };
+}
+
+function mapResumeShareLink(item: {
+  id: string;
+  token: string;
+  expiresAt: Date | null;
+  isRevoked: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}) {
+  return {
+    id: item.id,
+    token: item.token,
+    expiresAt: item.expiresAt,
+    isRevoked: item.isRevoked,
+    createdAt: item.createdAt,
+    updatedAt: item.updatedAt,
+  };
+}
+
+function generateResumeShareToken() {
+  return randomBytes(SHARE_TOKEN_SIZE_BYTES).toString("base64url");
+}
+
 async function fetchResumeDetailById(prisma: ResumeServicePrismaClient, resumeId: string) {
   const detail = await prisma.resume.findUnique({
     where: { id: resumeId },
@@ -564,6 +747,19 @@ async function fetchResumeDetailById(prisma: ResumeServicePrismaClient, resumeId
   }
 
   return mapResumeDetail(detail);
+}
+
+async function fetchResumePreviewById(prisma: ResumeServicePrismaClient, resumeId: string) {
+  const detail = await prisma.resume.findUnique({
+    where: { id: resumeId },
+    select: resumeDetailSelect,
+  });
+
+  if (!detail) {
+    throw new ResumeServiceError("NOT_FOUND", 404, "이력서를 찾을 수 없습니다.");
+  }
+
+  return mapResumePreview(detail);
 }
 
 export function createResumesService(deps: { prisma: ResumeServicePrismaClient }): ResumesService {
@@ -724,51 +920,100 @@ export function createResumesService(deps: { prisma: ResumeServicePrismaClient }
 
     async getResumePreviewForOwner(ownerId, resumeId) {
       await ensureResumeOwner(prisma, ownerId, resumeId);
+      return fetchResumePreviewById(prisma, resumeId);
+    },
 
-      const resume = await prisma.resume.findUnique({
-        where: { id: resumeId },
-        select: resumeDetailSelect,
+    async listResumeShareLinksForOwner(ownerId, resumeId) {
+      await ensureResumeOwner(prisma, ownerId, resumeId);
+
+      const links = await prisma.resumeShareLink.findMany({
+        where: { resumeId },
+        orderBy: [{ createdAt: "desc" }],
+        select: resumeShareLinkSelect,
       });
 
-      if (!resume) {
-        throw new ResumeServiceError("NOT_FOUND", 404, "이력서를 찾을 수 없습니다.");
+      return links.map(mapResumeShareLink);
+    },
+
+    async createResumeShareLink(ownerId, resumeId, input) {
+      await ensureResumeOwner(prisma, ownerId, resumeId);
+      const parsed = parseResumeShareLinkCreateInput(input);
+
+      for (let index = 0; index < MAX_SHARE_TOKEN_RETRY; index += 1) {
+        const token = generateResumeShareToken();
+        try {
+          const created = await prisma.resumeShareLink.create({
+            data: {
+              resumeId,
+              token,
+              expiresAt: parsed.expiresAt ?? null,
+            },
+            select: resumeShareLinkSelect,
+          });
+
+          return mapResumeShareLink(created);
+        } catch (error) {
+          if (
+            error instanceof Prisma.PrismaClientKnownRequestError &&
+            error.code === "P2002" &&
+            Array.isArray(error.meta?.target) &&
+            error.meta.target.includes("token")
+          ) {
+            continue;
+          }
+          handleKnownPrismaError(error);
+        }
       }
 
-      const items = resume.items.map((item) => ({
-        itemId: item.id,
-        sortOrder: item.sortOrder,
-        notes: item.notes,
-        experience: {
-          id: item.experience.id,
-          company: item.experience.company,
-          role: item.experience.role,
-          startDate: item.experience.startDate,
-          endDate: item.experience.endDate,
-          isCurrent: item.experience.isCurrent,
-          summary: item.experience.summary,
-          bulletsJson: item.experience.bulletsJson,
-          metricsJson: item.experience.metricsJson,
-          techTags: item.experience.techTags,
-          updatedAt: item.experience.updatedAt,
-        },
-        resolvedBulletsJson: item.overrideBulletsJson ?? item.experience.bulletsJson,
-        resolvedMetricsJson: item.overrideMetricsJson ?? item.experience.metricsJson,
-        resolvedTechTags:
-          item.overrideTechTags.length > 0 ? item.overrideTechTags : item.experience.techTags,
-      }));
+      throw new ResumeServiceError("CONFLICT", 409, "공유 토큰 생성에 실패했습니다.");
+    },
 
-      return {
-        resume: {
-          id: resume.id,
-          title: resume.title,
-          targetCompany: resume.targetCompany,
-          targetRole: resume.targetRole,
-          level: resume.level,
-          summaryMd: resume.summaryMd,
-          updatedAt: resume.updatedAt,
+    async revokeResumeShareLink(ownerId, resumeId, shareLinkId) {
+      await ensureResumeOwner(prisma, ownerId, resumeId);
+
+      const link = await prisma.resumeShareLink.findUnique({
+        where: { id: shareLinkId },
+        select: {
+          id: true,
+          resumeId: true,
         },
-        items,
-      };
+      });
+
+      if (!link || link.resumeId !== resumeId) {
+        throw new ResumeServiceError("NOT_FOUND", 404, "공유 링크를 찾을 수 없습니다.");
+      }
+
+      await prisma.resumeShareLink.update({
+        where: { id: shareLinkId },
+        data: {
+          isRevoked: true,
+        },
+        select: { id: true },
+      });
+
+      return { id: shareLinkId };
+    },
+
+    async getResumePreviewByShareToken(token) {
+      const link = await prisma.resumeShareLink.findUnique({
+        where: { token },
+        select: {
+          id: true,
+          resumeId: true,
+          isRevoked: true,
+          expiresAt: true,
+        },
+      });
+
+      if (!link || link.isRevoked) {
+        throw new ResumeServiceError("NOT_FOUND", 404, "공유된 이력서를 찾을 수 없습니다.");
+      }
+
+      if (link.expiresAt && link.expiresAt.getTime() <= Date.now()) {
+        throw new ResumeServiceError("NOT_FOUND", 404, "공유 링크가 만료되었습니다.");
+      }
+
+      return fetchResumePreviewById(prisma, link.resumeId);
     },
   };
 }

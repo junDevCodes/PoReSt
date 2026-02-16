@@ -22,6 +22,10 @@ export type ResumeItemCreateInput = {
 
 export type ResumeItemUpdateInput = Partial<ResumeItemCreateInput>;
 
+export type ResumeShareLinkCreateInput = {
+  expiresAt?: Date | null;
+};
+
 export type OwnerResumeListItemDto = {
   id: string;
   status: ResumeStatus;
@@ -91,6 +95,15 @@ export type ResumePreviewDto = {
   }>;
 };
 
+export type OwnerResumeShareLinkDto = {
+  id: string;
+  token: string;
+  expiresAt: Date | null;
+  isRevoked: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
 export type ResumeFieldErrors = Record<string, string>;
 
 export type ResumeServiceErrorCode = "VALIDATION_ERROR" | "CONFLICT" | "NOT_FOUND" | "FORBIDDEN";
@@ -112,7 +125,10 @@ export function isResumeServiceError(error: unknown): error is ResumeServiceErro
   return error instanceof ResumeServiceError;
 }
 
-export type ResumeServicePrismaClient = Pick<Prisma.TransactionClient, "resume" | "resumeItem" | "experience">;
+export type ResumeServicePrismaClient = Pick<
+  Prisma.TransactionClient,
+  "resume" | "resumeItem" | "experience" | "resumeShareLink"
+>;
 
 export interface ResumesService {
   listResumesForOwner(ownerId: string): Promise<OwnerResumeListItemDto[]>;
@@ -130,4 +146,12 @@ export interface ResumesService {
   ): Promise<OwnerResumeItemDto>;
   deleteResumeItem(ownerId: string, resumeId: string, itemId: string): Promise<{ id: string }>;
   getResumePreviewForOwner(ownerId: string, resumeId: string): Promise<ResumePreviewDto>;
+  listResumeShareLinksForOwner(ownerId: string, resumeId: string): Promise<OwnerResumeShareLinkDto[]>;
+  createResumeShareLink(
+    ownerId: string,
+    resumeId: string,
+    input: unknown,
+  ): Promise<OwnerResumeShareLinkDto>;
+  revokeResumeShareLink(ownerId: string, resumeId: string, shareLinkId: string): Promise<{ id: string }>;
+  getResumePreviewByShareToken(token: string): Promise<ResumePreviewDto>;
 }
