@@ -406,3 +406,23 @@ NEXT_PUBLIC_SITE_URL="http://localhost:3000"
 **작성자**: 정하은 (DevOps Engineer)  
 **버전**: 1.0
 
+
+## Post-M5 배포 주의사항 (2026-02-16)
+
+### 필수 환경변수
+- `AUTH_SECRET`
+- `AUTH_GITHUB_ID`
+- `AUTH_GITHUB_SECRET`
+- `DATABASE_URL`
+- `DATABASE_URL_UNPOOLED`
+- `DATABASE_URL_TEST` (테스트 전용)
+
+### 배포 전 점검
+1. Prisma migration chain 정합성 확인
+2. Preview/Production DB 대상 호스트 재확인
+3. `npm run vercel-build` 로컬 사전 검증
+
+### 신규 기능 반영 시
+- G1~G5 반영 후 API 스모크 테스트 수행
+- `/api/public/projects` 쿼리 기반 응답(`nextCursor`) 확인
+- `/api/app/feedback/targets` 타입별 데이터 유효성 확인

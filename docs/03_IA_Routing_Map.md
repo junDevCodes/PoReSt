@@ -174,3 +174,25 @@ app/
 
 ---
 
+
+## Post-M5 신규 라우팅 (2026-02-16)
+
+### App/API (Private)
+- `GET /api/app/me`
+- `GET|POST /api/app/notebooks`
+- `GET|PUT|DELETE /api/app/notebooks/[id]`
+- `GET /api/app/feedback/targets?type=PORTFOLIO|RESUME|NOTE|BLOG`
+- `POST|GET|DELETE /api/app/resumes/[id]/share-links` (P1)
+- `GET /api/app/blog/posts/[id]/exports` (P1)
+- `GET /api/app/audit` (P1)
+
+### Public API
+- `GET /api/public/projects?q&tag&limit&cursor&publicSlug`
+- `GET /api/public/resume/share/[token]` (P1)
+- `GET /api/public/users` (P2)
+
+### Public Page
+- `/u/[publicSlug]`
+- `/u/[publicSlug]/projects`
+- `/u/[publicSlug]/projects/[slug]`
+- `/users` (P2)

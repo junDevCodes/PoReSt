@@ -440,3 +440,26 @@ Response.data:
 
 ---
 
+
+## Post-M5 API 확장 (2026-02-16)
+
+### 신규 엔드포인트
+- `GET /api/app/me`
+- `GET|POST /api/app/notebooks`
+- `GET|PUT|DELETE /api/app/notebooks/[id]`
+- `GET /api/app/feedback/targets?type=PORTFOLIO|RESUME|NOTE|BLOG`
+- `POST|GET|DELETE /api/app/resumes/[id]/share-links` (P1)
+- `GET /api/public/resume/share/[token]` (P1)
+- `GET /api/app/blog/posts/[id]/exports` (P1)
+- `GET /api/app/audit` (P1)
+
+### 확장 엔드포인트
+- `GET /api/public/projects`
+  - Query: `q`, `tag`, `limit`, `cursor`, `publicSlug`
+  - Response: `{ data: PublicProject[], nextCursor: string | null }`
+
+### 주요 DTO
+- Me DTO: `{ id, email, isOwner, workspace: { publicSlug, isPublic } }`
+- Notebook DTO: `{ id, name, description, noteCount, updatedAt }`
+- FeedbackTarget DTO: `{ id, type, title, updatedAt }`
+- ResumeShare DTO / BlogExport DTO / Audit DTO는 P1에서 확정

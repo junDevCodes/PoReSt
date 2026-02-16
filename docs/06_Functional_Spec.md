@@ -300,3 +300,28 @@
 
 ---
 
+
+## Post-M5 기능 흐름 추가 (2026-02-16)
+
+### G1 내 워크스페이스 조회
+1. 로그인 사용자가 `/api/app/me` 호출
+2. 사용자 기본 정보 + workspace(`publicSlug`, `isPublic`) 반환
+3. 미존재 사용자 레코드는 404
+
+### G2 Notebook/Note 작성 파이프라인
+1. 노트북 생성
+2. 노트 작성 시 노트북 선택 필수
+3. 노트가 남아있는 노트북 삭제 시 409 반환
+
+### G3 Public Projects 검색/필터
+1. 목록 API에 `q/tag/publicSlug` 조건 적용
+2. `limit/cursor` 기반 커서 페이지네이션
+3. 응답은 `data[] + nextCursor`
+
+### G4 Feedback 대상 자동 선택
+1. targetType 선택
+2. `/api/app/feedback/targets`에서 대상 목록 로드
+3. 목록에서 targetId 선택 후 요청 생성
+
+### G5 Blog Lint Rule10
+- 헤딩 레벨 점프 감지(`HEADING_LEVEL_JUMP`)를 추가하여 문서 구조 품질 점검

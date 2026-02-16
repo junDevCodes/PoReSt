@@ -252,3 +252,23 @@ v1 선택지 2개 중 하나로 고정(초기에 흔들리지 않게)
 - Supabase pgvector Docs: https://supabase.com/docs/guides/database/extensions/pgvector
 - pgvector Indexing (HNSW/IVFFlat): https://github.com/pgvector/pgvector
 
+
+## Post-M5 아키텍처 확장 포인트 (2026-02-16)
+
+### Application Layer
+- `me` 조회 API를 통해 세션 사용자 워크스페이스 상태를 표준화한다.
+- Notes는 Notebook 단위 집계(`noteCount`)를 서비스 계층에서 계산한다.
+- Public Projects는 커서 기반 조회를 통해 목록 API 비용을 제어한다.
+- Feedback 생성은 대상 선택 API를 통해 입력 오류를 줄인다.
+
+### Quality Engine
+- Blog Lint Rule10(`HEADING_LEVEL_JUMP`) 추가로 문서 구조 품질 점검을 강화한다.
+
+### Observability (P1)
+- Request ID 전파
+- 구조화 로그(JSON)
+- Sentry 에러 추적
+
+### Data/Linking (P2)
+- Cross-domain 링크 그래프(`DomainLink`)
+- 임베딩 생성/재빌드 파이프라인(`pgvector`)

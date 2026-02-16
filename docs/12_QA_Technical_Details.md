@@ -1441,3 +1441,23 @@ ANALYZE=true npm run build
 
 계속해서 나머지 질문들(Q7~Q13)에 대한 답변을 작성하겠습니다. 문서가 길어지고 있으니 다음 메시지에서 계속 작성할까요, 아니면 이대로 진행할까요?
 
+
+## Post-M5 QA 시나리오 추가 (2026-02-16)
+
+### 인증/권한
+- 비인증 사용자는 `/app/*` 접근 시 로그인 리다이렉트
+- 로그인 사용자는 본인 데이터 범위에서 CRUD 가능
+- 운영 API(`revalidate`, `db-test`, `test/owner`)는 오너 권한 유지
+
+### 기능 시나리오 (P0)
+- G1: `/api/app/me` 응답 스키마/404 검증
+- G2: Notebook CRUD + 노트 존재 시 삭제 409 검증
+- G3: public projects `q/tag/publicSlug/limit/cursor` 조합 검증
+- G4: feedback targetType별 목록 조회 및 생성 플로우 검증
+- G5: lint rule10 탐지/비탐지 케이스 검증
+
+### 회귀 게이트
+- `npm run lint`
+- `npm run build`
+- `npx jest --runInBand`
+- `npm run vercel-build`

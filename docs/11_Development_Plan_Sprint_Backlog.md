@@ -225,3 +225,27 @@
 
 ---
 
+
+## Post-M5 스프린트 백로그 추가 (2026-02-16)
+
+### Epic G1~G5 (P0)
+- E-G1: Workspace API 표준화
+- E-G2: Notebook CRUD + 작성 UX 완성
+- E-G3: Public Projects 검색/필터/페이지네이션
+- E-G4: Feedback 대상 자동 선택
+- E-G5: Blog Lint Rule10
+
+### Epic G6~G9 (P1)
+- Resume 공유 링크
+- Export 이력화
+- Audit Log
+- 관측성 표준화
+
+### Epic G10~G12 (P2)
+- Cross-domain 링크
+- pgvector 임베딩 파이프라인
+- 공개 사용자 디렉토리
+
+### 운영 규칙
+- 각 Epic은 기능 구현 + 문서 동기화를 하나의 완료 단위로 본다.
+- 완료 결과는 `plans/history.md`에 누적한다.
