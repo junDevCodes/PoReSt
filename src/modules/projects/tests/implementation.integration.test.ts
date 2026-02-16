@@ -46,12 +46,22 @@ describeWithDatabase("projects service integration", () => {
   }
 
   async function createOwner(tx: Prisma.TransactionClient, suffix: string) {
-    return tx.user.create({
+    const owner = await tx.user.create({
       data: {
         email: `owner-${suffix}@example.com`,
         isOwner: true,
       },
     });
+
+    await tx.portfolioSettings.create({
+      data: {
+        ownerId: owner.id,
+        publicSlug: `owner-${suffix}`,
+        isPublic: true,
+      },
+    });
+
+    return owner;
   }
 
   it("동일 slug로 프로젝트를 두 번 생성하면 409 에러를 반환해야 한다", async () => {
@@ -113,6 +123,82 @@ describeWithDatabase("projects service integration", () => {
       expect(slugs).toContain(publicSlug);
       expect(slugs).not.toContain(privateSlug);
       expect(slugs).not.toContain(unlistedSlug);
+    });
+  });
+
+  it("공개 프로젝트 검색/필터/커서 페이지네이션이 동작해야 한다", async () => {
+    await runWithRollback(async (service, tx) => {
+      const unique = `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+      const ownerA = await createOwner(tx, `search-a-${unique}`);
+      const ownerB = await createOwner(tx, `search-b-${unique}`);
+      const ownerAPublicSlug = `owner-search-a-${unique}`;
+
+      await service.createProject(ownerA.id, {
+        title: `검색 대상 React ${unique}`,
+        slug: `search-react-${unique}`,
+        description: "React 기반 프로젝트",
+        contentMd: "React와 Next.js를 사용한 공개 프로젝트",
+        techStack: ["react", "nextjs"],
+        visibility: Visibility.PUBLIC,
+      });
+      await service.createProject(ownerA.id, {
+        title: `검색 대상 Node ${unique}`,
+        slug: `search-node-${unique}`,
+        description: "Node 기반 프로젝트",
+        contentMd: "Node.js와 Prisma를 사용한 공개 프로젝트",
+        techStack: ["nodejs", "prisma"],
+        visibility: Visibility.PUBLIC,
+      });
+      await service.createProject(ownerA.id, {
+        title: `검색 대상 Data ${unique}`,
+        slug: `search-data-${unique}`,
+        description: "데이터 파이프라인 프로젝트",
+        contentMd: "ETL 파이프라인과 대시보드 구성",
+        techStack: ["python", "etl"],
+        visibility: Visibility.PUBLIC,
+      });
+      await service.createProject(ownerA.id, {
+        title: `비공개 검색 제외 ${unique}`,
+        slug: `search-private-${unique}`,
+        contentMd: "비공개 프로젝트",
+        techStack: ["react"],
+        visibility: Visibility.PRIVATE,
+      });
+      await service.createProject(ownerB.id, {
+        title: `다른 사용자 공개 ${unique}`,
+        slug: `search-other-${unique}`,
+        contentMd: "다른 사용자 프로젝트",
+        techStack: ["react"],
+        visibility: Visibility.PUBLIC,
+      });
+
+      const firstPage = await service.searchPublicProjects({
+        q: "검색 대상",
+        limit: 2,
+        publicSlug: ownerAPublicSlug,
+      });
+
+      expect(firstPage.items).toHaveLength(2);
+      expect(firstPage.items.every((item) => item.publicSlug === ownerAPublicSlug)).toBe(true);
+      expect(firstPage.nextCursor).not.toBeNull();
+
+      const secondPage = await service.searchPublicProjects({
+        q: "검색 대상",
+        limit: 2,
+        publicSlug: ownerAPublicSlug,
+        cursor: firstPage.nextCursor ?? undefined,
+      });
+
+      expect(secondPage.items).toHaveLength(1);
+      expect(secondPage.items.every((item) => item.publicSlug === ownerAPublicSlug)).toBe(true);
+      expect(secondPage.items[0]?.slug).not.toBe(firstPage.items[0]?.slug);
+
+      const byTag = await service.searchPublicProjects({
+        tag: "react",
+        limit: 10,
+      });
+      expect(byTag.items.some((item) => item.slug === `search-react-${unique}`)).toBe(true);
+      expect(byTag.items.some((item) => item.slug === `search-private-${unique}`)).toBe(false);
     });
   });
 

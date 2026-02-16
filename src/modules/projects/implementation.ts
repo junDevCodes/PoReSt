@@ -1,9 +1,10 @@
-import { Prisma, Visibility } from "@prisma/client";
+﻿import { Prisma, Visibility } from "@prisma/client";
 import { z } from "zod";
 import {
   MAX_PROJECT_SLUG_LENGTH,
   PROJECT_SLUG_PATTERN,
   type ProjectCreateInput,
+  type PublicProjectsQuery,
   type ProjectServicePrismaClient,
   ProjectServiceError,
   type ProjectsService,
@@ -17,6 +18,13 @@ const MAX_TECH_STACK_SIZE = 50;
 const MIN_ORDER = 0;
 const MAX_ORDER = 9999;
 const EMPTY_LENGTH = 0;
+const DEFAULT_PUBLIC_PROJECT_LIMIT = 20;
+const MAX_PUBLIC_PROJECT_LIMIT = 50;
+
+type PublicProjectsCursorPayload = {
+  updatedAt: string;
+  id: string;
+};
 
 type NormalizedProjectUpdateInput = {
   slug?: string;
@@ -35,51 +43,59 @@ type NormalizedProjectUpdateInput = {
 };
 
 const createProjectSchema = z.object({
-  slug: z.string().trim().min(1, "슬러그를 입력해주세요.").max(MAX_PROJECT_SLUG_LENGTH, "슬러그는 100자 이하로 입력해주세요.").optional(),
-  title: z.string().trim().min(MIN_TITLE_LENGTH, "제목은 2자 이상이어야 합니다.").max(MAX_TITLE_LENGTH, "제목은 80자 이하로 입력해주세요."),
-  subtitle: z.string().trim().max(MAX_SUBTITLE_LENGTH, "부제목은 120자 이하로 입력해주세요.").optional().nullable(),
+  slug: z.string().trim().min(1, "?щ윭洹몃? ?낅젰?댁＜?몄슂.").max(MAX_PROJECT_SLUG_LENGTH, "?щ윭洹몃뒗 100???댄븯濡??낅젰?댁＜?몄슂.").optional(),
+  title: z.string().trim().min(MIN_TITLE_LENGTH, "?쒕ぉ? 2???댁긽?댁뼱???⑸땲??").max(MAX_TITLE_LENGTH, "?쒕ぉ? 80???댄븯濡??낅젰?댁＜?몄슂."),
+  subtitle: z.string().trim().max(MAX_SUBTITLE_LENGTH, "遺?쒕ぉ? 120???댄븯濡??낅젰?댁＜?몄슂.").optional().nullable(),
   description: z
     .string()
     .trim()
-    .max(MAX_DESCRIPTION_LENGTH, "설명은 200자 이하로 입력해주세요.")
+    .max(MAX_DESCRIPTION_LENGTH, "?ㅻ챸? 200???댄븯濡??낅젰?댁＜?몄슂.")
     .optional()
     .nullable(),
-  contentMd: z.string().trim().min(1, "본문은 비어 있을 수 없습니다."),
-  techStack: z.array(z.string().trim().min(1, "기술 스택 항목은 비어 있을 수 없습니다.")).max(MAX_TECH_STACK_SIZE, "기술 스택은 최대 50개까지 입력할 수 있습니다.").optional().default([]),
-  repoUrl: z.string().url("repoUrl은 올바른 URL이어야 합니다.").optional().nullable(),
-  demoUrl: z.string().url("demoUrl은 올바른 URL이어야 합니다.").optional().nullable(),
-  thumbnailUrl: z.string().url("thumbnailUrl은 올바른 URL이어야 합니다.").optional().nullable(),
+  contentMd: z.string().trim().min(1, "蹂몃Ц? 鍮꾩뼱 ?덉쓣 ???놁뒿?덈떎."),
+  techStack: z.array(z.string().trim().min(1, "湲곗닠 ?ㅽ깮 ??ぉ? 鍮꾩뼱 ?덉쓣 ???놁뒿?덈떎.")).max(MAX_TECH_STACK_SIZE, "湲곗닠 ?ㅽ깮? 理쒕? 50媛쒓퉴吏 ?낅젰?????덉뒿?덈떎.").optional().default([]),
+  repoUrl: z.string().url("repoUrl? ?щ컮瑜?URL?댁뼱???⑸땲??").optional().nullable(),
+  demoUrl: z.string().url("demoUrl? ?щ컮瑜?URL?댁뼱???⑸땲??").optional().nullable(),
+  thumbnailUrl: z.string().url("thumbnailUrl? ?щ컮瑜?URL?댁뼱???⑸땲??").optional().nullable(),
   visibility: z.nativeEnum(Visibility).optional().default(Visibility.PUBLIC),
   isFeatured: z.boolean().optional().default(false),
-  order: z.number().int("order는 정수여야 합니다.").min(MIN_ORDER, "order는 0 이상이어야 합니다.").max(MAX_ORDER, "order는 9999 이하여야 합니다.").optional().default(0),
+  order: z.number().int("order???뺤닔?ъ빞 ?⑸땲??").min(MIN_ORDER, "order??0 ?댁긽?댁뼱???⑸땲??").max(MAX_ORDER, "order??9999 ?댄븯?ъ빞 ?⑸땲??").optional().default(0),
   highlightsJson: z.unknown().optional().nullable(),
 });
 
 const updateProjectSchema = z
   .object({
-    slug: z.string().trim().min(1, "슬러그를 입력해주세요.").max(MAX_PROJECT_SLUG_LENGTH, "슬러그는 100자 이하로 입력해주세요.").optional(),
-    title: z.string().trim().min(MIN_TITLE_LENGTH, "제목은 2자 이상이어야 합니다.").max(MAX_TITLE_LENGTH, "제목은 80자 이하로 입력해주세요.").optional(),
-    subtitle: z.string().trim().max(MAX_SUBTITLE_LENGTH, "부제목은 120자 이하로 입력해주세요.").optional().nullable(),
+    slug: z.string().trim().min(1, "?щ윭洹몃? ?낅젰?댁＜?몄슂.").max(MAX_PROJECT_SLUG_LENGTH, "?щ윭洹몃뒗 100???댄븯濡??낅젰?댁＜?몄슂.").optional(),
+    title: z.string().trim().min(MIN_TITLE_LENGTH, "?쒕ぉ? 2???댁긽?댁뼱???⑸땲??").max(MAX_TITLE_LENGTH, "?쒕ぉ? 80???댄븯濡??낅젰?댁＜?몄슂.").optional(),
+    subtitle: z.string().trim().max(MAX_SUBTITLE_LENGTH, "遺?쒕ぉ? 120???댄븯濡??낅젰?댁＜?몄슂.").optional().nullable(),
     description: z
       .string()
       .trim()
-      .max(MAX_DESCRIPTION_LENGTH, "설명은 200자 이하로 입력해주세요.")
+      .max(MAX_DESCRIPTION_LENGTH, "?ㅻ챸? 200???댄븯濡??낅젰?댁＜?몄슂.")
       .optional()
       .nullable(),
-    contentMd: z.string().trim().min(1, "본문은 비어 있을 수 없습니다.").optional(),
-    techStack: z.array(z.string().trim().min(1, "기술 스택 항목은 비어 있을 수 없습니다.")).max(MAX_TECH_STACK_SIZE, "기술 스택은 최대 50개까지 입력할 수 있습니다.").optional(),
-    repoUrl: z.string().url("repoUrl은 올바른 URL이어야 합니다.").optional().nullable(),
-    demoUrl: z.string().url("demoUrl은 올바른 URL이어야 합니다.").optional().nullable(),
-    thumbnailUrl: z.string().url("thumbnailUrl은 올바른 URL이어야 합니다.").optional().nullable(),
+    contentMd: z.string().trim().min(1, "蹂몃Ц? 鍮꾩뼱 ?덉쓣 ???놁뒿?덈떎.").optional(),
+    techStack: z.array(z.string().trim().min(1, "湲곗닠 ?ㅽ깮 ??ぉ? 鍮꾩뼱 ?덉쓣 ???놁뒿?덈떎.")).max(MAX_TECH_STACK_SIZE, "湲곗닠 ?ㅽ깮? 理쒕? 50媛쒓퉴吏 ?낅젰?????덉뒿?덈떎.").optional(),
+    repoUrl: z.string().url("repoUrl? ?щ컮瑜?URL?댁뼱???⑸땲??").optional().nullable(),
+    demoUrl: z.string().url("demoUrl? ?щ컮瑜?URL?댁뼱???⑸땲??").optional().nullable(),
+    thumbnailUrl: z.string().url("thumbnailUrl? ?щ컮瑜?URL?댁뼱???⑸땲??").optional().nullable(),
     visibility: z.nativeEnum(Visibility).optional(),
     isFeatured: z.boolean().optional(),
-    order: z.number().int("order는 정수여야 합니다.").min(MIN_ORDER, "order는 0 이상이어야 합니다.").max(MAX_ORDER, "order는 9999 이하여야 합니다.").optional(),
+    order: z.number().int("order???뺤닔?ъ빞 ?⑸땲??").min(MIN_ORDER, "order??0 ?댁긽?댁뼱???⑸땲??").max(MAX_ORDER, "order??9999 ?댄븯?ъ빞 ?⑸땲??").optional(),
     highlightsJson: z.unknown().optional().nullable(),
   })
   .refine((input) => Object.keys(input).length > EMPTY_LENGTH, {
-    message: "수정할 필드를 최소 1개 이상 입력해주세요.",
+    message: "?섏젙???꾨뱶瑜?理쒖냼 1媛??댁긽 ?낅젰?댁＜?몄슂.",
     path: ["root"],
   });
+
+const publicProjectsQuerySchema = z.object({
+  q: z.string().trim().min(1).optional(),
+  tag: z.string().trim().min(1).optional(),
+  publicSlug: z.string().trim().min(1).optional(),
+  limit: z.coerce.number().int().min(1).max(MAX_PUBLIC_PROJECT_LIMIT).optional(),
+  cursor: z.string().trim().min(1).optional(),
+});
 
 const ownerProjectSelect = {
   id: true,
@@ -107,6 +123,15 @@ const publicProjectListSelect = {
   techStack: true,
   thumbnailUrl: true,
   updatedAt: true,
+  owner: {
+    select: {
+      portfolioSettings: {
+        select: {
+          publicSlug: true,
+        },
+      },
+    },
+  },
 } as const;
 
 const publicProjectDetailSelect = {
@@ -120,6 +145,15 @@ const publicProjectDetailSelect = {
   demoUrl: true,
   highlightsJson: true,
   updatedAt: true,
+  owner: {
+    select: {
+      portfolioSettings: {
+        select: {
+          publicSlug: true,
+        },
+      },
+    },
+  },
 } as const;
 
 const featuredProjectSelect = {
@@ -183,6 +217,98 @@ function toNullableJsonInput(
   return value;
 }
 
+function encodePublicProjectsCursor(payload: PublicProjectsCursorPayload): string {
+  return Buffer.from(JSON.stringify(payload), "utf8").toString("base64url");
+}
+
+function decodePublicProjectsCursor(cursor: string): PublicProjectsCursorPayload {
+  try {
+    const decoded = Buffer.from(cursor, "base64url").toString("utf8");
+    const parsed = JSON.parse(decoded) as PublicProjectsCursorPayload;
+    if (!parsed.updatedAt || !parsed.id) {
+      throw new Error("INVALID_CURSOR");
+    }
+    return parsed;
+  } catch {
+    throw new ProjectServiceError("VALIDATION_ERROR", 422, "cursor 값이 올바르지 않습니다.", {
+      cursor: "cursor 값을 확인해주세요.",
+    });
+  }
+}
+
+function parsePublicProjectsQuery(input: PublicProjectsQuery) {
+  try {
+    const parsed = publicProjectsQuerySchema.parse(input);
+    return {
+      q: parsed.q,
+      tag: parsed.tag,
+      publicSlug: parsed.publicSlug,
+      limit: parsed.limit ?? DEFAULT_PUBLIC_PROJECT_LIMIT,
+      cursor: parsed.cursor,
+    };
+  } catch (error) {
+    if (error instanceof ProjectServiceError) {
+      throw error;
+    }
+    if (error instanceof z.ZodError) {
+      throw new ProjectServiceError(
+        "VALIDATION_ERROR",
+        422,
+        "프로젝트 검색 조건이 올바르지 않습니다.",
+        extractZodFieldErrors(error),
+      );
+    }
+    throw error;
+  }
+}
+
+function mapPublicProjectListItem(
+  project: Prisma.ProjectGetPayload<{
+    select: typeof publicProjectListSelect;
+  }>,
+) {
+  const publicSlug = project.owner.portfolioSettings?.publicSlug;
+  if (!publicSlug) {
+    return null;
+  }
+
+  return {
+    id: project.id,
+    publicSlug,
+    slug: project.slug,
+    title: project.title,
+    description: project.description,
+    techStack: project.techStack,
+    thumbnailUrl: project.thumbnailUrl,
+    updatedAt: project.updatedAt,
+  };
+}
+
+function mapPublicProjectDetail(
+  project: Prisma.ProjectGetPayload<{
+    select: typeof publicProjectDetailSelect;
+  }>,
+) {
+  const publicSlug = project.owner.portfolioSettings?.publicSlug;
+  if (!publicSlug) {
+    return null;
+  }
+
+  return {
+    id: project.id,
+    publicSlug,
+    slug: project.slug,
+    title: project.title,
+    subtitle: project.subtitle,
+    contentMd: project.contentMd,
+    techStack: project.techStack,
+    repoUrl: project.repoUrl,
+    demoUrl: project.demoUrl,
+    highlightsJson: project.highlightsJson,
+    updatedAt: project.updatedAt,
+  };
+}
+
 export function buildProjectSlug(value: string): string {
   const normalized = value
     .trim()
@@ -198,7 +324,7 @@ export function buildProjectSlug(value: string): string {
 function validateFeaturedRule(visibility: Visibility, isFeatured: boolean) {
   if (isFeatured && visibility !== Visibility.PUBLIC) {
     throw new ProjectServiceError("VALIDATION_ERROR", 422, "대표 프로젝트는 공개 상태여야 합니다.", {
-      visibility: "isFeatured가 true이면 visibility는 PUBLIC이어야 합니다.",
+      visibility: "isFeatured가 true면 visibility는 PUBLIC이어야 합니다.",
     });
   }
 }
@@ -206,8 +332,8 @@ function validateFeaturedRule(visibility: Visibility, isFeatured: boolean) {
 function normalizeCreateInput(input: z.infer<typeof createProjectSchema>) {
   const normalizedSlug = buildProjectSlug(input.slug ?? input.title);
   if (!PROJECT_SLUG_PATTERN.test(normalizedSlug)) {
-    throw new ProjectServiceError("VALIDATION_ERROR", 422, "슬러그 형식이 올바르지 않습니다.", {
-      slug: "슬러그는 영문 소문자, 숫자, 하이픈만 사용할 수 있습니다.",
+    throw new ProjectServiceError("VALIDATION_ERROR", 422, "?щ윭洹??뺤떇???щ컮瑜댁? ?딆뒿?덈떎.", {
+      slug: "?щ윭洹몃뒗 ?곷Ц ?뚮Ц?? ?レ옄, ?섏씠?덈쭔 ?ъ슜?????덉뒿?덈떎.",
     });
   }
 
@@ -236,8 +362,8 @@ function normalizeUpdateInput(input: z.infer<typeof updateProjectSchema>): Norma
   if (input.slug !== undefined) {
     const slug = buildProjectSlug(input.slug);
     if (!PROJECT_SLUG_PATTERN.test(slug)) {
-      throw new ProjectServiceError("VALIDATION_ERROR", 422, "슬러그 형식이 올바르지 않습니다.", {
-        slug: "슬러그는 영문 소문자, 숫자, 하이픈만 사용할 수 있습니다.",
+      throw new ProjectServiceError("VALIDATION_ERROR", 422, "?щ윭洹??뺤떇???щ컮瑜댁? ?딆뒿?덈떎.", {
+        slug: "?щ윭洹몃뒗 ?곷Ц ?뚮Ц?? ?レ옄, ?섏씠?덈쭔 ?ъ슜?????덉뒿?덈떎.",
       });
     }
     normalized.slug = slug;
@@ -306,7 +432,7 @@ export function parseProjectCreateInput(input: unknown): ProjectCreateInput {
     }
 
     if (error instanceof z.ZodError) {
-      throw new ProjectServiceError("VALIDATION_ERROR", 422, "프로젝트 입력값이 올바르지 않습니다.", extractZodFieldErrors(error));
+      throw new ProjectServiceError("VALIDATION_ERROR", 422, "?꾨줈?앺듃 ?낅젰媛믪씠 ?щ컮瑜댁? ?딆뒿?덈떎.", extractZodFieldErrors(error));
     }
 
     throw error;
@@ -323,7 +449,7 @@ export function parseProjectUpdateInput(input: unknown): NormalizedProjectUpdate
     }
 
     if (error instanceof z.ZodError) {
-      throw new ProjectServiceError("VALIDATION_ERROR", 422, "프로젝트 수정 입력값이 올바르지 않습니다.", extractZodFieldErrors(error));
+      throw new ProjectServiceError("VALIDATION_ERROR", 422, "?꾨줈?앺듃 ?섏젙 ?낅젰媛믪씠 ?щ컮瑜댁? ?딆뒿?덈떎.", extractZodFieldErrors(error));
     }
 
     throw error;
@@ -332,8 +458,8 @@ export function parseProjectUpdateInput(input: unknown): NormalizedProjectUpdate
 
 function handleKnownPrismaError(error: unknown): never {
   if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-    throw new ProjectServiceError("CONFLICT", 409, "이미 사용 중인 슬러그입니다.", {
-      slug: "slug 값이 중복되었습니다.",
+    throw new ProjectServiceError("CONFLICT", 409, "?대? ?ъ슜 以묒씤 ?щ윭洹몄엯?덈떎.", {
+      slug: "slug 媛믪씠 以묐났?섏뿀?듬땲??",
     });
   }
 
@@ -342,6 +468,82 @@ function handleKnownPrismaError(error: unknown): never {
 
 export function createProjectsService(deps: { prisma: ProjectServicePrismaClient }): ProjectsService {
   const { prisma } = deps;
+
+  async function findPublicSettingsBySlug(publicSlug: string) {
+    return prisma.portfolioSettings.findFirst({
+      where: {
+        publicSlug,
+        isPublic: true,
+      },
+      select: {
+        ownerId: true,
+        publicSlug: true,
+        displayName: true,
+        headline: true,
+        bio: true,
+        avatarUrl: true,
+        links: {
+          orderBy: { order: "asc" },
+          select: {
+            label: true,
+            url: true,
+          },
+        },
+      },
+    });
+  }
+
+  async function buildPublicPortfolioBySettings(settings: {
+    ownerId: string;
+    publicSlug: string;
+    displayName: string | null;
+    headline: string | null;
+    bio: string | null;
+    avatarUrl: string | null;
+    links: Array<{
+      label: string;
+      url: string;
+    }>;
+  }) {
+    const [featuredProjects, featuredExperiences] = await Promise.all([
+      prisma.project.findMany({
+        where: {
+          ownerId: settings.ownerId,
+          visibility: Visibility.PUBLIC,
+          isFeatured: true,
+        },
+        orderBy: [{ order: "asc" }, { updatedAt: "desc" }],
+        take: 6,
+        select: featuredProjectSelect,
+      }),
+      prisma.experience.findMany({
+        where: {
+          ownerId: settings.ownerId,
+          visibility: Visibility.PUBLIC,
+          isFeatured: true,
+        },
+        orderBy: [{ order: "asc" }, { updatedAt: "desc" }],
+        take: 3,
+        select: featuredExperienceSelect,
+      }),
+    ]);
+
+    return {
+      publicSlug: settings.publicSlug,
+      profile: {
+        displayName: settings.displayName,
+        headline: settings.headline,
+        bio: settings.bio,
+        avatarUrl: settings.avatarUrl,
+        links: settings.links,
+      },
+      featuredProjects: featuredProjects.map((project) => ({
+        ...project,
+        publicSlug: settings.publicSlug,
+      })),
+      featuredExperiences,
+    };
+  }
 
   return {
     async listProjectsForOwner(ownerId) {
@@ -362,11 +564,11 @@ export function createProjectsService(deps: { prisma: ProjectServicePrismaClient
       });
 
       if (!project) {
-        throw new ProjectServiceError("NOT_FOUND", 404, "프로젝트를 찾을 수 없습니다.");
+        throw new ProjectServiceError("NOT_FOUND", 404, "?꾨줈?앺듃瑜?李얠쓣 ???놁뒿?덈떎.");
       }
 
       if (project.ownerId !== ownerId) {
-        throw new ProjectServiceError("FORBIDDEN", 403, "다른 사용자의 프로젝트에는 접근할 수 없습니다.");
+        throw new ProjectServiceError("FORBIDDEN", 403, "?ㅻⅨ ?ъ슜?먯쓽 ?꾨줈?앺듃?먮뒗 ?묎렐?????놁뒿?덈떎.");
       }
 
       const { ownerId: ownerIdFromRecord, ...dto } = project;
@@ -416,11 +618,11 @@ export function createProjectsService(deps: { prisma: ProjectServicePrismaClient
       });
 
       if (!existing) {
-        throw new ProjectServiceError("NOT_FOUND", 404, "프로젝트를 찾을 수 없습니다.");
+        throw new ProjectServiceError("NOT_FOUND", 404, "?꾨줈?앺듃瑜?李얠쓣 ???놁뒿?덈떎.");
       }
 
       if (existing.ownerId !== ownerId) {
-        throw new ProjectServiceError("FORBIDDEN", 403, "다른 사용자의 프로젝트는 수정할 수 없습니다.");
+        throw new ProjectServiceError("FORBIDDEN", 403, "?ㅻⅨ ?ъ슜?먯쓽 ?꾨줈?앺듃???섏젙?????놁뒿?덈떎.");
       }
 
       const parsed = parseProjectUpdateInput(input);
@@ -449,11 +651,11 @@ export function createProjectsService(deps: { prisma: ProjectServicePrismaClient
       });
 
       if (!existing) {
-        throw new ProjectServiceError("NOT_FOUND", 404, "프로젝트를 찾을 수 없습니다.");
+        throw new ProjectServiceError("NOT_FOUND", 404, "?꾨줈?앺듃瑜?李얠쓣 ???놁뒿?덈떎.");
       }
 
       if (existing.ownerId !== ownerId) {
-        throw new ProjectServiceError("FORBIDDEN", 403, "다른 사용자의 프로젝트는 삭제할 수 없습니다.");
+        throw new ProjectServiceError("FORBIDDEN", 403, "?ㅻⅨ ?ъ슜?먯쓽 ?꾨줈?앺듃????젣?????놁뒿?덈떎.");
       }
 
       await prisma.project.delete({
@@ -464,13 +666,146 @@ export function createProjectsService(deps: { prisma: ProjectServicePrismaClient
     },
 
     async listPublicProjects() {
-      return prisma.project.findMany({
+      const projects = await prisma.project.findMany({
         where: {
+          visibility: Visibility.PUBLIC,
+          owner: {
+            portfolioSettings: {
+              is: {
+                isPublic: true,
+              },
+            },
+          },
+        },
+        orderBy: [{ order: "asc" }, { updatedAt: "desc" }],
+        select: publicProjectListSelect,
+      });
+
+      return projects
+        .map(mapPublicProjectListItem)
+        .filter(
+          (project): project is NonNullable<ReturnType<typeof mapPublicProjectListItem>> =>
+            project !== null,
+        );
+    },
+
+    async searchPublicProjects(query) {
+      const parsedQuery = parsePublicProjectsQuery(query);
+      const andConditions: Prisma.ProjectWhereInput[] = [];
+
+      if (parsedQuery.q) {
+        const keyword = parsedQuery.q;
+        andConditions.push({
+          OR: [
+            { title: { contains: keyword, mode: "insensitive" } },
+            { description: { contains: keyword, mode: "insensitive" } },
+            { contentMd: { contains: keyword, mode: "insensitive" } },
+          ],
+        });
+      }
+
+      if (parsedQuery.tag) {
+        andConditions.push({
+          techStack: { has: parsedQuery.tag },
+        });
+      }
+
+      if (parsedQuery.cursor) {
+        const cursorPayload = decodePublicProjectsCursor(parsedQuery.cursor);
+        const cursorUpdatedAt = new Date(cursorPayload.updatedAt);
+        if (Number.isNaN(cursorUpdatedAt.getTime())) {
+          throw new ProjectServiceError("VALIDATION_ERROR", 422, "cursor 값이 올바르지 않습니다.", {
+            cursor: "cursor 값을 확인해주세요.",
+          });
+        }
+
+        andConditions.push({
+          OR: [
+            { updatedAt: { lt: cursorUpdatedAt } },
+            { updatedAt: cursorUpdatedAt, id: { lt: cursorPayload.id } },
+          ],
+        });
+      }
+
+      const where: Prisma.ProjectWhereInput = {
+        visibility: Visibility.PUBLIC,
+        owner: {
+          portfolioSettings: {
+            is: parsedQuery.publicSlug
+              ? {
+                  isPublic: true,
+                  publicSlug: parsedQuery.publicSlug,
+                }
+              : {
+                  isPublic: true,
+                },
+          },
+        },
+      };
+
+      if (andConditions.length > 0) {
+        where.AND = andConditions;
+      }
+
+      const rows = await prisma.project.findMany({
+        where,
+        orderBy: [{ updatedAt: "desc" }, { id: "desc" }],
+        take: parsedQuery.limit + 1,
+        select: publicProjectListSelect,
+      });
+
+      const hasNext = rows.length > parsedQuery.limit;
+      const pageRows = hasNext ? rows.slice(0, parsedQuery.limit) : rows;
+      const mappedRows = pageRows
+        .map((row) => {
+          const mapped = mapPublicProjectListItem(row);
+          if (!mapped) {
+            return null;
+          }
+          return {
+            dto: mapped,
+            id: row.id,
+            updatedAt: row.updatedAt,
+          };
+        })
+        .filter((row): row is NonNullable<typeof row> => row !== null);
+
+      const lastRow = mappedRows.at(-1) ?? null;
+      const nextCursor =
+        hasNext && lastRow
+          ? encodePublicProjectsCursor({
+              id: lastRow.id,
+              updatedAt: lastRow.updatedAt.toISOString(),
+            })
+          : null;
+
+      return {
+        items: mappedRows.map((row) => row.dto),
+        nextCursor,
+      };
+    },
+
+    async listPublicProjectsByPublicSlug(publicSlug) {
+      const settings = await findPublicSettingsBySlug(publicSlug);
+      if (!settings) {
+        throw new ProjectServiceError("NOT_FOUND", 404, "공개 포트폴리오를 찾을 수 없습니다.");
+      }
+
+      const projects = await prisma.project.findMany({
+        where: {
+          ownerId: settings.ownerId,
           visibility: Visibility.PUBLIC,
         },
         orderBy: [{ order: "asc" }, { updatedAt: "desc" }],
         select: publicProjectListSelect,
       });
+
+      return projects
+        .map(mapPublicProjectListItem)
+        .filter(
+          (project): project is NonNullable<ReturnType<typeof mapPublicProjectListItem>> =>
+            project !== null,
+        );
     },
 
     async getPublicProjectBySlug(slug) {
@@ -478,6 +813,13 @@ export function createProjectsService(deps: { prisma: ProjectServicePrismaClient
         where: {
           slug,
           visibility: Visibility.PUBLIC,
+          owner: {
+            portfolioSettings: {
+              is: {
+                isPublic: true,
+              },
+            },
+          },
         },
         select: publicProjectDetailSelect,
       });
@@ -486,80 +828,120 @@ export function createProjectsService(deps: { prisma: ProjectServicePrismaClient
         throw new ProjectServiceError("NOT_FOUND", 404, "공개 프로젝트를 찾을 수 없습니다.");
       }
 
-      return project;
+      const mapped = mapPublicProjectDetail(project);
+      if (!mapped) {
+        throw new ProjectServiceError("NOT_FOUND", 404, "공개 프로젝트를 찾을 수 없습니다.");
+      }
+
+      return mapped;
     },
 
-    async getPublicPortfolio(slug) {
-      const settings = await prisma.portfolioSettings.findFirst({
-        where: slug
-          ? {
-              isPublic: true,
-              publicSlug: slug,
-            }
-          : {
-              isPublic: true,
-            },
-        orderBy: {
-          updatedAt: "desc",
-        },
-        select: {
-          ownerId: true,
-          displayName: true,
-          headline: true,
-          bio: true,
-          avatarUrl: true,
-          links: {
-            orderBy: { order: "asc" },
-            select: {
-              label: true,
-              url: true,
+    async getPublicProjectByPublicSlugAndSlug(publicSlug, slug) {
+      const project = await prisma.project.findFirst({
+        where: {
+          slug,
+          visibility: Visibility.PUBLIC,
+          owner: {
+            portfolioSettings: {
+              is: {
+                publicSlug,
+                isPublic: true,
+              },
             },
           },
         },
+        select: publicProjectDetailSelect,
       });
+
+      if (!project) {
+        throw new ProjectServiceError("NOT_FOUND", 404, "공개 프로젝트를 찾을 수 없습니다.");
+      }
+
+      const mapped = mapPublicProjectDetail(project);
+      if (!mapped) {
+        throw new ProjectServiceError("NOT_FOUND", 404, "공개 프로젝트를 찾을 수 없습니다.");
+      }
+
+      return mapped;
+    },
+
+    async resolvePublicProjectPathBySlug(slug) {
+      const project = await prisma.project.findFirst({
+        where: {
+          slug,
+          visibility: Visibility.PUBLIC,
+          owner: {
+            portfolioSettings: {
+              is: {
+                isPublic: true,
+              },
+            },
+          },
+        },
+        select: publicProjectDetailSelect,
+      });
+
+      if (!project) {
+        throw new ProjectServiceError("NOT_FOUND", 404, "공개 프로젝트를 찾을 수 없습니다.");
+      }
+
+      const mapped = mapPublicProjectDetail(project);
+      if (!mapped) {
+        throw new ProjectServiceError("NOT_FOUND", 404, "공개 프로젝트를 찾을 수 없습니다.");
+      }
+
+      return {
+        publicSlug: mapped.publicSlug,
+        slug: mapped.slug,
+      };
+    },
+
+    async getPublicPortfolioBySlug(publicSlug) {
+      const settings = await findPublicSettingsBySlug(publicSlug);
+      if (!settings) {
+        throw new ProjectServiceError("NOT_FOUND", 404, "공개 포트폴리오를 찾을 수 없습니다.");
+      }
+
+      return buildPublicPortfolioBySettings(settings);
+    },
+
+    async getPublicPortfolio(slug) {
+      const settings = slug
+        ? await findPublicSettingsBySlug(slug)
+        : await prisma.portfolioSettings.findFirst({
+            where: {
+              isPublic: true,
+            },
+            orderBy: {
+              updatedAt: "desc",
+            },
+            select: {
+              ownerId: true,
+              publicSlug: true,
+              displayName: true,
+              headline: true,
+              bio: true,
+              avatarUrl: true,
+              links: {
+                orderBy: { order: "asc" },
+                select: {
+                  label: true,
+                  url: true,
+                },
+              },
+            },
+          });
 
       if (!settings) {
         return {
+          publicSlug: null,
           profile: null,
           featuredProjects: [],
           featuredExperiences: [],
         };
       }
 
-      const [featuredProjects, featuredExperiences] = await Promise.all([
-        prisma.project.findMany({
-          where: {
-            ownerId: settings.ownerId,
-            visibility: Visibility.PUBLIC,
-            isFeatured: true,
-          },
-          orderBy: [{ order: "asc" }, { updatedAt: "desc" }],
-          take: 6,
-          select: featuredProjectSelect,
-        }),
-        prisma.experience.findMany({
-          where: {
-            ownerId: settings.ownerId,
-            visibility: Visibility.PUBLIC,
-            isFeatured: true,
-          },
-          orderBy: [{ order: "asc" }, { updatedAt: "desc" }],
-          take: 3,
-          select: featuredExperienceSelect,
-        }),
-      ]);
-
-      return {
-        profile: {
-          displayName: settings.displayName,
-          headline: settings.headline,
-          bio: settings.bio,
-          avatarUrl: settings.avatarUrl,
-          links: settings.links,
-        },
-        featuredProjects,
-        featuredExperiences,
-      };
+      return buildPublicPortfolioBySettings(settings);
     },
   };
 }

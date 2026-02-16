@@ -43,6 +43,7 @@ export type OwnerProjectDto = {
 
 export type PublicProjectListItemDto = {
   id: string;
+  publicSlug: string;
   slug: string;
   title: string;
   description: string | null;
@@ -51,8 +52,22 @@ export type PublicProjectListItemDto = {
   updatedAt: Date;
 };
 
+export type PublicProjectsQuery = {
+  q?: string;
+  tag?: string;
+  limit?: number;
+  cursor?: string;
+  publicSlug?: string;
+};
+
+export type PublicProjectsPageDto = {
+  items: PublicProjectListItemDto[];
+  nextCursor: string | null;
+};
+
 export type PublicProjectDetailDto = {
   id: string;
+  publicSlug: string;
   slug: string;
   title: string;
   subtitle: string | null;
@@ -76,9 +91,11 @@ export type PublicPortfolioProfileDto = {
 };
 
 export type PublicPortfolioDto = {
+  publicSlug: string | null;
   profile: PublicPortfolioProfileDto | null;
   featuredProjects: Array<{
     id: string;
+    publicSlug: string;
     slug: string;
     title: string;
     subtitle: string | null;
@@ -129,6 +146,11 @@ export interface ProjectsService {
   updateProject(ownerId: string, projectId: string, input: unknown): Promise<OwnerProjectDto>;
   deleteProject(ownerId: string, projectId: string): Promise<{ id: string }>;
   listPublicProjects(): Promise<PublicProjectListItemDto[]>;
+  searchPublicProjects(query: PublicProjectsQuery): Promise<PublicProjectsPageDto>;
+  listPublicProjectsByPublicSlug(publicSlug: string): Promise<PublicProjectListItemDto[]>;
   getPublicProjectBySlug(slug: string): Promise<PublicProjectDetailDto>;
+  getPublicProjectByPublicSlugAndSlug(publicSlug: string, slug: string): Promise<PublicProjectDetailDto>;
+  resolvePublicProjectPathBySlug(slug: string): Promise<{ publicSlug: string; slug: string }>;
+  getPublicPortfolioBySlug(publicSlug: string): Promise<PublicPortfolioDto>;
   getPublicPortfolio(slug?: string): Promise<PublicPortfolioDto>;
 }

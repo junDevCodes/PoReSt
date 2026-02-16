@@ -4,10 +4,21 @@ import { createProjectErrorResponse, createProjectsService } from "@/modules/pro
 
 const projectsService = createProjectsService({ prisma });
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const projects = await projectsService.listPublicProjects();
-    return NextResponse.json({ data: projects });
+    const query = new URL(request.url).searchParams;
+    const rawLimit = query.get("limit");
+    const result = await projectsService.searchPublicProjects({
+      q: query.get("q") ?? undefined,
+      tag: query.get("tag") ?? undefined,
+      limit: rawLimit === null ? undefined : Number(rawLimit),
+      cursor: query.get("cursor") ?? undefined,
+      publicSlug: query.get("publicSlug") ?? undefined,
+    });
+    return NextResponse.json({
+      data: result.items,
+      nextCursor: result.nextCursor,
+    });
   } catch (error) {
     return createProjectErrorResponse(error);
   }
