@@ -40,3 +40,19 @@
 - 리스크/후속 항목:
   - 실제 Preview/Production 배포 후 P0 항목별 스모크 체크 필요
   - P1(G6~G9) 스키마 설계 착수 필요
+
+### 완료일: 2026-02-16
+- 기능 ID(Gx): G6 (Resume 공유 링크 API 1차)
+- 핵심 변경:
+  - `ResumeShareLink` 모델/마이그레이션 추가
+  - `POST|GET|DELETE /api/app/resumes/[id]/share-links` 구현
+  - `GET /api/public/resume/share/[token]` 구현
+  - Resumes 서비스 공유 링크 생성/회수/토큰 조회 로직 및 테스트 보강
+- 테스트/배포 결과:
+  - `npm run lint` 통과
+  - `npm run build` 통과
+  - `npx jest --runInBand` 통과 (108 tests)
+  - `npm run vercel-build` 통과
+- 리스크/후속 항목:
+  - 공유 링크 UI 관리 화면(T21) 추가 필요
+  - 만료 정책 preset(예: 7일/30일) UX는 후속에서 정리

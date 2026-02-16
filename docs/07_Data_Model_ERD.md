@@ -366,9 +366,9 @@ User 1 ── N BlogPost ── 0..N BlogExport  (옵션)
 
 ### 즉시 반영/확장
 - `Notebook`/`Note` 파이프라인 강화 (CRUD/집계)
+- `ResumeShareLink` 모델 도입 (토큰 기반 이력서 공유)
 
 ### P1 예정 모델
-- `ResumeShareLink`
 - `BlogExportArtifact` (또는 동등한 이력 모델)
 - `AuditLog`
 

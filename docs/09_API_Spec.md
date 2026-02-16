@@ -448,8 +448,8 @@ Response.data:
 - `GET|POST /api/app/notebooks`
 - `GET|PUT|DELETE /api/app/notebooks/[id]`
 - `GET /api/app/feedback/targets?type=PORTFOLIO|RESUME|NOTE|BLOG`
-- `POST|GET|DELETE /api/app/resumes/[id]/share-links` (P1)
-- `GET /api/public/resume/share/[token]` (P1)
+- `POST|GET|DELETE /api/app/resumes/[id]/share-links`
+- `GET /api/public/resume/share/[token]`
 - `GET /api/app/blog/posts/[id]/exports` (P1)
 - `GET /api/app/audit` (P1)
 
@@ -462,4 +462,5 @@ Response.data:
 - Me DTO: `{ id, email, isOwner, workspace: { publicSlug, isPublic } }`
 - Notebook DTO: `{ id, name, description, noteCount, updatedAt }`
 - FeedbackTarget DTO: `{ id, type, title, updatedAt }`
-- ResumeShare DTO / BlogExport DTO / Audit DTO는 P1에서 확정
+- ResumeShare DTO: `{ id, token, expiresAt, isRevoked, createdAt, updatedAt }`
+- BlogExport DTO / Audit DTO는 P1에서 확정

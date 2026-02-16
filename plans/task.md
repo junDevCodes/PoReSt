@@ -11,9 +11,9 @@
 - [완료] T18: G5 Blog Lint Rule10 추가 + 테스트 보강
 
 ## P1 구현 트랙 (G6~G9)
-- T19: G6 스키마 설계(`ResumeShareLink`) + 마이그레이션
-- T20: G6 공유 링크 API(생성/조회/삭제) 구현
-- T21: G6 공개 공유 조회 API/UI 검증
+- [완료] T19: G6 스키마 설계(`ResumeShareLink`) + 마이그레이션
+- [완료] T20: G6 공유 링크 API(생성/조회/삭제) 구현
+- [진행중] T21: G6 공개 공유 조회 API/UI 검증
 - T22: G7 Export 이력 스키마/정책 확정
 - T23: G7 Export 이력 API + 재다운로드 흐름 구현
 - T24: G8 Audit Log 스키마/수집 포인트 반영
