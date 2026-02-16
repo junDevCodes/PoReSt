@@ -6,6 +6,7 @@ const REPEATED_BIGRAM_MIN_COUNT = 3;
 const AMBIGUOUS_WORD_MIN_COUNT = 3;
 const AMBIGUOUS_DENSITY_THRESHOLD = 0.05;
 const CODE_BLOCK_EXPLANATION_MIN_LENGTH = 20;
+const HEADING_LEVEL_STEP_LIMIT = 1;
 
 const ASSERTIVE_WORDS = ["반드시", "무조건", "항상", "확실", "보장", "최고"];
 const AMBIGUOUS_WORDS = ["같다", "느낌", "아마", "어쩌면", "일수도", "추정"];
@@ -314,6 +315,37 @@ function detectTitleBodyMismatchIssue(contentMd: string): BlogLintIssue[] {
   ];
 }
 
+function detectHeadingLevelJumpIssue(contentMd: string): BlogLintIssue[] {
+  const headingRegex = /^(#{1,6})\s+(.+)$/gm;
+  const headings = [...contentMd.matchAll(headingRegex)];
+  if (headings.length < 2) {
+    return [];
+  }
+
+  let previousLevel = headings[0][1].length;
+  for (let index = 1; index < headings.length; index += 1) {
+    const heading = headings[index];
+    const level = heading[1].length;
+    const levelGap = level - previousLevel;
+
+    if (levelGap > HEADING_LEVEL_STEP_LIMIT) {
+      const headingStart = heading.index ?? 0;
+      return [
+        buildIssue(
+          "HEADING_LEVEL_JUMP",
+          "헤딩 레벨이 한 단계 이상 건너뛰었습니다. 문서 구조를 순차적으로 정리해주세요.",
+          getLineNumberByIndex(contentMd, headingStart),
+          heading[0],
+        ),
+      ];
+    }
+
+    previousLevel = level;
+  }
+
+  return [];
+}
+
 export function runBlogLint(contentMd: string): BlogLintResult {
   const rules: BlogLintRule[] = [
     { id: "LONG_SENTENCE", run: detectLongSentenceIssues },
@@ -325,6 +357,7 @@ export function runBlogLint(contentMd: string): BlogLintResult {
     { id: "CODE_BLOCK_WITHOUT_EXPLANATION", run: detectCodeBlockWithoutExplanationIssue },
     { id: "FORBIDDEN_WORD", run: detectForbiddenWordIssue },
     { id: "TITLE_BODY_MISMATCH", run: detectTitleBodyMismatchIssue },
+    { id: "HEADING_LEVEL_JUMP", run: detectHeadingLevelJumpIssue },
   ];
 
   const issues = rules.flatMap((rule) => rule.run(contentMd));

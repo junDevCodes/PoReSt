@@ -59,4 +59,10 @@ describe("blog lint", () => {
 
     expect(result.issues.some((issue) => issue.ruleId === "TITLE_BODY_MISMATCH")).toBe(true);
   });
+
+  it("헤딩 레벨을 건너뛰면 경고를 반환해야 한다", () => {
+    const result = runBlogLint("# 개요\n\n### 세부 내용\n\n본문입니다.");
+
+    expect(result.issues.some((issue) => issue.ruleId === "HEADING_LEVEL_JUMP")).toBe(true);
+  });
 });
