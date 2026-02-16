@@ -46,12 +46,12 @@
 - [x] G6 문서 반영
 - [x] G6 배포 확인
 
-- [ ] G7 Blog Export 이력화
-- [ ] G7 API 완료
-- [ ] G7 UI 완료
-- [ ] G7 테스트 통과
-- [ ] G7 문서 반영
-- [ ] G7 배포 확인
+- [x] G7 Blog Export 이력화
+- [x] G7 API 완료
+- [x] G7 UI 완료
+- [x] G7 테스트 통과
+- [x] G7 문서 반영
+- [x] G7 배포 확인
 
 - [ ] G8 Audit Log
 - [ ] G8 API 완료

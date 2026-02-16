@@ -392,14 +392,42 @@ Notes:
 
 ---
 
-## 9.4 Export 생성
-POST `/api/app/blog/posts/{id}/export`
+## 9.4 Export 생성 + 다운로드
+GET `/api/app/blog/posts/{id}/export?format=html|md|zip`
 
-Body:
-{ "type":"html|markdown_zip" }
+동작:
+- 현재 글 스냅샷으로 export 파일 생성
+- `BlogExportArtifact` 이력 레코드 저장
+- 파일(binary) 즉시 다운로드 응답 반환
+
+Response Headers:
+- `Content-Type`
+- `Content-Disposition`
+- `X-Blog-Export-Id`
+
+## 9.5 Export 이력 목록
+GET `/api/app/blog/posts/{id}/exports`
 
 Response.data:
-{ "artifactId":"...", "createdAt":"..." }
+[
+  {
+    "id":"...",
+    "blogPostId":"...",
+    "format":"html|md|zip",
+    "fileName":"...",
+    "contentType":"...",
+    "byteSize":1234,
+    "snapshotHash":"...",
+    "createdAt":"..."
+  }
+]
+
+## 9.6 Export 이력 재다운로드
+GET `/api/app/blog/posts/{id}/exports/{exportId}`
+
+동작:
+- owner 스코프에 속한 export 이력인지 검증
+- 저장된 payload(binary) 반환
 
 ---
 
@@ -450,7 +478,9 @@ Response.data:
 - `GET /api/app/feedback/targets?type=PORTFOLIO|RESUME|NOTE|BLOG`
 - `POST|GET|DELETE /api/app/resumes/[id]/share-links`
 - `GET /api/public/resume/share/[token]`
-- `GET /api/app/blog/posts/[id]/exports` (P1)
+- `GET /api/app/blog/posts/[id]/export?format=html|md|zip`
+- `GET /api/app/blog/posts/[id]/exports`
+- `GET /api/app/blog/posts/[id]/exports/[exportId]`
 - `GET /api/app/audit` (P1)
 
 ### 확장 엔드포인트
@@ -463,4 +493,5 @@ Response.data:
 - Notebook DTO: `{ id, name, description, noteCount, updatedAt }`
 - FeedbackTarget DTO: `{ id, type, title, updatedAt }`
 - ResumeShare DTO: `{ id, token, expiresAt, isRevoked, createdAt, updatedAt }`
-- BlogExport DTO / Audit DTO는 P1에서 확정
+- BlogExport DTO: `{ id, blogPostId, format, fileName, contentType, byteSize, snapshotHash, createdAt }`
+- Audit DTO는 P1에서 확정

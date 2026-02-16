@@ -18,7 +18,7 @@
 - Portfolio: `PortfolioSettings`, `PortfolioLink`, `Project`, `ProjectLink`, `Experience`
 - Resume: `Resume`, `ResumeItem`
 - Notes: `Note`, `NoteEmbedding`, `NoteEdge`
-- Blog: `BlogPost`, `BlogLintRun`(옵션), `BlogExport`(옵션)
+- Blog: `BlogPost`, `BlogExportArtifact`, `BlogLintRun`(옵션)
 - Files: `FileAsset`(옵션)
 - Ops: `AuditLog`(옵션)
 - Later: `FeedbackRun`
@@ -38,7 +38,7 @@ User 1 ── N Note ── 0..1 NoteEmbedding
 Note 1 ── N NoteEdge (fromNoteId)
 Note 1 ── N NoteEdge (toNoteId)
 User 1 ── N BlogPost ── 0..N BlogLintRun (옵션)
-User 1 ── N BlogPost ── 0..N BlogExport  (옵션)
+User 1 ── N BlogPost ── 0..N BlogExportArtifact
 
 ---
 
@@ -292,11 +292,16 @@ User 1 ── N BlogPost ── 0..N BlogExport  (옵션)
 
 ---
 
-## 3.14 BlogExport (옵션: Export 이력)
+## 3.14 BlogExportArtifact (Export 이력)
 - id (PK)
+- ownerId (FK -> User)
 - blogPostId (FK -> BlogPost)
-- type (enum)  // html | markdown_zip
-- artifactAssetId (FK -> FileAsset)  // 파일로 저장할 경우
+- format (string)  // html | md | zip
+- fileName (string)
+- contentType (string)
+- byteSize (int)
+- snapshotHash (string)
+- payload (bytes)
 - createdAt
 
 ---
@@ -367,9 +372,9 @@ User 1 ── N BlogPost ── 0..N BlogExport  (옵션)
 ### 즉시 반영/확장
 - `Notebook`/`Note` 파이프라인 강화 (CRUD/집계)
 - `ResumeShareLink` 모델 도입 (토큰 기반 이력서 공유)
+- `BlogExportArtifact` 모델 도입 (format/snapshotHash/payload 기반 export 이력)
 
 ### P1 예정 모델
-- `BlogExportArtifact` (또는 동등한 이력 모델)
 - `AuditLog`
 
 ### P2 예정 모델

@@ -118,6 +118,7 @@ model User {
   notebooks         Notebook[]
   notes             Note[]
   blogPosts         BlogPost[]
+  blogExportArtifacts BlogExportArtifact[]
   blogIntegrations  BlogIntegration[]
   feedbackRequests  FeedbackRequest[]
 
@@ -484,6 +485,7 @@ model BlogPost {
   deletedAt   DateTime?
 
   externals   BlogExternalPost[]
+  exports     BlogExportArtifact[]
 
   @@index([ownerId, status, updatedAt])
   @@index([title])
@@ -532,6 +534,28 @@ model BlogExternalPost {
   @@unique([integrationId, externalId])
   @@index([blogPostId])
   @@map("blog_external_posts")
+}
+
+model BlogExportArtifact {
+  id           String   @id @default(cuid())
+  ownerId      String
+  owner        User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  blogPostId   String
+  blogPost     BlogPost @relation(fields: [blogPostId], references: [id], onDelete: Cascade)
+
+  format       String
+  fileName     String
+  contentType  String
+  byteSize     Int
+  snapshotHash String
+  payload      Bytes
+
+  createdAt    DateTime @default(now())
+
+  @@index([ownerId, createdAt])
+  @@index([blogPostId, createdAt])
+  @@map("blog_export_artifacts")
 }
 
 // ========== FEEDBACK (자동 피드백 요청/결과) ==========

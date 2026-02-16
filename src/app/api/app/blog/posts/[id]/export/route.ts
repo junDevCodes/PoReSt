@@ -1,6 +1,6 @@
-import { requireOwner } from "@/lib/auth-guard";
+﻿import { requireAuth } from "@/lib/auth-guard";
 import { prisma } from "@/lib/prisma";
-import { createBlogErrorResponse, createBlogExportArtifact, createBlogService } from "@/modules/blog";
+import { createBlogErrorResponse, createBlogService } from "@/modules/blog";
 
 type BlogPostIdRouteContext = {
   params: Promise<{ id: string }> | { id: string };
@@ -9,7 +9,7 @@ type BlogPostIdRouteContext = {
 const blogService = createBlogService({ prisma });
 
 export async function GET(request: Request, context: BlogPostIdRouteContext) {
-  const authResult = await requireOwner();
+  const authResult = await requireAuth();
   if ("response" in authResult) {
     return authResult.response;
   }
@@ -21,7 +21,7 @@ export async function GET(request: Request, context: BlogPostIdRouteContext) {
       {
         error: {
           code: "BAD_REQUEST",
-          message: "지원하지 않는 export 형식입니다. html, md, zip 중 하나를 사용해주세요.",
+          message: "吏?먰븯吏 ?딅뒗 export ?뺤떇?낅땲?? html, md, zip 以??섎굹瑜??ъ슜?댁＜?몄슂.",
         },
       },
       { status: 400 },
@@ -30,21 +30,18 @@ export async function GET(request: Request, context: BlogPostIdRouteContext) {
 
   try {
     const params = await context.params;
-    const post = await blogService.getPostForOwner(authResult.session.user.id, params.id);
-    const artifact = createBlogExportArtifact({
-      title: post.title,
-      contentMd: post.contentMd,
-      format,
-    });
+    const artifact = await blogService.createExportForPost(authResult.session.user.id, params.id, format);
 
-    return new Response(new Uint8Array(artifact.buffer), {
+    return new Response(new Uint8Array(artifact.payload), {
       status: 200,
       headers: {
         "Content-Type": artifact.contentType,
         "Content-Disposition": `attachment; filename=\"${artifact.fileName}\"`,
+        "X-Blog-Export-Id": artifact.id,
       },
     });
   } catch (error) {
     return createBlogErrorResponse(error);
   }
 }
+

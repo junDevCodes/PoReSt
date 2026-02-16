@@ -56,3 +56,21 @@
 - 리스크/후속 항목:
   - 공유 링크 UI 관리 화면(T21) 추가 필요
   - 만료 정책 preset(예: 7일/30일) UX는 후속에서 정리
+
+### 완료일: 2026-02-16
+- 기능 ID(Gx): G7 (Blog Export 이력화)
+- 핵심 변경:
+  - `BlogExportArtifact` 모델/마이그레이션 추가
+  - Blog 서비스에 export 생성/목록/재다운로드 메서드 추가
+  - `GET /api/app/blog/posts/[id]/exports` 목록 API 추가
+  - `GET /api/app/blog/posts/[id]/exports/[exportId]` 재다운로드 API 추가
+  - 기존 `GET /api/app/blog/posts/[id]/export`를 이력 적재 + 다운로드 방식으로 확장
+  - `/app/blog/[id]/edit`에 Export 이력 목록/재다운로드 UI 반영
+- 테스트/배포 결과:
+  - `npm run lint` 통과
+  - `npm run build` 통과
+  - `npx jest --runInBand` 통과 (27 suites 중 19 passed, 8 skipped)
+  - `npm run vercel-build` 통과 (migration `20260216123000_m7_blog_export_history` 적용)
+- 리스크/후속 항목:
+  - Export payload를 DB(bytea)에 저장하므로 저장소 증가량 모니터링 필요
+  - 장기적으로 Object Storage 분리 또는 retention 정책(G8/G9와 연계) 필요

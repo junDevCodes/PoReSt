@@ -1,6 +1,8 @@
 import { PostStatus, Prisma, Visibility } from "@prisma/client";
+import { createHash } from "node:crypto";
 import { z } from "zod";
 import type { BlogPostCreateInput, BlogService, BlogServicePrismaClient } from "@/modules/blog/interface";
+import { createBlogExportArtifact, type BlogExportFormat } from "@/modules/blog/export";
 import { runBlogLint } from "@/modules/blog/lint";
 import { BlogServiceError } from "@/modules/blog/interface";
 
@@ -106,6 +108,22 @@ const blogPostDetailSelect = {
   updatedAt: true,
 } as const;
 
+const blogExportArtifactListSelect = {
+  id: true,
+  blogPostId: true,
+  format: true,
+  fileName: true,
+  contentType: true,
+  byteSize: true,
+  snapshotHash: true,
+  createdAt: true,
+} as const;
+
+const blogExportArtifactDownloadSelect = {
+  ...blogExportArtifactListSelect,
+  payload: true,
+} as const;
+
 function toNullableString(value: string | null | undefined): string | null | undefined {
   if (value === undefined) {
     return undefined;
@@ -133,6 +151,50 @@ function normalizeTags(tags: string[] | undefined): string[] | undefined {
   }
 
   return Array.from(unique);
+}
+
+function buildExportSnapshotHash(input: {
+  format: BlogExportFormat;
+  title: string;
+  contentMd: string;
+}): string {
+  const payload = JSON.stringify({
+    format: input.format,
+    title: input.title,
+    contentMd: input.contentMd,
+  });
+  return createHash("sha256").update(payload, "utf8").digest("hex");
+}
+
+function toBlogExportFormat(value: string): BlogExportFormat {
+  if (value === "html" || value === "md" || value === "zip") {
+    return value;
+  }
+  throw new BlogServiceError("NOT_FOUND", 404, "지원하지 않는 export 형식입니다.");
+}
+
+function mapBlogExportArtifact(
+  artifact: Prisma.BlogExportArtifactGetPayload<{ select: typeof blogExportArtifactListSelect }>,
+) {
+  return {
+    id: artifact.id,
+    blogPostId: artifact.blogPostId,
+    format: toBlogExportFormat(artifact.format),
+    fileName: artifact.fileName,
+    contentType: artifact.contentType,
+    byteSize: artifact.byteSize,
+    snapshotHash: artifact.snapshotHash,
+    createdAt: artifact.createdAt,
+  };
+}
+
+function mapBlogExportArtifactDownload(
+  artifact: Prisma.BlogExportArtifactGetPayload<{ select: typeof blogExportArtifactDownloadSelect }>,
+) {
+  return {
+    ...mapBlogExportArtifact(artifact),
+    payload: artifact.payload,
+  };
 }
 
 function extractZodFieldErrors(error: z.ZodError): Record<string, string> {
@@ -272,6 +334,28 @@ async function fetchPostById(prisma: BlogServicePrismaClient, postId: string) {
   return post;
 }
 
+async function fetchExportByIdForOwner(
+  prisma: BlogServicePrismaClient,
+  ownerId: string,
+  postId: string,
+  exportId: string,
+) {
+  const artifact = await prisma.blogExportArtifact.findFirst({
+    where: {
+      id: exportId,
+      ownerId,
+      blogPostId: postId,
+    },
+    select: blogExportArtifactDownloadSelect,
+  });
+
+  if (!artifact) {
+    throw new BlogServiceError("NOT_FOUND", 404, "Blog export 이력을 찾을 수 없습니다.");
+  }
+
+  return artifact;
+}
+
 export function createBlogService(deps: { prisma: BlogServicePrismaClient }): BlogService {
   const { prisma } = deps;
 
@@ -361,6 +445,57 @@ export function createBlogService(deps: { prisma: BlogServicePrismaClient }): Bl
       });
 
       return fetchPostById(prisma, postId);
+    },
+
+    async listExportsForPost(ownerId, postId) {
+      await ensurePostOwner(prisma, ownerId, postId);
+      const artifacts = await prisma.blogExportArtifact.findMany({
+        where: {
+          ownerId,
+          blogPostId: postId,
+        },
+        orderBy: [{ createdAt: "desc" }],
+        select: blogExportArtifactListSelect,
+      });
+
+      return artifacts.map(mapBlogExportArtifact);
+    },
+
+    async createExportForPost(ownerId, postId, format) {
+      await ensurePostOwner(prisma, ownerId, postId);
+      const post = await fetchPostById(prisma, postId);
+      const generated = createBlogExportArtifact({
+        title: post.title,
+        contentMd: post.contentMd,
+        format,
+      });
+      const snapshotHash = buildExportSnapshotHash({
+        format,
+        title: post.title,
+        contentMd: post.contentMd,
+      });
+
+      const created = await prisma.blogExportArtifact.create({
+        data: {
+          ownerId,
+          blogPostId: postId,
+          format,
+          fileName: generated.fileName,
+          contentType: generated.contentType,
+          byteSize: generated.buffer.length,
+          snapshotHash,
+          payload: new Uint8Array(generated.buffer),
+        },
+        select: blogExportArtifactDownloadSelect,
+      });
+
+      return mapBlogExportArtifactDownload(created);
+    },
+
+    async getExportForPost(ownerId, postId, exportId) {
+      await ensurePostOwner(prisma, ownerId, postId);
+      const artifact = await fetchExportByIdForOwner(prisma, ownerId, postId, exportId);
+      return mapBlogExportArtifactDownload(artifact);
     },
   };
 }

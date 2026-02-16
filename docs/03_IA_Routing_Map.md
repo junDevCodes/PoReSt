@@ -183,7 +183,8 @@ app/
 - `GET|PUT|DELETE /api/app/notebooks/[id]`
 - `GET /api/app/feedback/targets?type=PORTFOLIO|RESUME|NOTE|BLOG`
 - `POST|GET|DELETE /api/app/resumes/[id]/share-links`
-- `GET /api/app/blog/posts/[id]/exports` (P1)
+- `GET /api/app/blog/posts/[id]/exports`
+- `GET /api/app/blog/posts/[id]/exports/[exportId]`
 - `GET /api/app/audit` (P1)
 
 ### Public API

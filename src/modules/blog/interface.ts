@@ -1,4 +1,5 @@
 import type { PostStatus, Prisma, Visibility } from "@prisma/client";
+import type { BlogExportFormat } from "@/modules/blog/export";
 
 export type BlogPostCreateInput = {
   status?: PostStatus;
@@ -34,6 +35,21 @@ export type OwnerBlogPostDetailDto = {
   lintReportJson: unknown;
   lastLintedAt: Date | null;
   updatedAt: Date;
+};
+
+export type OwnerBlogExportArtifactDto = {
+  id: string;
+  blogPostId: string;
+  format: BlogExportFormat;
+  fileName: string;
+  contentType: string;
+  byteSize: number;
+  snapshotHash: string;
+  createdAt: Date;
+};
+
+export type OwnerBlogExportDownloadDto = OwnerBlogExportArtifactDto & {
+  payload: Uint8Array;
 };
 
 export type BlogLintSeverity = "WARNING";
@@ -77,7 +93,7 @@ export function isBlogServiceError(error: unknown): error is BlogServiceError {
   return error instanceof BlogServiceError;
 }
 
-export type BlogServicePrismaClient = Pick<Prisma.TransactionClient, "blogPost">;
+export type BlogServicePrismaClient = Pick<Prisma.TransactionClient, "blogPost" | "blogExportArtifact">;
 
 export interface BlogService {
   listPostsForOwner(ownerId: string): Promise<OwnerBlogPostListItemDto[]>;
@@ -86,4 +102,15 @@ export interface BlogService {
   updatePost(ownerId: string, postId: string, input: unknown): Promise<OwnerBlogPostDetailDto>;
   deletePost(ownerId: string, postId: string): Promise<{ id: string }>;
   runLintForPost(ownerId: string, postId: string): Promise<OwnerBlogPostDetailDto>;
+  listExportsForPost(ownerId: string, postId: string): Promise<OwnerBlogExportArtifactDto[]>;
+  createExportForPost(
+    ownerId: string,
+    postId: string,
+    format: BlogExportFormat,
+  ): Promise<OwnerBlogExportDownloadDto>;
+  getExportForPost(
+    ownerId: string,
+    postId: string,
+    exportId: string,
+  ): Promise<OwnerBlogExportDownloadDto>;
 }
