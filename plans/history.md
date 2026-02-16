@@ -74,3 +74,17 @@
 - 리스크/후속 항목:
   - Export payload를 DB(bytea)에 저장하므로 저장소 증가량 모니터링 필요
   - 장기적으로 Object Storage 분리 또는 retention 정책(G8/G9와 연계) 필요
+
+### 완료일: 2026-02-16
+- 기능 ID(Gx): G6 (공유 조회 UI 마무리)
+- 핵심 변경:
+  - 공개 공유 페이지 `GET /resume/share/[token]` UI 추가
+  - 기존 `GET /api/public/resume/share/[token]` 응답을 화면 렌더링에 연결
+  - 공유 링크 접근 시 이력서 요약/항목 표시 흐름 제공
+- 테스트/배포 결과:
+  - `npm run lint` 통과
+  - `npm run build` 통과
+  - `npx jest --runInBand` 통과 (27 suites 중 19 passed, 8 skipped)
+  - `npm run vercel-build` 통과
+- 리스크/후속 항목:
+  - 대시보드에서 공유 링크 생성/회수 UI는 후속 고도화 대상

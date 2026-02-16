@@ -193,6 +193,7 @@ app/
 - `GET /api/public/users` (P2)
 
 ### Public Page
+- `/resume/share/[token]`
 - `/u/[publicSlug]`
 - `/u/[publicSlug]/projects`
 - `/u/[publicSlug]/projects/[slug]`
