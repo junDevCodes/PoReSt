@@ -208,3 +208,20 @@
   - `npm run vercel-build` 통과
 - 리스크/후속 항목:
   - 실제 임베딩 벡터 저장/재빌드 실행 API(T32)와 검색 고도화(T33)가 후속 필수
+
+### 완료일: 2026-02-17
+- 기능 ID(Gx): G11 (pgvector 임베딩) - T32
+- 핵심 변경:
+  - 임베딩 재빌드 실행 서비스(`rebuildForOwner`) 추가
+    - PENDING 큐잉 후 deterministic 벡터 생성
+    - pgvector 컬럼 업데이트 + 상태 전환(`SUCCEEDED`/`FAILED`)
+  - 실행 API 추가: `POST /api/app/notes/embeddings/rebuild`
+  - 에러 응답/모니터링 연동(`src/modules/note-embeddings/http.ts`, `reportServerError`) 추가
+  - 통합 테스트 케이스 확장(재빌드 실행 시 status 전환 검증)
+- 테스트/배포 결과:
+  - `npm run lint` 통과
+  - `npm run build` 통과
+  - `npx jest --runInBand` 통과
+  - `npm run vercel-build` 통과
+- 리스크/후속 항목:
+  - 유사도 검색 품질/인덱스 튜닝(T33) 미완료

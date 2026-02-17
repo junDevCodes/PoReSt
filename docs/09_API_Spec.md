@@ -513,6 +513,25 @@ Response.data:
 
 ---
 
+## 9.9 Note Embeddings Rebuild (G11)
+POST `/api/app/notes/embeddings/rebuild`
+
+Request.body (optional):
+{
+  "noteIds": ["noteId1", "noteId2"],
+  "limit": 50
+}
+
+Response.data:
+{
+  "scheduled": 2,
+  "succeeded": 2,
+  "failed": 0,
+  "noteIds": ["noteId1", "noteId2"]
+}
+
+---
+
 ## 10) Private API — Feedback (후순위)
 
 ## 10.1 피드백 요청 생성

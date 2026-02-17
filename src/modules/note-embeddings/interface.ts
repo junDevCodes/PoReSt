@@ -12,7 +12,14 @@ export type NoteEmbeddingPlanResult = {
   noteIds: string[];
 };
 
-export type NoteEmbeddingServiceErrorCode = "VALIDATION_ERROR" | "NOT_FOUND";
+export type NoteEmbeddingRunResult = {
+  scheduled: number;
+  succeeded: number;
+  failed: number;
+  noteIds: string[];
+};
+
+export type NoteEmbeddingServiceErrorCode = "VALIDATION_ERROR" | "NOT_FOUND" | "INTERNAL_ERROR";
 
 export class NoteEmbeddingServiceError extends Error {
   readonly code: NoteEmbeddingServiceErrorCode;
@@ -31,9 +38,12 @@ export function isNoteEmbeddingServiceError(error: unknown): error is NoteEmbedd
   return error instanceof NoteEmbeddingServiceError;
 }
 
-export type NoteEmbeddingServicePrismaClient = Pick<Prisma.TransactionClient, "note" | "noteEmbedding">;
+export type NoteEmbeddingServicePrismaClient = Pick<
+  Prisma.TransactionClient,
+  "note" | "noteEmbedding" | "$executeRawUnsafe"
+>;
 
 export interface NoteEmbeddingPipelineService {
   prepareRebuildForOwner(ownerId: string, input?: unknown): Promise<NoteEmbeddingPlanResult>;
+  rebuildForOwner(ownerId: string, input?: unknown): Promise<NoteEmbeddingRunResult>;
 }
-

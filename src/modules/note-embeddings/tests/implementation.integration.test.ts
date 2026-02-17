@@ -132,5 +132,30 @@ describeWithDatabase("note embedding pipeline integration", () => {
       expect(latest?.content).toContain("업데이트 대상 본문");
     });
   });
-});
 
+  it("재빌드 실행 시 PENDING 임베딩을 SUCCEEDED로 전환해야 한다", async () => {
+    await runWithRollback(async (service, tx) => {
+      const unique = `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+      const owner = await createOwner(tx, `run-${unique}`);
+      const note = await createNote(tx, owner.id, `run-${unique}`, "실행 대상 본문");
+
+      const result = await service.rebuildForOwner(owner.id, {
+        noteIds: [note.id],
+      });
+
+      expect(result.scheduled).toBe(1);
+      expect(result.succeeded).toBe(1);
+      expect(result.failed).toBe(0);
+
+      const embedding = await tx.noteEmbedding.findFirst({
+        where: { noteId: note.id, chunkIndex: 0 },
+        orderBy: [{ updatedAt: "desc" }],
+      });
+
+      expect(embedding).not.toBeNull();
+      expect(embedding?.status).toBe(NoteEmbeddingStatus.SUCCEEDED);
+      expect(embedding?.lastEmbeddedAt).not.toBeNull();
+      expect(embedding?.error).toBeNull();
+    });
+  });
+});

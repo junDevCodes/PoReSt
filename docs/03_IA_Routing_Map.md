@@ -192,6 +192,7 @@ app/
 - `GET /api/app/audit`
 - `GET|POST /api/app/domain-links`
 - `DELETE /api/app/domain-links/[id]`
+- `POST /api/app/notes/embeddings/rebuild`
 
 ### Public API
 - `GET /api/public/projects?q&tag&limit&cursor&publicSlug`

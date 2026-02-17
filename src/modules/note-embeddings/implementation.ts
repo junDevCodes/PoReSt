@@ -4,6 +4,7 @@ import type {
   NoteEmbeddingPipelineService,
   NoteEmbeddingPlanInput,
   NoteEmbeddingPlanResult,
+  NoteEmbeddingRunResult,
   NoteEmbeddingServicePrismaClient,
 } from "@/modules/note-embeddings/interface";
 import { NoteEmbeddingServiceError } from "@/modules/note-embeddings/interface";
@@ -91,6 +92,35 @@ async function upsertPendingEmbedding(
   });
 }
 
+function buildVectorLiteral(vector: number[]): string {
+  return `[${vector.join(",")}]`;
+}
+
+function normalizeErrorMessage(error: unknown): string {
+  if (error instanceof Error && error.message) {
+    return error.message.slice(0, 500);
+  }
+  return String(error).slice(0, 500);
+}
+
+async function applyEmbeddingVector(
+  prisma: NoteEmbeddingServicePrismaClient,
+  embeddingId: string,
+  vector: number[],
+) {
+  const vectorLiteral = buildVectorLiteral(vector);
+  await prisma.$executeRawUnsafe(
+    `UPDATE "note_embeddings"
+        SET "embedding" = '${vectorLiteral}'::vector,
+            "status" = 'SUCCEEDED',
+            "lastEmbeddedAt" = CURRENT_TIMESTAMP,
+            "error" = NULL,
+            "updatedAt" = CURRENT_TIMESTAMP
+      WHERE "id" = $1`,
+    embeddingId,
+  );
+}
+
 export function createNoteEmbeddingPipelineService(deps: {
   prisma: NoteEmbeddingServicePrismaClient;
 }): NoteEmbeddingPipelineService {
@@ -147,6 +177,58 @@ export function createNoteEmbeddingPipelineService(deps: {
         noteIds: noteRows.map((row) => row.id),
       };
     },
+
+    async rebuildForOwner(ownerId, input): Promise<NoteEmbeddingRunResult> {
+      const planned = await this.prepareRebuildForOwner(ownerId, input);
+      if (planned.scheduled === 0) {
+        return {
+          scheduled: 0,
+          succeeded: 0,
+          failed: 0,
+          noteIds: [],
+        };
+      }
+
+      const pendingRows = await prisma.noteEmbedding.findMany({
+        where: {
+          noteId: { in: planned.noteIds },
+          chunkIndex: 0,
+          status: NoteEmbeddingStatus.PENDING,
+          note: {
+            ownerId,
+            deletedAt: null,
+          },
+        },
+        orderBy: [{ updatedAt: "desc" }, { id: "desc" }],
+      });
+
+      let succeeded = 0;
+      let failed = 0;
+
+      for (const row of pendingRows) {
+        try {
+          const vector = buildDeterministicEmbeddingVector(row.content);
+          await applyEmbeddingVector(prisma, row.id, vector);
+          succeeded += 1;
+        } catch (error) {
+          await prisma.noteEmbedding.update({
+            where: { id: row.id },
+            data: {
+              status: NoteEmbeddingStatus.FAILED,
+              error: normalizeErrorMessage(error),
+            },
+            select: { id: true },
+          });
+          failed += 1;
+        }
+      }
+
+      return {
+        scheduled: planned.scheduled,
+        succeeded,
+        failed,
+        noteIds: planned.noteIds,
+      };
+    },
   };
 }
-
