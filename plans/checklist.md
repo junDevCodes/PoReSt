@@ -68,9 +68,9 @@
 - [x] G9 배포 확인
 
 ## 추가 기능 P2 게이트
-- [ ] G10 Cross-domain 링크
+- [x] G10 Cross-domain 링크
 - [x] G10 API 완료
-- [ ] G10 UI 완료
+- [x] G10 UI 완료
 - [x] G10 테스트 통과
 - [x] G10 문서 반영
 - [x] G10 배포 확인

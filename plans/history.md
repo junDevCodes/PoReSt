@@ -173,3 +173,19 @@
   - `npm run vercel-build` 통과
 - 리스크/후속 항목:
   - 교차 링크 시각화/편집 UI(T30) 미구현
+
+### 완료일: 2026-02-17
+- 기능 ID(Gx): G10 (Cross-domain 링크) - T30
+- 핵심 변경:
+  - `/app/domain-links` 교차 링크 관리 UI 추가
+    - source/target 타입/엔티티 선택 기반 링크 생성
+    - 기존 링크 목록 조회 및 삭제
+  - 대시보드 빠른 이동에 `/app/domain-links` 경로 추가
+  - 라우팅/API 문서에 Domain Links 페이지/엔드포인트 반영
+- 테스트/배포 결과:
+  - `npm run lint` 통과
+  - `npm run build` 통과
+  - `npx jest --runInBand` 통과
+  - `npm run vercel-build` 통과
+- 리스크/후속 항목:
+  - 현재 UI는 단일 관리 페이지 방식이며, 각 도메인 상세 화면 내 인라인 편집 UX는 추후 고도화 대상

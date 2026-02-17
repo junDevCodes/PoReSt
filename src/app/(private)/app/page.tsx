@@ -78,6 +78,11 @@ export default async function AppHome() {
               </Link>
             </li>
             <li>
+              <Link href="/app/domain-links" className="hover:text-white">
+                /app/domain-links
+              </Link>
+            </li>
+            <li>
               <Link href="/app/blog" className="hover:text-white">
                 /app/blog
               </Link>
