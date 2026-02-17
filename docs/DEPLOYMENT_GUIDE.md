@@ -417,6 +417,12 @@ NEXT_PUBLIC_SITE_URL="http://localhost:3000"
 - `DATABASE_URL_UNPOOLED`
 - `DATABASE_URL_TEST` (테스트 전용)
 
+### 관측성 환경변수 (선택)
+- `SENTRY_DSN` (Sentry 프로젝트 DSN)
+- `SENTRY_ENVIRONMENT` (예: `preview`, `production`)
+- `SENTRY_RELEASE` (예: Git SHA)
+- `OPS_ALERT_WEBHOOK_URL` (Sentry 실패 시 운영 알림 Webhook)
+
 ### 배포 전 점검
 1. Prisma migration chain 정합성 확인
 2. Preview/Production DB 대상 호스트 재확인
@@ -426,3 +432,5 @@ NEXT_PUBLIC_SITE_URL="http://localhost:3000"
 - G1~G5 반영 후 API 스모크 테스트 수행
 - `/api/public/projects` 쿼리 기반 응답(`nextCursor`) 확인
 - `/api/app/feedback/targets` 타입별 데이터 유효성 확인
+- 운영 API 에러 발생 시 `x-request-id`와 구조화 로그 출력 확인
+- `SENTRY_DSN` 설정 환경에서 예외 1건 발생시켜 Sentry 이벤트 수신 확인

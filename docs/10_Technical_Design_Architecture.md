@@ -267,7 +267,8 @@ v1 선택지 2개 중 하나로 고정(초기에 흔들리지 않게)
 ### Observability (P1)
 - Request ID 전파 (`x-request-id`, middleware 생성/전달)
 - 구조화 로그(JSON, `request.received`/`auth.authorized`/`auth.unauthorized`)
-- Sentry 에러 추적
+- Sentry 에러 추적(Envelope API, `SENTRY_DSN` 기반)
+- Sentry 실패 시 운영 알림 Webhook 폴백(`OPS_ALERT_WEBHOOK_URL`)
 
 ### Data/Linking (P2)
 - Cross-domain 링크 그래프(`DomainLink`)

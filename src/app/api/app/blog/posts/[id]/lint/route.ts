@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { requireOwner } from "@/lib/auth-guard";
+import { requireAuth } from "@/lib/auth-guard";
+import { reportServerError } from "@/lib/monitoring";
 import { prisma } from "@/lib/prisma";
 import { createBlogErrorResponse, createBlogService } from "@/modules/blog";
 
@@ -9,17 +10,31 @@ type BlogPostIdRouteContext = {
 
 const blogService = createBlogService({ prisma });
 
-export async function POST(_: Request, context: BlogPostIdRouteContext) {
-  const authResult = await requireOwner();
+export async function POST(request: Request, context: BlogPostIdRouteContext) {
+  const authResult = await requireAuth();
   if ("response" in authResult) {
     return authResult.response;
   }
 
+  let postId = "";
   try {
     const params = await context.params;
-    const linted = await blogService.runLintForPost(authResult.session.user.id, params.id);
+    postId = params.id;
+    const linted = await blogService.runLintForPost(authResult.session.user.id, postId);
     return NextResponse.json({ data: linted });
   } catch (error) {
+    await reportServerError(
+      {
+        request,
+        scope: "api.blog.lint",
+        userId: authResult.session.user.id,
+        extra: {
+          postId,
+        },
+      },
+      error,
+    );
     return createBlogErrorResponse(error);
   }
 }
+

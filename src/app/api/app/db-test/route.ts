@@ -1,8 +1,9 @@
-﻿import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { NextResponse } from "next/server";
 import { requireOwner } from "@/lib/auth-guard";
+import { reportServerError } from "@/lib/monitoring";
+import { prisma } from "@/lib/prisma";
 
-export async function GET() {
+export async function GET(request: Request) {
   const authResult = await requireOwner();
 
   if ("response" in authResult) {
@@ -33,7 +34,14 @@ export async function GET() {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error("DB 테스트 오류:", error);
+    await reportServerError(
+      {
+        request,
+        scope: "api.db-test",
+        userId: authResult.session.user.id,
+      },
+      error,
+    );
 
     return NextResponse.json(
       {

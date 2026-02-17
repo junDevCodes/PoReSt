@@ -54,6 +54,10 @@ app/
 ---
 
 ## 2) 공통 응답 포맷
+### 2.0 공통 응답 헤더
+- Private API(`/api/app/*`)는 `x-request-id` 헤더를 포함한다.
+- 클라이언트는 오류 분석 시 `x-request-id`를 함께 기록한다.
+
 ### 2.1 성공
 - `200 OK` (GET/PUT/PATCH/DELETE)
 - `201 Created` (POST)

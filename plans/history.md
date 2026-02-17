@@ -118,3 +118,20 @@
   - `npm run vercel-build` 통과
 - 리스크/후속 항목:
   - Sentry 연동과 운영 알림(Webhook) 경로는 T27에서 마무리 예정
+
+### 완료일: 2026-02-17
+- 기능 ID(Gx): G9 (관측성) - T27
+- 핵심 변경:
+  - `src/lib/monitoring.ts` 추가 (Sentry Envelope 전송 + 운영 알림 Webhook 폴백)
+  - 운영성 라우트 에러 처리 지점에 관측 리포팅 연동
+    - `/api/app/revalidate`
+    - `/api/app/blog/posts/[id]/lint`
+    - `/api/app/feedback/[id]/run`
+    - `/api/app/db-test`
+- 테스트/배포 결과:
+  - `npm run lint` 통과
+  - `npm run build` 통과
+  - `npx jest --runInBand` 통과
+  - `npm run vercel-build` 통과
+- 리스크/후속 항목:
+  - Sentry DSN/운영 알림 Webhook 실환경 값 주입 후 실제 이벤트 수신 확인 필요
