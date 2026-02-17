@@ -374,12 +374,12 @@ User 1 ── N BlogPost ── 0..N BlogExportArtifact
 - `ResumeShareLink` 모델 도입 (토큰 기반 이력서 공유)
 - `BlogExportArtifact` 모델 도입 (format/snapshotHash/payload 기반 export 이력)
 - `AuditLog` 모델 도입 (행위 추적)
+- `DomainLink` 모델 도입 (Cross-domain 링크 기초 스키마)
 
 ### P1 예정 모델
 - (비어 있음)
 
 ### P2 예정 모델
-- `DomainLink`
 - `NoteEmbedding` 운영 필드 보강(`status`, `lastEmbeddedAt`, `error` 등)
 
 ### 관계 원칙

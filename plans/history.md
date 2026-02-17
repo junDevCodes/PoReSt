@@ -135,3 +135,19 @@
   - `npm run vercel-build` 통과
 - 리스크/후속 항목:
   - Sentry DSN/운영 알림 Webhook 실환경 값 주입 후 실제 이벤트 수신 확인 필요
+
+### 완료일: 2026-02-17
+- 기능 ID(Gx): G10 (Cross-domain 링크) - T28
+- 핵심 변경:
+  - `DomainLinkEntityType` enum, `DomainLink` 모델 추가
+  - `User.domainLinks` 관계 추가
+  - 마이그레이션 `20260217112000_m10_domain_links` 추가
+  - 중복 링크 방지 unique 인덱스와 source/target 동일 금지 CHECK 제약 추가
+  - 스키마 통합 테스트(`src/modules/domain-links/tests/schema.integration.test.ts`) 추가
+- 테스트/배포 결과:
+  - `npm run lint` 통과
+  - `npm run build` 통과
+  - `npx jest --runInBand` 통과
+  - `npm run vercel-build` 통과
+- 리스크/후속 항목:
+  - 폴리모픽 링크 구조 특성상 실제 엔티티 존재 검증은 T29 API 계층에서 owner scope 기반으로 보강 필요

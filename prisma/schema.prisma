@@ -59,6 +59,14 @@ enum FeedbackTargetType {
   BLOG
 }
 
+enum DomainLinkEntityType {
+  PROJECT
+  EXPERIENCE
+  RESUME
+  NOTE
+  BLOG_POST
+}
+
 // ========== AUTH (Auth.js / Prisma Adapter 기준) ==========
 // 공식 예시를 그대로 사용 (필드명/맵핑 포함)
 
@@ -122,6 +130,7 @@ model User {
   blogIntegrations  BlogIntegration[]
   feedbackRequests  FeedbackRequest[]
   auditLogs         AuditLog[]
+  domainLinks       DomainLink[]
 
   @@map("users")
 }
@@ -574,6 +583,26 @@ model AuditLog {
   @@index([actorId, createdAt])
   @@index([entityType, entityId, createdAt])
   @@map("audit_logs")
+}
+
+model DomainLink {
+  id         String               @id @default(cuid())
+  ownerId    String
+  owner      User                 @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  sourceType DomainLinkEntityType
+  sourceId   String
+  targetType DomainLinkEntityType
+  targetId   String
+  context    String?
+
+  createdAt  DateTime             @default(now())
+  updatedAt  DateTime             @updatedAt
+
+  @@unique([ownerId, sourceType, sourceId, targetType, targetId])
+  @@index([ownerId, sourceType, sourceId, updatedAt])
+  @@index([ownerId, targetType, targetId, updatedAt])
+  @@map("domain_links")
 }
 
 // ========== FEEDBACK (자동 피드백 요청/결과) ==========
