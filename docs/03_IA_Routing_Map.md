@@ -205,4 +205,4 @@ app/
 - `/u/[publicSlug]`
 - `/u/[publicSlug]/projects`
 - `/u/[publicSlug]/projects/[slug]`
-- `/users` (P2)
+- `/users`

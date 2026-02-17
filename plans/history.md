@@ -269,3 +269,24 @@
   - `npm run vercel-build` 통과
 - 리스크/후속 항목:
   - G12 UI(`/users` 목록/상세 탐색 화면)와 운영 체크(T35/T36)는 후속 작업
+
+### 완료일: 2026-02-17
+- 기능 ID(Gx): G12 (공개 사용자 디렉토리) - T35
+- 핵심 변경:
+  - 공개 사용자 디렉토리 페이지 추가: `/users`
+    - 검색(`q`), 페이지 크기(`limit`), 커서 페이지네이션(`cursor`) 지원
+    - 프로필/프로젝트 진입 링크(`/u/[publicSlug]`, `/u/[publicSlug]/projects`) 제공
+  - UI 보조 유틸 추가:
+    - `parsePublicUsersSearchParams`
+    - `buildUsersPageHref`
+  - UI 유틸 단위 테스트 추가:
+    - `src/app/(public)/users/_lib/__tests__/directory.test.ts`
+  - sitemap에 `/users` 경로 반영
+- 테스트/배포 결과:
+  - `npx jest directory.test.ts --runInBand` 통과
+  - `npm run lint` 통과
+  - `npm run build` 통과
+  - `npx jest --runInBand` 통과
+  - `npm run vercel-build` 통과
+- 리스크/후속 항목:
+  - 디렉토리 카드 디자인 고도화 및 추천/정렬 전략은 UI/UX 개선 라운드에서 추가 검토
