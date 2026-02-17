@@ -375,12 +375,13 @@ User 1 ── N BlogPost ── 0..N BlogExportArtifact
 - `BlogExportArtifact` 모델 도입 (format/snapshotHash/payload 기반 export 이력)
 - `AuditLog` 모델 도입 (행위 추적)
 - `DomainLink` 모델 도입 (Cross-domain 링크 기초 스키마)
+- `NoteEmbedding` 운영 필드 보강(`status`, `lastEmbeddedAt`, `error`, `updatedAt`)
 
 ### P1 예정 모델
 - (비어 있음)
 
 ### P2 예정 모델
-- `NoteEmbedding` 운영 필드 보강(`status`, `lastEmbeddedAt`, `error` 등)
+- (비어 있음)
 
 ### 관계 원칙
 - 모든 신규 모델은 `ownerId` 스코프를 기본 키/인덱스 전략에 반영

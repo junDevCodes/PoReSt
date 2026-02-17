@@ -45,6 +45,12 @@ enum NoteEdgeOrigin {
   MANUAL
 }
 
+enum NoteEmbeddingStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+}
+
 enum BlogPlatform {
   NAVER
   TISTORY
@@ -464,10 +470,15 @@ model NoteEmbedding {
 
   // 예: vector(1536) — 차원은 사용하는 임베딩 모델에 맞춰 고정
   embedding  Unsupported("vector(1536)")?
+  status     NoteEmbeddingStatus @default(PENDING)
+  lastEmbeddedAt DateTime?
+  error      String?  @db.Text
 
   createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@index([noteId, chunkIndex])
+  @@index([noteId, status, updatedAt])
   @@map("note_embeddings")
 }
 

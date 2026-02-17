@@ -189,3 +189,22 @@
   - `npm run vercel-build` 통과
 - 리스크/후속 항목:
   - 현재 UI는 단일 관리 페이지 방식이며, 각 도메인 상세 화면 내 인라인 편집 UX는 추후 고도화 대상
+
+### 완료일: 2026-02-17
+- 기능 ID(Gx): G11 (pgvector 임베딩) - T31
+- 핵심 변경:
+  - `NoteEmbeddingStatus` enum 및 `NoteEmbedding` 운영 필드(`status`, `lastEmbeddedAt`, `error`, `updatedAt`) 추가
+  - 마이그레이션 `20260217130000_m11_note_embedding_pipeline_fields` 추가
+  - 임베딩 재빌드 준비 파이프라인 모듈(`src/modules/note-embeddings`) 추가
+    - deterministic 벡터 생성 함수
+    - owner scope 기반 재빌드 큐잉(`prepareRebuildForOwner`)
+  - 검증/통합 테스트 추가
+    - `src/modules/note-embeddings/tests/validation.test.ts`
+    - `src/modules/note-embeddings/tests/implementation.integration.test.ts`
+- 테스트/배포 결과:
+  - `npm run lint` 통과
+  - `npm run build` 통과
+  - `npx jest --runInBand` 통과
+  - `npm run vercel-build` 통과
+- 리스크/후속 항목:
+  - 실제 임베딩 벡터 저장/재빌드 실행 API(T32)와 검색 고도화(T33)가 후속 필수
