@@ -188,6 +188,8 @@ app/
 - `GET /api/app/blog/posts/[id]/exports`
 - `GET /api/app/blog/posts/[id]/exports/[exportId]`
 - `GET /api/app/audit`
+- `GET|POST /api/app/domain-links`
+- `DELETE /api/app/domain-links/[id]`
 
 ### Public API
 - `GET /api/public/projects?q&tag&limit&cursor&publicSlug`

@@ -464,6 +464,55 @@ Response.data:
 
 ---
 
+## 9.8 Domain Links (G10)
+
+### 9.8.1 링크 조회
+GET `/api/app/domain-links`
+
+Query:
+- `sourceType` + `sourceId` (쌍으로 전달)
+- `targetType` + `targetId` (쌍으로 전달)
+- `limit` (optional, default 50, max 100)
+
+Response.data:
+[
+  {
+    "id": "...",
+    "ownerId": "...",
+    "sourceType": "PROJECT",
+    "sourceId": "...",
+    "targetType": "NOTE",
+    "targetId": "...",
+    "context": "...",
+    "createdAt": "...",
+    "updatedAt": "..."
+  }
+]
+
+### 9.8.2 링크 생성
+POST `/api/app/domain-links`
+
+Request.body:
+{
+  "sourceType": "PROJECT",
+  "sourceId": "...",
+  "targetType": "NOTE",
+  "targetId": "...",
+  "context": "..."
+}
+
+Response: `201 Created`
+
+### 9.8.3 링크 삭제
+DELETE `/api/app/domain-links/{id}`
+
+Response.data:
+{
+  "id": "..."
+}
+
+---
+
 ## 10) Private API — Feedback (후순위)
 
 ## 10.1 피드백 요청 생성

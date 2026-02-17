@@ -151,3 +151,25 @@
   - `npm run vercel-build` 통과
 - 리스크/후속 항목:
   - 폴리모픽 링크 구조 특성상 실제 엔티티 존재 검증은 T29 API 계층에서 owner scope 기반으로 보강 필요
+
+### 완료일: 2026-02-17
+- 기능 ID(Gx): G10 (Cross-domain 링크) - T29
+- 핵심 변경:
+  - DomainLink 서비스 계층(`src/modules/domain-links`) 구현
+    - 링크 조회(`listLinksForOwner`)
+    - 링크 생성(`createLinkForOwner`)
+    - 링크 삭제(`deleteLinkForOwner`)
+  - owner scope 엔티티 존재 검증(프로젝트/경력/이력서/노트/블로그) 추가
+  - API 라우트 추가
+    - `GET|POST /api/app/domain-links`
+    - `DELETE /api/app/domain-links/[id]`
+  - 검증/통합 테스트 추가
+    - `src/modules/domain-links/tests/validation.test.ts`
+    - `src/modules/domain-links/tests/implementation.integration.test.ts`
+- 테스트/배포 결과:
+  - `npm run lint` 통과
+  - `npm run build` 통과
+  - `npx jest --runInBand` 통과
+  - `npm run vercel-build` 통과
+- 리스크/후속 항목:
+  - 교차 링크 시각화/편집 UI(T30) 미구현
