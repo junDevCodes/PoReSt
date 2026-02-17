@@ -1461,3 +1461,29 @@ ANALYZE=true npm run build
 - `npm run build`
 - `npx jest --runInBand`
 - `npm run vercel-build`
+
+## Post-M5 QA 시나리오 추가 (P2 완료분, 2026-02-17)
+
+### G11 임베딩 유사도
+- `POST /api/app/notes/embeddings/rebuild` 실행 후 `SUCCEEDED` 상태 전환 검증
+- `GET /api/app/notes/[id]/similar` 호출 시:
+  - 기준 노트 제외
+  - owner scope 격리
+  - score 내림차순 정렬
+  - `limit`, `minScore` 파라미터 검증(422)
+
+### G12 공개 사용자 디렉토리
+- `GET /api/public/users` 호출 시:
+  - `isPublic=true` 사용자만 노출
+  - 공개 프로젝트 1개 이상 보유 사용자만 노출
+  - `q`, `limit`, `cursor` 조합 검증
+- `/users` 페이지에서:
+  - 검색/초기화 동작
+  - 다음 페이지 링크(cursor) 동작
+  - `/u/[publicSlug]`, `/u/[publicSlug]/projects` 이동 동작
+
+### P2 최종 회귀
+- `npm run lint`
+- `npm run build`
+- `npx jest --runInBand`
+- `npm run vercel-build`

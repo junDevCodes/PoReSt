@@ -290,3 +290,21 @@
   - `npm run vercel-build` 통과
 - 리스크/후속 항목:
   - 디렉토리 카드 디자인 고도화 및 추천/정렬 전략은 UI/UX 개선 라운드에서 추가 검토
+
+### 완료일: 2026-02-17
+- 기능 ID(Gx): P2 운영 마감 - T36
+- 핵심 변경:
+  - P2 성능/비용 가드레일을 운영 문서에 반영
+    - `docs/DEPLOYMENT_GUIDE.md`
+    - `docs/12_QA_Technical_Details.md`
+  - 임베딩/디렉토리 API 운영 체크 포인트 문서화
+    - 유사도 API limit/minScore 제약
+    - 공개 사용자 디렉토리 cursor 기반 조회 제약
+  - P2 태스크 완료 상태 반영(`plans/task.md`)
+- 테스트/배포 결과:
+  - `npm run lint` 통과
+  - `npm run build` 통과
+  - `npx jest --runInBand` 통과
+  - `npm run vercel-build` 통과
+- 리스크/후속 항목:
+  - P2 기능은 완료되었으며, 이후 단계는 UI/UX 고도화 및 추가 추천 전략 개선 중심으로 진행

@@ -434,3 +434,28 @@ NEXT_PUBLIC_SITE_URL="http://localhost:3000"
 - `/api/app/feedback/targets` 타입별 데이터 유효성 확인
 - 운영 API 에러 발생 시 `x-request-id`와 구조화 로그 출력 확인
 - `SENTRY_DSN` 설정 환경에서 예외 1건 발생시켜 Sentry 이벤트 수신 확인
+
+## Post-M5 P2 운영 검증 (2026-02-17)
+
+### 검증 완료 항목
+- `GET /api/app/notes/[id]/similar?limit&minScore` 응답/권한/owner scope 확인
+- `GET /api/public/users?q&limit&cursor` 커서 페이지네이션 확인
+- `GET /api/public/users/[publicSlug]/projects` 경로 연계 확인
+- `GET /api/public/users/[publicSlug]/projects/[slug]` 상세 연계 확인
+- `npm run vercel-build` 경로에서 마이그레이션/빌드 정상 완료 확인
+
+### 성능/비용 가드레일
+- 임베딩 유사도 API:
+  - `limit` 최대 20으로 고정
+  - `minScore` 기본값 0.5
+  - `note_embeddings_embedding_cosine_idx`(ivfflat, `vector_cosine_ops`) 인덱스 적용
+- 공개 사용자 디렉토리 API:
+  - `limit` 최대 50으로 제한
+  - `updatedAt,id` 커서 페이지네이션으로 스캔 범위 제한
+  - 공개 프로젝트 보유 사용자만 조회하여 불필요 응답 축소
+
+### 운영 체크 포인트
+1. Prisma migration 상태 확인
+2. Preview/Production 환경변수 host 재검증
+3. `/users`, `/u/[publicSlug]`, `/projects` 경로 스모크 테스트
+4. 오류 발생 시 `x-request-id`로 구조화 로그/Sentry 이벤트 추적

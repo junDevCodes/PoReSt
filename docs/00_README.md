@@ -245,7 +245,7 @@
 ### 추가 기능 로드맵
 - P0(완료): G1 `/api/app/me`, G2 Notebook CRUD/작성 파이프라인, G3 Public Projects 검색/필터/cursor, G4 Feedback 대상 자동 선택, G5 Blog Lint Rule10
 - P1(완료): G6 Resume 공유 링크, G7 Export 이력, G8 Audit Log, G9 관측성 표준화
-- P2(진행중): G10 Cross-domain 링크(완료), G11 pgvector 임베딩 운영(완료), G12 공개 사용자 디렉토리(완료), T36 운영 검증/문서화 잔여
+- P2(완료): G10 Cross-domain 링크, G11 pgvector 임베딩 운영, G12 공개 사용자 디렉토리, T36 운영 검증/문서화까지 마감
 
 ### 운영 원칙
 - 섹션 단위로 `lint/build/jest/vercel-build` 통과 후 완료 처리
