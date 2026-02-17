@@ -198,7 +198,7 @@ app/
 ### Public API
 - `GET /api/public/projects?q&tag&limit&cursor&publicSlug`
 - `GET /api/public/resume/share/[token]`
-- `GET /api/public/users` (P2)
+- `GET /api/public/users`
 
 ### Public Page
 - `/resume/share/[token]`

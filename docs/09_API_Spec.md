@@ -160,6 +160,34 @@ Response.data:
 
 ---
 
+## 4.4 공개 사용자 디렉토리
+GET `/api/public/users`
+
+Query:
+- `q`(optional): `publicSlug`, `displayName`, `headline` 검색
+- `limit`(optional, default 20, max 50)
+- `cursor`(optional): `updatedAt`, `id` 기반 커서
+
+Response:
+{
+  "data": [
+    {
+      "publicSlug": "owner-a",
+      "displayName": "Owner A",
+      "headline": "Backend Engineer",
+      "avatarUrl": null,
+      "projectCount": 3,
+      "updatedAt": "2026-02-17T00:00:00.000Z"
+    }
+  ],
+  "nextCursor": "..."
+}
+
+Notes:
+- `isPublic=true` + 공개 프로젝트 1개 이상 보유 사용자만 반환
+
+---
+
 ## 5) Private API — Auth/Me
 
 ## 5.1 내 정보
@@ -613,6 +641,7 @@ Response.data:
 - `GET /api/app/blog/posts/[id]/exports/[exportId]`
 - `GET /api/app/audit`
 - `GET /api/app/notes/[id]/similar?limit&minScore`
+- `GET /api/public/users?q&limit&cursor`
 
 ### 확장 엔드포인트
 - `GET /api/public/projects`

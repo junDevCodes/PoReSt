@@ -65,6 +65,26 @@ export type PublicProjectsPageDto = {
   nextCursor: string | null;
 };
 
+export type PublicUsersDirectoryQuery = {
+  q?: string;
+  limit?: number;
+  cursor?: string;
+};
+
+export type PublicUserDirectoryItemDto = {
+  publicSlug: string;
+  displayName: string | null;
+  headline: string | null;
+  avatarUrl: string | null;
+  projectCount: number;
+  updatedAt: Date;
+};
+
+export type PublicUsersDirectoryPageDto = {
+  items: PublicUserDirectoryItemDto[];
+  nextCursor: string | null;
+};
+
 export type PublicProjectDetailDto = {
   id: string;
   publicSlug: string;
@@ -147,6 +167,7 @@ export interface ProjectsService {
   deleteProject(ownerId: string, projectId: string): Promise<{ id: string }>;
   listPublicProjects(): Promise<PublicProjectListItemDto[]>;
   searchPublicProjects(query: PublicProjectsQuery): Promise<PublicProjectsPageDto>;
+  searchPublicUsersDirectory(query: PublicUsersDirectoryQuery): Promise<PublicUsersDirectoryPageDto>;
   listPublicProjectsByPublicSlug(publicSlug: string): Promise<PublicProjectListItemDto[]>;
   getPublicProjectBySlug(slug: string): Promise<PublicProjectDetailDto>;
   getPublicProjectByPublicSlugAndSlug(publicSlug: string, slug: string): Promise<PublicProjectDetailDto>;

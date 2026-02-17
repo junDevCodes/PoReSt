@@ -250,3 +250,22 @@
   - `npm run vercel-build` 통과 (신규 마이그레이션 적용 확인)
 - 리스크/후속 항목:
   - 현재 유사도 API는 조회 전용이며 NoteEdge 후보 생성과의 자동 동기화는 후속 고도화 대상
+
+### 완료일: 2026-02-17
+- 기능 ID(Gx): G12 (공개 사용자 디렉토리) - T34
+- 핵심 변경:
+  - 공개 사용자 디렉토리 조회 서비스(`searchPublicUsersDirectory`) 추가
+    - 검색 조건: `q`, `limit`, `cursor`
+    - 공개 포트폴리오(`isPublic=true`) + 공개 프로젝트 보유 사용자만 노출
+    - 커서 페이지네이션(`updatedAt`, `id`) 지원
+  - 신규 Public API 추가: `GET /api/public/users`
+  - 통합 테스트 추가: `src/modules/projects/tests/public-users-directory.integration.test.ts`
+- 테스트/배포 결과:
+  - `npx jest src/modules/projects/tests/validation.test.ts --runInBand` 통과
+  - `npx jest src/modules/projects/tests/public-users-directory.integration.test.ts --runInBand` 실행(테스트 DB 미설정 환경에서 skip)
+  - `npm run lint` 통과
+  - `npm run build` 통과
+  - `npx jest --runInBand` 통과
+  - `npm run vercel-build` 통과
+- 리스크/후속 항목:
+  - G12 UI(`/users` 목록/상세 탐색 화면)와 운영 체크(T35/T36)는 후속 작업

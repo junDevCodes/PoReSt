@@ -5,8 +5,10 @@ import {
   PROJECT_SLUG_PATTERN,
   type ProjectCreateInput,
   type PublicProjectsQuery,
+  type PublicUsersDirectoryQuery,
   type ProjectServicePrismaClient,
   ProjectServiceError,
+  type PublicUserDirectoryItemDto,
   type ProjectsService,
 } from "@/modules/projects/interface";
 
@@ -20,8 +22,15 @@ const MAX_ORDER = 9999;
 const EMPTY_LENGTH = 0;
 const DEFAULT_PUBLIC_PROJECT_LIMIT = 20;
 const MAX_PUBLIC_PROJECT_LIMIT = 50;
+const DEFAULT_PUBLIC_USER_LIMIT = 20;
+const MAX_PUBLIC_USER_LIMIT = 50;
 
 type PublicProjectsCursorPayload = {
+  updatedAt: string;
+  id: string;
+};
+
+type PublicUsersCursorPayload = {
   updatedAt: string;
   id: string;
 };
@@ -94,6 +103,12 @@ const publicProjectsQuerySchema = z.object({
   tag: z.string().trim().min(1).optional(),
   publicSlug: z.string().trim().min(1).optional(),
   limit: z.coerce.number().int().min(1).max(MAX_PUBLIC_PROJECT_LIMIT).optional(),
+  cursor: z.string().trim().min(1).optional(),
+});
+
+const publicUsersDirectoryQuerySchema = z.object({
+  q: z.string().trim().min(1).optional(),
+  limit: z.coerce.number().int().min(1).max(MAX_PUBLIC_USER_LIMIT).optional(),
   cursor: z.string().trim().min(1).optional(),
 });
 
@@ -255,6 +270,49 @@ function parsePublicProjectsQuery(input: PublicProjectsQuery) {
         "VALIDATION_ERROR",
         422,
         "프로젝트 검색 조건이 올바르지 않습니다.",
+        extractZodFieldErrors(error),
+      );
+    }
+    throw error;
+  }
+}
+
+function encodePublicUsersCursor(payload: PublicUsersCursorPayload): string {
+  return Buffer.from(JSON.stringify(payload), "utf8").toString("base64url");
+}
+
+function decodePublicUsersCursor(cursor: string): PublicUsersCursorPayload {
+  try {
+    const decoded = Buffer.from(cursor, "base64url").toString("utf8");
+    const parsed = JSON.parse(decoded) as PublicUsersCursorPayload;
+    if (!parsed.updatedAt || !parsed.id) {
+      throw new Error("INVALID_CURSOR");
+    }
+    return parsed;
+  } catch {
+    throw new ProjectServiceError("VALIDATION_ERROR", 422, "cursor 값이 올바르지 않습니다.", {
+      cursor: "cursor 값을 확인해주세요.",
+    });
+  }
+}
+
+function parsePublicUsersDirectoryQuery(input: PublicUsersDirectoryQuery) {
+  try {
+    const parsed = publicUsersDirectoryQuerySchema.parse(input);
+    return {
+      q: parsed.q,
+      limit: parsed.limit ?? DEFAULT_PUBLIC_USER_LIMIT,
+      cursor: parsed.cursor,
+    };
+  } catch (error) {
+    if (error instanceof ProjectServiceError) {
+      throw error;
+    }
+    if (error instanceof z.ZodError) {
+      throw new ProjectServiceError(
+        "VALIDATION_ERROR",
+        422,
+        "공개 사용자 검색 조건이 올바르지 않습니다.",
         extractZodFieldErrors(error),
       );
     }
@@ -781,6 +839,110 @@ export function createProjectsService(deps: { prisma: ProjectServicePrismaClient
 
       return {
         items: mappedRows.map((row) => row.dto),
+        nextCursor,
+      };
+    },
+
+    async searchPublicUsersDirectory(query) {
+      const parsedQuery = parsePublicUsersDirectoryQuery(query);
+      const andConditions: Prisma.PortfolioSettingsWhereInput[] = [];
+
+      if (parsedQuery.q) {
+        const keyword = parsedQuery.q;
+        andConditions.push({
+          OR: [
+            { publicSlug: { contains: keyword, mode: "insensitive" } },
+            { displayName: { contains: keyword, mode: "insensitive" } },
+            { headline: { contains: keyword, mode: "insensitive" } },
+          ],
+        });
+      }
+
+      if (parsedQuery.cursor) {
+        const cursorPayload = decodePublicUsersCursor(parsedQuery.cursor);
+        const cursorUpdatedAt = new Date(cursorPayload.updatedAt);
+        if (Number.isNaN(cursorUpdatedAt.getTime())) {
+          throw new ProjectServiceError("VALIDATION_ERROR", 422, "cursor 값이 올바르지 않습니다.", {
+            cursor: "cursor 값을 확인해주세요.",
+          });
+        }
+
+        andConditions.push({
+          OR: [
+            { updatedAt: { lt: cursorUpdatedAt } },
+            { updatedAt: cursorUpdatedAt, id: { lt: cursorPayload.id } },
+          ],
+        });
+      }
+
+      const where: Prisma.PortfolioSettingsWhereInput = {
+        isPublic: true,
+        owner: {
+          projects: {
+            some: {
+              visibility: Visibility.PUBLIC,
+            },
+          },
+        },
+      };
+
+      if (andConditions.length > 0) {
+        where.AND = andConditions;
+      }
+
+      const rows = await prisma.portfolioSettings.findMany({
+        where,
+        orderBy: [{ updatedAt: "desc" }, { id: "desc" }],
+        take: parsedQuery.limit + 1,
+        select: {
+          id: true,
+          ownerId: true,
+          publicSlug: true,
+          displayName: true,
+          headline: true,
+          avatarUrl: true,
+          updatedAt: true,
+        },
+      });
+
+      const hasNext = rows.length > parsedQuery.limit;
+      const pageRows = hasNext ? rows.slice(0, parsedQuery.limit) : rows;
+      const ownerIds = pageRows.map((row) => row.ownerId);
+
+      const counts = ownerIds.length
+        ? await prisma.project.groupBy({
+            by: ["ownerId"],
+            where: {
+              ownerId: { in: ownerIds },
+              visibility: Visibility.PUBLIC,
+            },
+            _count: {
+              _all: true,
+            },
+          })
+        : [];
+      const countByOwnerId = new Map(counts.map((row) => [row.ownerId, row._count._all]));
+
+      const items: PublicUserDirectoryItemDto[] = pageRows.map((row) => ({
+        publicSlug: row.publicSlug,
+        displayName: row.displayName,
+        headline: row.headline,
+        avatarUrl: row.avatarUrl,
+        projectCount: countByOwnerId.get(row.ownerId) ?? 0,
+        updatedAt: row.updatedAt,
+      }));
+
+      const lastRow = pageRows.at(-1) ?? null;
+      const nextCursor =
+        hasNext && lastRow
+          ? encodePublicUsersCursor({
+              id: lastRow.id,
+              updatedAt: lastRow.updatedAt.toISOString(),
+            })
+          : null;
+
+      return {
+        items,
         nextCursor,
       };
     },
