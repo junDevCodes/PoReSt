@@ -88,3 +88,19 @@
   - `npm run vercel-build` 통과
 - 리스크/후속 항목:
   - 대시보드에서 공유 링크 생성/회수 UI는 후속 고도화 대상
+
+### 완료일: 2026-02-16
+- 기능 ID(Gx): G8 (Audit Log)
+- 핵심 변경:
+  - `AuditLog` 모델/마이그레이션 추가
+  - `writeAuditLog` 유틸 추가 및 Blog 주요 액션(create/update/delete/lint/export) 수집 반영
+  - `GET /api/app/audit` 조회 API 구현(커서 기반 페이징)
+  - `/app/audit` 최소 관리자 UI 구현
+- 테스트/배포 결과:
+  - `npm run lint` 통과
+  - `npm run build` 통과
+  - `npx jest --runInBand` 통과 (27 suites 중 19 passed, 8 skipped)
+  - `npm run vercel-build` 통과 (migration `20260216142000_m8_audit_log` 적용)
+- 리스크/후속 항목:
+  - 수집 범위를 Blog 중심으로 먼저 적용했으므로, 다른 도메인 CRUD까지 확장 필요
+  - 로그 보존 기간/정리 정책은 G9 운영성 작업과 함께 확정 필요

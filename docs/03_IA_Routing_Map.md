@@ -31,6 +31,7 @@
   - Post 작성/편집: `/app/blog/new`, `/app/blog/[id]`
   - Lint 결과: 편집 화면 내 패널로 제공
   - Export/외부 URL 관리: 편집 화면 하단 섹션
+- Audit `/app/audit`
 - Feedback(후순위) `/app/feedback`
 - Settings `/app/settings`
 
@@ -59,6 +60,7 @@
 | `/app/resumes/*` | Owner only | 회사/직무별 이력서 버전 | ResumeVersion CRUD | middleware + API 권한 |
 | `/app/notes/*` | Owner only | 지식노트 + 그래프 | Note/Edge CRUD | middleware + API 권한 |
 | `/app/blog/*` | Owner only | 블로그 작성/검수/Export | BlogPost CRUD + lint | middleware + API 권한 |
+| `/app/audit` | Owner only | 감사 로그 조회 | AuditLog | middleware + API 권한 |
 | `/app/feedback/*` | Owner only | (후순위) 피드백 히스토리 | FeedbackRun | middleware + API 권한 |
 
 ---
@@ -185,7 +187,7 @@ app/
 - `POST|GET|DELETE /api/app/resumes/[id]/share-links`
 - `GET /api/app/blog/posts/[id]/exports`
 - `GET /api/app/blog/posts/[id]/exports/[exportId]`
-- `GET /api/app/audit` (P1)
+- `GET /api/app/audit`
 
 ### Public API
 - `GET /api/public/projects?q&tag&limit&cursor&publicSlug`

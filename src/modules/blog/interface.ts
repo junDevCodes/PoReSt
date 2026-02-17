@@ -93,7 +93,10 @@ export function isBlogServiceError(error: unknown): error is BlogServiceError {
   return error instanceof BlogServiceError;
 }
 
-export type BlogServicePrismaClient = Pick<Prisma.TransactionClient, "blogPost" | "blogExportArtifact">;
+export type BlogServicePrismaClient = Pick<
+  Prisma.TransactionClient,
+  "blogPost" | "blogExportArtifact" | "auditLog"
+>;
 
 export interface BlogService {
   listPostsForOwner(ownerId: string): Promise<OwnerBlogPostListItemDto[]>;

@@ -198,6 +198,15 @@ describeWithDatabase("blog service integration", () => {
       expect(exported.snapshotHash.length).toBeGreaterThan(0);
       expect(Buffer.from(exported.payload).toString("utf8")).toContain("export 테스트 본문");
 
+      const auditLogs = await tx.auditLog.findMany({
+        where: {
+          actorId: owner.id,
+          action: "BLOG_EXPORT_CREATED",
+          entityType: "BLOG_EXPORT_ARTIFACT",
+        },
+      });
+      expect(auditLogs.length).toBeGreaterThan(0);
+
       const listed = await service.listExportsForPost(owner.id, created.id);
       expect(listed).toHaveLength(1);
       expect(listed[0].id).toBe(exported.id);

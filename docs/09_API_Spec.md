@@ -431,6 +431,35 @@ GET `/api/app/blog/posts/{id}/exports/{exportId}`
 
 ---
 
+## 9.7 Audit Log 조회
+GET `/api/app/audit`
+
+Query:
+- `limit`(optional, default 20, max 100)
+- `cursor`(optional, 이전 응답의 `meta.nextCursor`)
+
+Response.data:
+{
+  "items": [
+    {
+      "id":"...",
+      "actorId":"...",
+      "action":"BLOG_EXPORT_CREATED",
+      "entityType":"BLOG_EXPORT_ARTIFACT",
+      "entityId":"...",
+      "metaJson": { ... },
+      "createdAt":"..."
+    }
+  ],
+  "meta": {
+    "nextCursor":"...",
+    "hasNext": true,
+    "limit": 20
+  }
+}
+
+---
+
 ## 10) Private API — Feedback (후순위)
 
 ## 10.1 피드백 요청 생성
@@ -481,7 +510,7 @@ Response.data:
 - `GET /api/app/blog/posts/[id]/export?format=html|md|zip`
 - `GET /api/app/blog/posts/[id]/exports`
 - `GET /api/app/blog/posts/[id]/exports/[exportId]`
-- `GET /api/app/audit` (P1)
+- `GET /api/app/audit`
 
 ### 확장 엔드포인트
 - `GET /api/public/projects`

@@ -121,6 +121,7 @@ model User {
   blogExportArtifacts BlogExportArtifact[]
   blogIntegrations  BlogIntegration[]
   feedbackRequests  FeedbackRequest[]
+  auditLogs         AuditLog[]
 
   @@map("users")
 }
@@ -556,6 +557,23 @@ model BlogExportArtifact {
   @@index([ownerId, createdAt])
   @@index([blogPostId, createdAt])
   @@map("blog_export_artifacts")
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String
+  actor      User     @relation(fields: [actorId], references: [id], onDelete: Cascade)
+
+  action     String
+  entityType String
+  entityId   String
+  metaJson   Json?
+
+  createdAt  DateTime @default(now())
+
+  @@index([actorId, createdAt])
+  @@index([entityType, entityId, createdAt])
+  @@map("audit_logs")
 }
 
 // ========== FEEDBACK (자동 피드백 요청/결과) ==========

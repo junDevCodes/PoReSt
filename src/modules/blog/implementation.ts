@@ -1,6 +1,7 @@
 import { PostStatus, Prisma, Visibility } from "@prisma/client";
 import { createHash } from "node:crypto";
 import { z } from "zod";
+import { writeAuditLog } from "@/lib/audit-log";
 import type { BlogPostCreateInput, BlogService, BlogServicePrismaClient } from "@/modules/blog/interface";
 import { createBlogExportArtifact, type BlogExportFormat } from "@/modules/blog/export";
 import { runBlogLint } from "@/modules/blog/lint";
@@ -393,6 +394,13 @@ export function createBlogService(deps: { prisma: BlogServicePrismaClient }): Bl
           select: { id: true },
         });
 
+        await writeAuditLog(prisma, {
+          actorId: ownerId,
+          action: "BLOG_POST_CREATED",
+          entityType: "BLOG_POST",
+          entityId: created.id,
+        });
+
         return fetchPostById(prisma, created.id);
       } catch (error) {
         handleKnownPrismaError(error);
@@ -408,6 +416,13 @@ export function createBlogService(deps: { prisma: BlogServicePrismaClient }): Bl
           where: { id: postId },
           data: parsed,
           select: { id: true },
+        });
+
+        await writeAuditLog(prisma, {
+          actorId: ownerId,
+          action: "BLOG_POST_UPDATED",
+          entityType: "BLOG_POST",
+          entityId: postId,
         });
 
         return fetchPostById(prisma, postId);
@@ -427,6 +442,13 @@ export function createBlogService(deps: { prisma: BlogServicePrismaClient }): Bl
         select: { id: true },
       });
 
+      await writeAuditLog(prisma, {
+        actorId: ownerId,
+        action: "BLOG_POST_DELETED",
+        entityType: "BLOG_POST",
+        entityId: postId,
+      });
+
       return { id: postId };
     },
 
@@ -442,6 +464,13 @@ export function createBlogService(deps: { prisma: BlogServicePrismaClient }): Bl
           lastLintedAt: new Date(),
         },
         select: { id: true },
+      });
+
+      await writeAuditLog(prisma, {
+        actorId: ownerId,
+        action: "BLOG_LINT_EXECUTED",
+        entityType: "BLOG_POST",
+        entityId: postId,
       });
 
       return fetchPostById(prisma, postId);
@@ -487,6 +516,18 @@ export function createBlogService(deps: { prisma: BlogServicePrismaClient }): Bl
           payload: new Uint8Array(generated.buffer),
         },
         select: blogExportArtifactDownloadSelect,
+      });
+
+      await writeAuditLog(prisma, {
+        actorId: ownerId,
+        action: "BLOG_EXPORT_CREATED",
+        entityType: "BLOG_EXPORT_ARTIFACT",
+        entityId: created.id,
+        metaJson: {
+          blogPostId: postId,
+          format,
+          snapshotHash,
+        },
       });
 
       return mapBlogExportArtifactDownload(created);

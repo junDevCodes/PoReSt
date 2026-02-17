@@ -373,9 +373,10 @@ User 1 ── N BlogPost ── 0..N BlogExportArtifact
 - `Notebook`/`Note` 파이프라인 강화 (CRUD/집계)
 - `ResumeShareLink` 모델 도입 (토큰 기반 이력서 공유)
 - `BlogExportArtifact` 모델 도입 (format/snapshotHash/payload 기반 export 이력)
+- `AuditLog` 모델 도입 (행위 추적)
 
 ### P1 예정 모델
-- `AuditLog`
+- (비어 있음)
 
 ### P2 예정 모델
 - `DomainLink`
