@@ -265,8 +265,8 @@ v1 선택지 2개 중 하나로 고정(초기에 흔들리지 않게)
 - Blog Lint Rule10(`HEADING_LEVEL_JUMP`) 추가로 문서 구조 품질 점검을 강화한다.
 
 ### Observability (P1)
-- Request ID 전파
-- 구조화 로그(JSON)
+- Request ID 전파 (`x-request-id`, middleware 생성/전달)
+- 구조화 로그(JSON, `request.received`/`auth.authorized`/`auth.unauthorized`)
 - Sentry 에러 추적
 
 ### Data/Linking (P2)

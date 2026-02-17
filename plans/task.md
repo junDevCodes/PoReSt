@@ -18,7 +18,7 @@
 - [완료] T23: G7 Export 이력 API + 재다운로드 흐름 구현
 - [완료] T24: G8 Audit Log 스키마/수집 포인트 반영
 - [완료] T25: G8 Audit 조회 API + 관리자 UI 최소 구현
-- T26: G9 Request ID/구조화 로그 표준화
+- [완료] T26: G9 Request ID/구조화 로그 표준화
 - T27: G9 Sentry 연동 및 운영 알림 검증
 
 ## P2 구현 트랙 (G10~G12 + 튜닝)

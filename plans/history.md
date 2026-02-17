@@ -104,3 +104,17 @@
 - 리스크/후속 항목:
   - 수집 범위를 Blog 중심으로 먼저 적용했으므로, 다른 도메인 CRUD까지 확장 필요
   - 로그 보존 기간/정리 정책은 G9 운영성 작업과 함께 확정 필요
+
+### 완료일: 2026-02-17
+- 기능 ID(Gx): G9 (관측성) - T26
+- 핵심 변경:
+  - `x-request-id` 기반 요청 추적 ID 생성/전달을 middleware에 적용
+  - middleware 인증 흐름에 구조화 로그(JSON) 이벤트 표준(`request.received`, `auth.authorized`, `auth.unauthorized`) 적용
+  - 관측성 유틸(`src/lib/observability.ts`) 및 단위 테스트 추가
+- 테스트/배포 결과:
+  - `npm run lint` 통과
+  - `npm run build` 통과
+  - `npx jest --runInBand` 통과
+  - `npm run vercel-build` 통과
+- 리스크/후속 항목:
+  - Sentry 연동과 운영 알림(Webhook) 경로는 T27에서 마무리 예정
