@@ -225,3 +225,28 @@
   - `npm run vercel-build` 통과
 - 리스크/후속 항목:
   - 유사도 검색 품질/인덱스 튜닝(T33) 미완료
+
+### 완료일: 2026-02-17
+- 기능 ID(Gx): G11 (pgvector 임베딩) - T33
+- 핵심 변경:
+  - 임베딩 유사도 검색 서비스(`searchSimilarNotesForOwner`) 추가
+    - owner scope 기준 노트 검증
+    - pgvector cosine distance 기반 Top-N 검색
+    - `limit`, `minScore` 필터 지원
+  - 신규 API 추가: `GET /api/app/notes/[id]/similar`
+  - 인덱스 튜닝 마이그레이션 추가
+    - `20260217143000_m11_embedding_similarity_index_tuning`
+    - `note_embeddings_status_chunk_updatedAt_idx`
+    - `note_embeddings_embedding_cosine_idx` (ivfflat, vector_cosine_ops)
+  - 임베딩 검증/통합 테스트 보강
+    - 입력 검증 케이스(`minScore`) 추가
+    - 유사도 검색 정렬/owner 격리 케이스 추가
+- 테스트/배포 결과:
+  - `npx jest src/modules/note-embeddings/tests/validation.test.ts --runInBand` 통과
+  - `npx jest src/modules/note-embeddings/tests/implementation.integration.test.ts --runInBand` 실행(테스트 DB 미설정 환경에서 skip)
+  - `npm run lint` 통과
+  - `npm run build` 통과
+  - `npx jest --runInBand` 통과
+  - `npm run vercel-build` 통과 (신규 마이그레이션 적용 확인)
+- 리스크/후속 항목:
+  - 현재 유사도 API는 조회 전용이며 NoteEdge 후보 생성과의 자동 동기화는 후속 고도화 대상

@@ -532,6 +532,35 @@ Response.data:
 
 ---
 
+## 9.10 Note Similarity Search (G11)
+GET `/api/app/notes/{id}/similar`
+
+Query:
+- `limit` (optional, default 5, max 20)
+- `minScore` (optional, 0~1, default 0.5)
+
+Response.data:
+[
+  {
+    "noteId": "...",
+    "title": "...",
+    "summary": "...",
+    "tags": ["..."],
+    "notebook": {
+      "id": "...",
+      "name": "..."
+    },
+    "updatedAt": "2026-02-17T00:00:00.000Z",
+    "score": 0.8123
+  }
+]
+
+Error:
+- `404 NOT_FOUND`: 기준 노트를 찾을 수 없음
+- `422 VALIDATION_ERROR`: query 파라미터 검증 실패
+
+---
+
 ## 10) Private API — Feedback (후순위)
 
 ## 10.1 피드백 요청 생성
@@ -583,6 +612,7 @@ Response.data:
 - `GET /api/app/blog/posts/[id]/exports`
 - `GET /api/app/blog/posts/[id]/exports/[exportId]`
 - `GET /api/app/audit`
+- `GET /api/app/notes/[id]/similar?limit&minScore`
 
 ### 확장 엔드포인트
 - `GET /api/public/projects`

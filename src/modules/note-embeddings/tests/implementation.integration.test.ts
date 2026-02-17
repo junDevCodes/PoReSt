@@ -102,7 +102,7 @@ describeWithDatabase("note embedding pipeline integration", () => {
     });
   });
 
-  it("기존 FAILED 상태는 재빌드 준비 시 PENDING으로 초기화되어야 한다", async () => {
+  it("기존 FAILED 상태도 재빌드 준비 시 PENDING으로 초기화되어야 한다", async () => {
     await runWithRollback(async (service, tx) => {
       const unique = `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
       const owner = await createOwner(tx, `failed-${unique}`);
@@ -133,7 +133,7 @@ describeWithDatabase("note embedding pipeline integration", () => {
     });
   });
 
-  it("재빌드 실행 시 PENDING 임베딩을 SUCCEEDED로 전환해야 한다", async () => {
+  it("재빌드 실행 후 PENDING 임베딩은 SUCCEEDED로 전환되어야 한다", async () => {
     await runWithRollback(async (service, tx) => {
       const unique = `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
       const owner = await createOwner(tx, `run-${unique}`);
@@ -156,6 +156,84 @@ describeWithDatabase("note embedding pipeline integration", () => {
       expect(embedding?.status).toBe(NoteEmbeddingStatus.SUCCEEDED);
       expect(embedding?.lastEmbeddedAt).not.toBeNull();
       expect(embedding?.error).toBeNull();
+    });
+  });
+
+  it("유사도 검색은 기준 노트를 제외하고 점수 순으로 반환해야 한다", async () => {
+    await runWithRollback(async (service, tx) => {
+      const unique = `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+      const owner = await createOwner(tx, `similar-${unique}`);
+
+      const baseNote = await createNote(
+        tx,
+        owner.id,
+        `base-${unique}`,
+        "prisma transaction isolation level deadlock retry",
+      );
+      const nearNote = await createNote(
+        tx,
+        owner.id,
+        `near-${unique}`,
+        "prisma transaction isolation lock retry strategy",
+      );
+      const farNote = await createNote(
+        tx,
+        owner.id,
+        `far-${unique}`,
+        "react animation motion ui component styling",
+      );
+
+      await service.rebuildForOwner(owner.id, {
+        noteIds: [baseNote.id, nearNote.id, farNote.id],
+      });
+
+      const similar = await service.searchSimilarNotesForOwner(owner.id, baseNote.id, {
+        limit: 2,
+        minScore: 0,
+      });
+
+      expect(similar).toHaveLength(2);
+      expect(similar.some((item) => item.noteId === baseNote.id)).toBe(false);
+      expect(similar.map((item) => item.noteId).sort()).toEqual([nearNote.id, farNote.id].sort());
+      expect(similar[0].score).toBeGreaterThanOrEqual(similar[1].score);
+    });
+  });
+
+  it("유사도 검색은 owner 범위를 넘는 노트를 포함하면 안 된다", async () => {
+    await runWithRollback(async (service, tx) => {
+      const unique = `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+      const ownerA = await createOwner(tx, `owner-a-${unique}`);
+      const ownerB = await createOwner(tx, `owner-b-${unique}`);
+
+      const noteA1 = await createNote(
+        tx,
+        ownerA.id,
+        `a1-${unique}`,
+        "postgres transaction lock timeout retry",
+      );
+      const noteA2 = await createNote(
+        tx,
+        ownerA.id,
+        `a2-${unique}`,
+        "postgres transaction lock strategy rollback",
+      );
+      const noteB1 = await createNote(
+        tx,
+        ownerB.id,
+        `b1-${unique}`,
+        "postgres transaction lock timeout retry",
+      );
+
+      await service.rebuildForOwner(ownerA.id, { noteIds: [noteA1.id, noteA2.id] });
+      await service.rebuildForOwner(ownerB.id, { noteIds: [noteB1.id] });
+
+      const similar = await service.searchSimilarNotesForOwner(ownerA.id, noteA1.id, {
+        limit: 5,
+        minScore: 0,
+      });
+
+      expect(similar.some((item) => item.noteId === noteB1.id)).toBe(false);
+      expect(similar.some((item) => item.noteId === noteA2.id)).toBe(true);
     });
   });
 });

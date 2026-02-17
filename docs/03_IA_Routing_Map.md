@@ -193,6 +193,7 @@ app/
 - `GET|POST /api/app/domain-links`
 - `DELETE /api/app/domain-links/[id]`
 - `POST /api/app/notes/embeddings/rebuild`
+- `GET /api/app/notes/[id]/similar?limit&minScore`
 
 ### Public API
 - `GET /api/public/projects?q&tag&limit&cursor&publicSlug`

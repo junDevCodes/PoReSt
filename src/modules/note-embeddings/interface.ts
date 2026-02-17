@@ -19,6 +19,24 @@ export type NoteEmbeddingRunResult = {
   noteIds: string[];
 };
 
+export type NoteEmbeddingSimilarSearchInput = {
+  limit?: number;
+  minScore?: number;
+};
+
+export type NoteEmbeddingSimilarNoteDto = {
+  noteId: string;
+  title: string;
+  summary: string | null;
+  tags: string[];
+  notebook: {
+    id: string;
+    name: string;
+  };
+  updatedAt: Date;
+  score: number;
+};
+
 export type NoteEmbeddingServiceErrorCode = "VALIDATION_ERROR" | "NOT_FOUND" | "INTERNAL_ERROR";
 
 export class NoteEmbeddingServiceError extends Error {
@@ -40,10 +58,15 @@ export function isNoteEmbeddingServiceError(error: unknown): error is NoteEmbedd
 
 export type NoteEmbeddingServicePrismaClient = Pick<
   Prisma.TransactionClient,
-  "note" | "noteEmbedding" | "$executeRawUnsafe"
+  "note" | "noteEmbedding" | "$executeRawUnsafe" | "$queryRaw"
 >;
 
 export interface NoteEmbeddingPipelineService {
   prepareRebuildForOwner(ownerId: string, input?: unknown): Promise<NoteEmbeddingPlanResult>;
   rebuildForOwner(ownerId: string, input?: unknown): Promise<NoteEmbeddingRunResult>;
+  searchSimilarNotesForOwner(
+    ownerId: string,
+    noteId: string,
+    input?: unknown,
+  ): Promise<NoteEmbeddingSimilarNoteDto[]>;
 }

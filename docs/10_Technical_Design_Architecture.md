@@ -273,3 +273,5 @@ v1 선택지 2개 중 하나로 고정(초기에 흔들리지 않게)
 ### Data/Linking (P2)
 - Cross-domain 링크 그래프(`DomainLink`)
 - 임베딩 생성/재빌드 파이프라인(`pgvector`, `POST /api/app/notes/embeddings/rebuild`)
+- 임베딩 유사도 조회 API(`GET /api/app/notes/[id]/similar`)로 Top-N 후보 탐색 지원
+- `note_embeddings` ivfflat 코사인 인덱스로 유사도 검색 비용 최적화

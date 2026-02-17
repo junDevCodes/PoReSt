@@ -479,6 +479,7 @@ model NoteEmbedding {
 
   @@index([noteId, chunkIndex])
   @@index([noteId, status, updatedAt])
+  @@index([status, chunkIndex, updatedAt])
   @@map("note_embeddings")
 }
 

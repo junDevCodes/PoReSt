@@ -7,13 +7,17 @@ import {
 function createMockPrisma(): NoteEmbeddingServicePrismaClient {
   return {
     note: {
+      findFirst: jest.fn(),
       findMany: jest.fn(),
     },
     noteEmbedding: {
       findFirst: jest.fn(),
+      findMany: jest.fn(),
       update: jest.fn(),
       create: jest.fn(),
     },
+    $executeRawUnsafe: jest.fn(),
+    $queryRaw: jest.fn(),
   } as unknown as NoteEmbeddingServicePrismaClient;
 }
 
@@ -35,5 +39,17 @@ describe("note embeddings validation", () => {
       status: 422,
     });
   });
-});
 
+  it("유사도 검색 입력에서 minScore 범위를 벗어나면 검증 에러를 반환해야 한다", async () => {
+    const service = createNoteEmbeddingPipelineService({ prisma: createMockPrisma() });
+
+    await expect(
+      service.searchSimilarNotesForOwner("owner-1", "note-1", {
+        minScore: 1.5,
+      }),
+    ).rejects.toMatchObject({
+      code: "VALIDATION_ERROR",
+      status: 422,
+    });
+  });
+});

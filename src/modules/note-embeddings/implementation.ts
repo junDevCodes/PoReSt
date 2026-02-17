@@ -1,4 +1,4 @@
-import { NoteEmbeddingStatus } from "@prisma/client";
+import { NoteEmbeddingStatus, Prisma } from "@prisma/client";
 import { z } from "zod";
 import type {
   NoteEmbeddingPipelineService,
@@ -6,17 +6,36 @@ import type {
   NoteEmbeddingPlanResult,
   NoteEmbeddingRunResult,
   NoteEmbeddingServicePrismaClient,
+  NoteEmbeddingSimilarNoteDto,
 } from "@/modules/note-embeddings/interface";
 import { NoteEmbeddingServiceError } from "@/modules/note-embeddings/interface";
 
 const DEFAULT_REBUILD_LIMIT = 50;
 const MAX_REBUILD_LIMIT = 200;
 const DEFAULT_EMBEDDING_DIMENSIONS = 1536;
+const DEFAULT_SIMILAR_LIMIT = 5;
+const MAX_SIMILAR_LIMIT = 20;
+const DEFAULT_MIN_SCORE = 0.5;
 
 const noteEmbeddingPlanSchema = z.object({
   noteIds: z.array(z.string().min(1)).max(MAX_REBUILD_LIMIT).optional(),
   limit: z.number().int().positive().max(MAX_REBUILD_LIMIT).optional(),
 });
+
+const noteEmbeddingSimilarSearchSchema = z.object({
+  limit: z.number().int().positive().max(MAX_SIMILAR_LIMIT).optional(),
+  minScore: z.number().min(0).max(1).optional(),
+});
+
+type NormalizedSimilarSearchInput = {
+  limit: number;
+  minScore: number;
+};
+
+type SimilarQueryRow = {
+  noteId: string;
+  score: number | string | Prisma.Decimal;
+};
 
 function parsePlanInput(input: unknown): NoteEmbeddingPlanInput {
   const parsed = noteEmbeddingPlanSchema.safeParse(input ?? {});
@@ -24,6 +43,18 @@ function parsePlanInput(input: unknown): NoteEmbeddingPlanInput {
     throw new NoteEmbeddingServiceError("VALIDATION_ERROR", 422, "임베딩 재빌드 입력값이 올바르지 않습니다.");
   }
   return parsed.data;
+}
+
+function parseSimilarSearchInput(input: unknown): NormalizedSimilarSearchInput {
+  const parsed = noteEmbeddingSimilarSearchSchema.safeParse(input ?? {});
+  if (!parsed.success) {
+    throw new NoteEmbeddingServiceError("VALIDATION_ERROR", 422, "유사도 검색 입력값이 올바르지 않습니다.");
+  }
+
+  return {
+    limit: parsed.data.limit ?? DEFAULT_SIMILAR_LIMIT,
+    minScore: parsed.data.minScore ?? DEFAULT_MIN_SCORE,
+  };
 }
 
 export function buildDeterministicEmbeddingVector(
@@ -103,6 +134,25 @@ function normalizeErrorMessage(error: unknown): string {
   return String(error).slice(0, 500);
 }
 
+function toSafeScore(value: unknown): number {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return Number(value.toFixed(6));
+  }
+
+  if (typeof value === "string") {
+    const parsed = Number.parseFloat(value);
+    if (Number.isFinite(parsed)) {
+      return Number(parsed.toFixed(6));
+    }
+  }
+
+  if (value instanceof Prisma.Decimal) {
+    return Number(value.toFixed(6));
+  }
+
+  return 0;
+}
+
 async function applyEmbeddingVector(
   prisma: NoteEmbeddingServicePrismaClient,
   embeddingId: string,
@@ -119,6 +169,47 @@ async function applyEmbeddingVector(
       WHERE "id" = $1`,
     embeddingId,
   );
+}
+
+async function findSimilarNoteRows(
+  prisma: NoteEmbeddingServicePrismaClient,
+  ownerId: string,
+  noteId: string,
+  input: NormalizedSimilarSearchInput,
+): Promise<SimilarQueryRow[]> {
+  return prisma.$queryRaw<SimilarQueryRow[]>(Prisma.sql`
+    SELECT
+      candidate."noteId" AS "noteId",
+      GREATEST(
+        0,
+        LEAST(
+          1,
+          1 - (candidate."embedding" <=> source."embedding")
+        )
+      )::double precision AS "score"
+    FROM "note_embeddings" AS candidate
+    JOIN "notes" AS candidate_note
+      ON candidate_note."id" = candidate."noteId"
+    JOIN (
+      SELECT "embedding"
+      FROM "note_embeddings"
+      WHERE "noteId" = ${noteId}
+        AND "chunkIndex" = 0
+        AND "status" = ${NoteEmbeddingStatus.SUCCEEDED}
+        AND "embedding" IS NOT NULL
+      ORDER BY "updatedAt" DESC, "id" DESC
+      LIMIT 1
+    ) AS source ON TRUE
+    WHERE candidate_note."ownerId" = ${ownerId}
+      AND candidate_note."deletedAt" IS NULL
+      AND candidate."chunkIndex" = 0
+      AND candidate."status" = ${NoteEmbeddingStatus.SUCCEEDED}
+      AND candidate."embedding" IS NOT NULL
+      AND candidate."noteId" <> ${noteId}
+      AND (1 - (candidate."embedding" <=> source."embedding")) >= ${input.minScore}
+    ORDER BY candidate."embedding" <=> source."embedding" ASC, candidate."updatedAt" DESC
+    LIMIT ${input.limit}
+  `);
 }
 
 export function createNoteEmbeddingPipelineService(deps: {
@@ -159,12 +250,9 @@ export function createNoteEmbeddingPipelineService(deps: {
         const foundIdSet = new Set(noteRows.map((row) => row.id));
         const missing = parsed.noteIds.filter((id) => !foundIdSet.has(id));
         if (missing.length > 0) {
-          throw new NoteEmbeddingServiceError(
-            "NOT_FOUND",
-            404,
-            "재빌드 대상 노트를 찾을 수 없습니다.",
-            { noteIds: missing.join(",") },
-          );
+          throw new NoteEmbeddingServiceError("NOT_FOUND", 404, "일부 노트를 찾을 수 없습니다.", {
+            noteIds: missing.join(","),
+          });
         }
       }
 
@@ -229,6 +317,75 @@ export function createNoteEmbeddingPipelineService(deps: {
         failed,
         noteIds: planned.noteIds,
       };
+    },
+
+    async searchSimilarNotesForOwner(ownerId, noteId, input): Promise<NoteEmbeddingSimilarNoteDto[]> {
+      const parsed = parseSimilarSearchInput(input);
+
+      const sourceNote = await prisma.note.findFirst({
+        where: {
+          id: noteId,
+          ownerId,
+          deletedAt: null,
+        },
+        select: { id: true },
+      });
+
+      if (!sourceNote) {
+        throw new NoteEmbeddingServiceError("NOT_FOUND", 404, "기준 노트를 찾을 수 없습니다.");
+      }
+
+      const rows = await findSimilarNoteRows(prisma, ownerId, noteId, parsed);
+      if (rows.length === 0) {
+        return [];
+      }
+
+      const noteIds = rows.map((row) => row.noteId);
+      const notes = await prisma.note.findMany({
+        where: {
+          ownerId,
+          deletedAt: null,
+          id: { in: noteIds },
+        },
+        select: {
+          id: true,
+          title: true,
+          summary: true,
+          tags: true,
+          updatedAt: true,
+          notebook: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      });
+
+      const noteById = new Map(notes.map((note) => [note.id, note]));
+      const result: NoteEmbeddingSimilarNoteDto[] = [];
+
+      for (const row of rows) {
+        const matched = noteById.get(row.noteId);
+        if (!matched) {
+          continue;
+        }
+
+        result.push({
+          noteId: matched.id,
+          title: matched.title,
+          summary: matched.summary,
+          tags: matched.tags,
+          notebook: {
+            id: matched.notebook.id,
+            name: matched.notebook.name,
+          },
+          updatedAt: matched.updatedAt,
+          score: toSafeScore(row.score),
+        });
+      }
+
+      return result;
     },
   };
 }
