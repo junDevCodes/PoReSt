@@ -74,3 +74,24 @@
 - `docs/11_Development_Plan_Sprint_Backlog.md`
 - `docs/12_QA_Technical_Details.md`
 - `docs/DEPLOYMENT_GUIDE.md`
+
+## 후속 트랙: UX Wave 1 (공개 포트폴리오 발행 완성)
+목표: 신규 사용자가 5분 내에 `/u/[publicSlug]` 공유 링크를 얻는다.
+
+### 범위
+1. Public 랜딩(`/`)
+   - 서비스 소개 + 로그인 CTA
+   - `/users`, `/projects` 탐색 CTA 제공
+2. Private 대시보드(`/app`)
+   - 첫 진입 시 “발행 체크리스트(진행률)” 위젯 제공
+     - 프로필 설정(`/app/portfolio/settings`)
+     - 첫 프로젝트 생성(`/app/projects/new`)
+     - 프로젝트 공개 전환(visibility=PUBLIC)
+     - `/u/[publicSlug]` 이동/복사 버튼
+3. 빈 상태/에러 상태 통일
+   - Projects/Resumes/Notes/Blog 공통 메시지/CTA 정리
+
+### 완료 기준(수용 기준)
+- 신규 사용자가 5분 내에 `/u/[publicSlug]` 공유 링크를 얻는다.
+- `publicSlug` 변경 시 “기존 링크가 깨질 수 있음(리다이렉트 없음)” 경고가 명확히 표시된다.
+- `/users` 디렉토리는 `isPublic=true` + 공개 프로젝트 1개 이상 사용자만 노출된다.
