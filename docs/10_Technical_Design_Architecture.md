@@ -1,6 +1,6 @@
 ﻿# Technical Design & Architecture — PoReSt
 버전: v1.0
-목표: Public(포트폴리오) + Private(오너 대시보드: 포트폴리오 관리/이력서/노트/블로그/피드백) 단일 플랫폼을 “운영 가능한” 구조로 설계한다.
+목표: Public(포트폴리오) + Private(로그인 사용자 워크스페이스: 포트폴리오 관리/이력서/노트/블로그/피드백) 단일 플랫폼을 “운영 가능한” 구조로 설계한다.
 우선순위: Portfolio > Notes > Blog > Feedback
 
 ---
@@ -8,7 +8,7 @@
 ## 0) 한 줄 아키텍처
 **Next.js(App Router) 단일 앱**에서
 - Public 포트폴리오는 **ISR/캐시**로 빠르게 제공하고,
-- Private 기능은 **인증 기반 Route + API 보호**로 오너만 접근,
+- Private 기능은 **인증 기반 Route + API 보호**로 로그인 사용자 접근,
 - 데이터는 **Postgres + Prisma**로 통합 관리,
 - Notes는 **pgvector(선택)** 로 유사도 후보 생성,
 - Blog는 **Lint 엔진 + Export** 로 외부 게시를 “연동 리스크 없이” 관리한다.
@@ -20,7 +20,7 @@
 2) 개인용 MVP는 **서버리스 배포 시 커넥션 풀링/캐시 전략**을 먼저 확정한다.
 3) 자동화(추천/피드백)는 “자동 확정 금지”:  
    - 후보(candidate)만 자동  
-   - 확정(confirmed)은 오너 액션으로만
+   - 확정(confirmed)은 사용자 수동 액션으로만
 4) 외부 블로그 연동은 1차에서 “자동 게시”가 아니라 **Export + URL 상태 관리**가 기본.
 
 ---
@@ -33,7 +33,7 @@
 
 ### 2.2 Auth
 - Auth.js(NextAuth) + Prisma Adapter
-- 정책: 오너 1인(allowlist email 또는 `User.isOwner=true`)
+- 정책: 로그인 사용자 기본 허용 + 운영성 API는 `User.isOwner=true`로 제한
 
 ### 2.3 Database
 - PostgreSQL + Prisma ORM
@@ -59,8 +59,8 @@
 
 ## 3) 전체 구성도(논리)
 [Browser]
-  ├─ Public: /, /projects, /projects/[slug]
-  └─ Owner: /app/* (Auth required)
+  ├─ Public: /, /projects, /u/[publicSlug], /u/[publicSlug]/projects, /u/[publicSlug]/projects/[slug]
+  └─ Authenticated: /app/* (Auth required)
         │
         ▼
 [Next.js App Router]
@@ -83,9 +83,12 @@
 ### 4.1 Public Routes
 - `/` : 대표 포트폴리오
 - `/projects` : 공개 프로젝트 목록
-- `/projects/[slug]` : 공개 프로젝트 상세
+- `/u/[publicSlug]` : 사용자 공개 포트폴리오 홈
+- `/u/[publicSlug]/projects` : 사용자 공개 프로젝트 목록
+- `/u/[publicSlug]/projects/[slug]` : 공개 프로젝트 상세(canonical)
+- `/projects/[slug]` : 레거시 상세 경로(canonical 경로로 리다이렉트)
 
-### 4.2 Private Routes (오너 전용)
+### 4.2 Private Routes (로그인 사용자)
 - `/app` : 대시보드
 - `/app/portfolio/*` : 프로젝트/경험/스킬 관리
 - `/app/resumes/*` : 이력서 버전 관리
@@ -95,7 +98,7 @@
 
 ### 4.3 보호 계층(2중)
 1) **Routing Layer**: middleware로 `/app/*` 차단
-2) **API Layer**: `/api/app/*`에서 세션/오너 체크 후 ownerId scope 강제
+2) **API Layer**: `/api/app/*`에서 세션 확인 후 ownerId scope 강제, 운영성 API만 오너 체크
 
 ---
 

@@ -1,6 +1,6 @@
 ﻿# Development Plan & Sprint Backlog — PoReSt
 버전: v1.0
-목표: “공개 포트폴리오”는 빠르고 안정적으로 배포하고, “오너 전용 대시보드(/app)”는 인증 기반으로 안전하게 운영한다.
+목표: “공개 포트폴리오”는 빠르고 안정적으로 배포하고, “로그인 사용자 워크스페이스(/app)”는 인증 기반으로 안전하게 운영한다.
 우선순위: Portfolio > Notes > Blog > Feedback
 
 ---
@@ -12,8 +12,8 @@
 - Production: main 브랜치 머지 시 배포
 
 ### 0.2 Public/Private 경계
-- Public: `/`, `/projects`, `/projects/[slug]` + `/api/public/*`
-- Private: `/app/*` + `/api/app/*` (오너 인증 필수)
+- Public: `/`, `/projects`, `/u/[publicSlug]`, `/u/[publicSlug]/projects`, `/u/[publicSlug]/projects/[slug]` + `/api/public/*`
+- Private: `/app/*` + `/api/app/*` (로그인 인증 필수, 운영성 API는 오너 권한 필수)
 - “두 겹 방어”: Route(미들웨어) + API(서버 권한 체크)
 
 ### 0.3 문서/코드 동기화 규칙
@@ -63,7 +63,7 @@
 ### M0 — Foundation (프로젝트 뼈대 고정)
 **산출물**
 - Next.js(App Router) 기본 구조 + (public)/(private) 라우팅 그룹
-- Auth(오너 only) + `/app/*` 보호 + `/api/app/*` 보호
+- Auth(로그인 사용자) + `/app/*` 보호 + `/api/app/*` 보호
 - Prisma + Postgres 연결, 마이그레이션/시드 체계
 - Preview/Production 배포 파이프라인 연결
 
@@ -76,7 +76,7 @@
 
 ### M1 — Portfolio Public + Admin (최우선)
 **범위**
-- Public: `/`, `/projects`, `/projects/[slug]`
+- Public: `/`, `/projects`, `/u/[publicSlug]/projects/[slug]` (legacy: `/projects/[slug]`)
 - Private: `/app/projects*`, `/app/experiences*`, `/app/portfolio/settings`
 
 **핵심 작업**
@@ -150,7 +150,7 @@
 
 ### Epic A — Foundation
 - A1. Repo 세팅(typescript, lint, format, env)
-- A2. Auth 오너 only(allowlist or isOwner) + 로그인/로그아웃
+- A2. Auth GitHub 로그인 + 운영성 API `isOwner` 권한 모델 + 로그인/로그아웃
 - A3. Middleware로 `/app/*` 보호 + API 공통 auth guard
 - A4. Prisma 연결 + migrate workflow(dev/preview/prod) + seed
 - A5. Vercel Preview/Prod 배포 + 환경변수 세팅
@@ -207,7 +207,7 @@
 - Unit: Lint 룰, edge status 전이(candidate→confirmed), DTO select
 - Integration: API 핸들러 + DB (테스트 DB)
 - E2E Smoke(최소 3개)
-  1) Public: `/` → `/projects` → `/projects/[slug]`
+  1) Public: `/` → `/projects` → `/u/[publicSlug]/projects/[slug]` (legacy 리다이렉트 포함)
   2) Private: login → create project → public 반영 확인
   3) Notes: create note → confirm edge → related list
 
@@ -221,7 +221,7 @@
 - R3. 서버리스 DB 커넥션 폭증
   - 대응: pooled connection 사용 + 쿼리/인덱스 최적화
 - R4. 노트 추천 품질(오탐/과연결)
-  - 대응: 자동=후보만, 확정은 오너만 + Reject(옵션)
+  - 대응: 자동=후보만, 확정은 사용자 수동 액션 + Reject(옵션)
 
 ---
 

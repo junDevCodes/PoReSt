@@ -1,7 +1,7 @@
 ﻿# PoReSt Architecture (M0 Foundation)
 
 ## 1) One-line summary
-Single Next.js(App Router) app that serves **Public Portfolio** with ISR and protects **Private Owner Dashboard** with Auth.js + middleware, backed by PostgreSQL + Prisma.
+Single Next.js(App Router) app that serves **Public Portfolio** with ISR and protects **Private Workspace** with Auth.js + middleware, backed by PostgreSQL + Prisma.
 
 ---
 
@@ -9,7 +9,7 @@ Single Next.js(App Router) app that serves **Public Portfolio** with ISR and pro
 ```mermaid
 flowchart LR
   Browser -->|Public| PublicRoutes["/(public) routes"]
-  Browser -->|Owner| PrivateRoutes["/(private) routes"]
+  Browser -->|Authenticated| PrivateRoutes["/(private) routes"]
 
   PublicRoutes --> AppRouter["Next.js App Router"]
   PrivateRoutes --> AppRouter
@@ -27,9 +27,9 @@ flowchart LR
 
 ## 3) Public / Private boundary
 - **Routing layer**: `(public)` and `(private)` Route Groups.
-- **Middleware**: Block `/app/*` + `/api/app/*` when unauthenticated or not owner.
+- **Middleware**: Block `/app/*` + `/api/app/*` when unauthenticated.
 - **API layer**: `/api/public/*` vs `/api/app/*` naming split.
-- **Owner-only policy**: `User.isOwner === true` must be enforced for private access.
+- **Access policy**: 로그인 사용자는 private 접근 가능하고, 운영성 API만 `User.isOwner === true`로 제한.
 
 ---
 
@@ -57,7 +57,7 @@ flowchart LR
 ---
 
 ## 6) Route groups
-- **Public**: `/`, `/projects`, `/projects/[slug]`, `/auth/*`
+- **Public**: `/`, `/projects`, `/u/[publicSlug]`, `/u/[publicSlug]/projects`, `/u/[publicSlug]/projects/[slug]`, `/projects/[slug]`(레거시 리다이렉트), `/auth/*`
 - **Private**: `/app`, `/app/*`
 - **API**
   - Public: `/api/public/*`
@@ -72,7 +72,6 @@ Required (M0):
 - `AUTH_TRUST_HOST`
 - `AUTH_GITHUB_ID`
 - `AUTH_GITHUB_SECRET`
-- `OWNER_EMAIL` (optional override for owner allowlist)
 - `NEXT_PUBLIC_SITE_URL`
 
 ---
@@ -81,7 +80,7 @@ Required (M0):
 - **Session strategy**: JWT (Edge middleware compatibility).
 - **Cookies**: HttpOnly + Secure (prod) + SameSite=Lax.
 - **Public pages**: ISR with `revalidate` (time-based).
-- **Private pages**: no cache; owner-only access.
+- **Private pages**: no cache; 로그인 사용자 접근 + ownerId 데이터 격리.
 
 ---
 
@@ -94,7 +93,7 @@ Required (M0):
 
 ## 10) Decision log (M0)
 - Split API namespaces: `/api/public/*` vs `/api/app/*`.
-- Protect private routes via middleware + server-side owner check.
+- Protect private routes via middleware + server-side auth/ownerId scope check.
 - JWT sessions for edge-safe auth validation.
 
 

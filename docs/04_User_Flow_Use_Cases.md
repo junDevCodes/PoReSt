@@ -1,6 +1,6 @@
-﻿# User Flow + Use Cases — Public Portfolio + Private Owner Dashboard
+﻿# User Flow + Use Cases — Public Portfolio + Private Workspace
 버전: v1.0  
-목적: “공개(포트폴리오)”와 “비공개(오너 전용)”을 분리한 상태에서, 핵심 작업(포트폴리오→노트→블로그→피드백)의 사용자 흐름과 예외/결정 포인트를 개발 가능한 수준으로 고정한다.
+목적: “공개(포트폴리오)”와 “비공개(로그인 사용자 워크스페이스)”를 분리한 상태에서, 핵심 작업(포트폴리오→노트→블로그→피드백)의 사용자 흐름과 예외/결정 포인트를 개발 가능한 수준으로 고정한다.
 
 ---
 
@@ -16,7 +16,7 @@
 - 목표: 포트폴리오로 오너의 역량/프로젝트/연락처를 빠르게 파악
 - 접근: Public만 접근 가능
 
-### P2. Owner (Private)
+### P2. Authenticated User (Private)
 - 목표: 포트폴리오/이력서/노트/블로그를 한 곳에서 작성·관리·재사용
 - 접근: `/app/*` 전 구간 인증 필요
 
@@ -25,7 +25,7 @@
 ## 2) 공통 상태(State) 정의
 ### 2.1 인증 상태 (Auth State)
 - `ANON`: 비로그인 (Public만 접근)
-- `AUTH`: 로그인됨 (Owner 기능 접근 가능)
+- `AUTH`: 로그인됨 (Private 기능 접근 가능)
 - `EXPIRED`: 세션 만료 (재로그인 필요)
 
 ### 2.2 콘텐츠 상태 (Content Lifecycle)
@@ -50,10 +50,10 @@
 1) `/` 홈 진입  
 2) Featured Projects 목록 스캔  
 3) [결정] 관심 프로젝트 있음?
-   - Yes → `/projects/[slug]` 이동
+   - Yes → `/u/[publicSlug]/projects/[slug]` 이동
    - No  → `/projects`로 전체 목록 보기
-4) `/projects` 목록에서 필터/태그(옵션) 사용 → 상세 이동
-5) `/projects/[slug]`에서 구조(Problem→Approach→Architecture→Results→Links) 확인
+4) `/projects` 목록에서 필터/태그(옵션) 사용 → canonical 상세 이동
+5) `/u/[publicSlug]/projects/[slug]`에서 구조(Problem→Approach→Architecture→Results→Links) 확인
 6) [결정] 연락/깃헙/라이브 링크 클릭?
 
 **예외/에러**
@@ -61,8 +61,8 @@
 
 ---
 
-## F2. Owner: 로그인 → 대시보드 진입
-**목표:** `/app/*` 접근을 오너만 허용  
+## F2. Authenticated User: 로그인 → 대시보드 진입
+**목표:** `/app/*` 접근을 로그인 사용자에게 허용하고 ownerId 스코프를 강제  
 **Entry:** `/login` 또는 `/app/*` 직접 접근  
 **Exit:** `/app` 진입 또는 로그인 실패
 
@@ -77,7 +77,7 @@
 
 ---
 
-## F3. Owner: 포트폴리오 원본 관리 → Public 반영
+## F3. Authenticated User: 포트폴리오 원본 관리 → Public 반영
 **목표:** Project/Experience 작성 + 대표 설정 → Public 페이지에 반영  
 **Entry:** `/app/portfolio`  
 **Exit:** Public 확인(`/`, `/projects`)
@@ -198,42 +198,42 @@
 - Alt Flow: slug 없음 → 404
 
 ### UC-02 Private: 프로젝트 생성/수정
-- Actor: Owner
+- Actor: Authenticated User
 - Trigger: New Project / Edit
 - Preconditions: AUTH
 - Main Flow: F3-1
 - Postconditions: Project 저장, Public 반영(조건 충족 시)
 
 ### UC-03 Private: 경험(Experience) 생성/수정
-- Actor: Owner
+- Actor: Authenticated User
 - Trigger: New Experience / Edit
 - Preconditions: AUTH
 - Main Flow: F3-2
 - Postconditions: Experience 저장, Resume 조합 가능
 
 ### UC-04 Private: 이력서 버전 생성/편집
-- Actor: Owner
+- Actor: Authenticated User
 - Trigger: New Resume / Edit
 - Preconditions: AUTH + Experience ≥ 1
 - Main Flow: F4
 - Postconditions: ResumeVersion 저장(스냅샷)
 
 ### UC-05 Private: 노트 작성 및 연관 엣지 확정
-- Actor: Owner
+- Actor: Authenticated User
 - Trigger: New Note / Confirm Edge
 - Preconditions: AUTH
 - Main Flow: F5
 - Postconditions: Note 저장, confirmed Edge 저장(선택)
 
 ### UC-06 Private: 블로그 글 작성 + Lint
-- Actor: Owner
+- Actor: Authenticated User
 - Trigger: New Post / Run Lint
 - Preconditions: AUTH
 - Main Flow: F6 1~5
 - Postconditions: lintResult 저장(옵션), 개선 히스토리 남김
 
 ### UC-07 Private: 블로그 Export 및 외부 URL 등록
-- Actor: Owner
+- Actor: Authenticated User
 - Trigger: Export / Register URL
 - Preconditions: AUTH + Post 존재
 - Main Flow: F6 6~7
@@ -254,4 +254,5 @@
 - 외부 블로그: MVP는 Export + URL 상태관리(Connector는 확장 설계)
 
 ---
+
 

@@ -1,7 +1,7 @@
-﻿# Data Model / ERD — PoReSt (Public Portfolio + Private Owner Dashboard)
+﻿# Data Model / ERD — PoReSt (Public Portfolio + Private Workspace)
 버전: v1.0  
 상태: Draft (개발 착수용)  
-핵심 원칙: Public(포트폴리오만) / Private(오너만) 완전 분리 + “원본(Experience/Note) → 조합/뷰(Resume/Graph)” 구조
+핵심 원칙: Public(포트폴리오만) / Private(로그인 사용자) 완전 분리 + “원본(Experience/Note) → 조합/뷰(Resume/Graph)” 구조
 
 ---
 
@@ -24,7 +24,7 @@
 - Later: `FeedbackRun`
 
 > v1 가정:
-> - 오너 1명(하지만 모든 Private 데이터는 ownerId를 들고 있어 “배포 후 확장”도 가능하게)
+> - 기본은 ownerId 기반 다중 사용자 구조(개인용 시작 후 확장 가능)
 > - 태그는 우선 `string[]`로 시작(단순/빠름) → 필요 시 Tag 테이블로 마이그레이션
 
 ---
@@ -48,7 +48,7 @@ User 1 ── N BlogPost ── 0..N BlogExportArtifact
 - id (PK)
 - email (unique)
 - name (nullable)
-- isOwner (bool, default false)  // 오너 전용 접근 제어
+- isOwner (bool, default false)  // 운영성 API 접근 제어 플래그
 - createdAt, updatedAt
 
 > 인증 구현이 NextAuth.js라면 NextAuth 기본 테이블(Accounts/Sessions/VerificationToken)은 프레임워크 구성에 따라 추가
@@ -87,7 +87,7 @@ User 1 ── N BlogPost ── 0..N BlogExportArtifact
 ## 3.4 Project (공개 가능)
 - id (PK)
 - ownerId (FK -> User)
-- slug (unique)  // /projects/[slug]
+- slug (unique)  // canonical: /u/[publicSlug]/projects/[slug], legacy: /projects/[slug]
 - title (required)
 - description (nullable, 0~200)
 - contentMd (required)  // 케이스 스터디 본문(Markdown)
@@ -386,3 +386,4 @@ User 1 ── N BlogPost ── 0..N BlogExportArtifact
 ### 관계 원칙
 - 모든 신규 모델은 `ownerId` 스코프를 기본 키/인덱스 전략에 반영
 - 공개 접근은 토큰/slug 기반으로 제한적으로 허용
+

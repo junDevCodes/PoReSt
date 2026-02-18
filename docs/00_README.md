@@ -43,7 +43,7 @@
 **핵심 정책**
 - Public은 **포트폴리오만** 보여준다.
 - Private은 **로그인/인증** 없으면 진입 불가.
-- 운영성 API(`/api/app/revalidate`, `/api/app/db-test`, `/api/app/test/owner`)는 오너 권한 필요.
+- 운영성 API(`/api/app/revalidate`, `/api/app/db-test`, `/api/app/test/owner`)는 운영 권한 필요.
 - 데이터 노출 방지: **Route 보호 + API 보호 2중 방어**.
 
 ---
@@ -98,7 +98,7 @@
 ### 데이터 재사용
 - **원본**: Experience, Note, BlogPost, Project
 - **조합**: Resume (ResumeItem), NoteEdge (candidate/confirmed)
-- "자동 확정 금지": 자동은 candidate까지만, confirmed는 오너 액션
+- "자동 확정 금지": 자동은 candidate까지만, confirmed는 사용자 수동 액션
 
 ### Public 노출 규칙
 - Project/PortfolioSettings: 공개 허용 데이터만 DTO로 제공
@@ -131,7 +131,7 @@
 
 ### 4. Blog Lint 규칙 관리
 - v2에서 Rule 테이블 도입 (동적 관리)
-- 오너가 규칙별 on/off, threshold 조정 가능
+- 운영 권한 사용자가 규칙별 on/off, threshold 조정 가능
 
 ### 5. 공유 링크 계획
 - v1.5: Resume 공유 (기본)
@@ -176,8 +176,8 @@
 - `/api/app/blog/posts` - BlogPost CRUD
 - `/api/app/blog/posts/{id}/lint` - Lint 실행
 - `/api/app/blog/posts/{id}/export` - Export 생성
-- `/api/app/revalidate` - 운영용 캐시 갱신(오너 전용)
-- `/api/app/db-test` - 운영용 DB 점검(오너 전용)
+- `/api/app/revalidate` - 운영용 캐시 갱신(운영 권한 필요)
+- `/api/app/db-test` - 운영용 DB 점검(운영 권한 필요)
 
 ---
 

@@ -1,4 +1,4 @@
-﻿# API Spec — PoReSt (Public Portfolio + Private Owner Dashboard)
+﻿# API Spec — PoReSt (Public Portfolio + Private Workspace)
 버전: v1.0
 스타일: REST (Next.js App Router Route Handlers)
 원칙: Public API(/api/public/*)와 Private API(/api/app/*)를 분리한다.
@@ -686,3 +686,4 @@ Response.data:
 - ResumeShare DTO: `{ id, token, expiresAt, isRevoked, createdAt, updatedAt }`
 - BlogExport DTO: `{ id, blogPostId, format, fileName, contentType, byteSize, snapshotHash, createdAt }`
 - Audit DTO는 P1에서 확정
+

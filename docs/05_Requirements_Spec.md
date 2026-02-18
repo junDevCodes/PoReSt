@@ -1,8 +1,8 @@
-﻿# Requirements Spec — PoReSt (Public Portfolio + Private Owner Dashboard)
+﻿# Requirements Spec — PoReSt (Public Portfolio + Private Workspace)
 버전: v1.0  
 상태: Draft (개발 착수용)  
 우선순위: Portfolio > Notes > Blog > Feedback  
-권한 정책: Public(포트폴리오만) / Private(오너만)
+권한 정책: Public(포트폴리오만) / Private(로그인 사용자)
 
 ---
 
@@ -16,7 +16,7 @@
 ## 1) 시스템 범위(Scope)
 ### 1.1 In Scope (MVP)
 - Public Portfolio: 홈/프로젝트 목록/프로젝트 상세(전형적인 포트폴리오 형태)
-- Owner Dashboard: 프로젝트/경험/이력서/지식노트/블로그 관리
+- Private Workspace: 프로젝트/경험/이력서/지식노트/블로그 관리
 - Notes Graph: 연관 후보 자동 추천 + 사용자 확정(confirmed edge) 기반 연결
 - Blog: 작성/검수(표현 룰) + Export + 외부 URL/상태 관리
 - (Later) Feedback: 문서별 피드백 실행/저장/비교
@@ -31,10 +31,10 @@
 ## 2) 사용자/권한 요구사항
 ### 2.1 Actor
 - Visitor: Public만 접근 가능
-- Owner: /app 전 영역 접근 가능(인증 필수)
+- Authenticated User: /app 전 영역 접근 가능(인증 필수)
 
 ### 2.2 접근 제어 규칙
-- Public URL: `/`, `/projects`, `/projects/[slug]`
+- Public URL: `/`, `/projects`, `/u/[publicSlug]`, `/u/[publicSlug]/projects`, `/u/[publicSlug]/projects/[slug]` (legacy: `/projects/[slug]`)
 - Private URL: `/app/*` 전부 인증 필수
 - 보안 원칙: 라우트 보호 + API 보호(2중 방어)
   - 라우트: middleware에서 차단
@@ -49,22 +49,22 @@
 ### 3.1 Public Portfolio (P0)
 - FR-PUB-01: `/` 홈에서 대표(Featured) 프로젝트가 노출되어야 한다.
 - FR-PUB-02: `/projects`에서 프로젝트 목록을 제공해야 한다.
-- FR-PUB-03: `/projects/[slug]`에서 프로젝트 상세(케이스 스터디)를 제공해야 한다.
+- FR-PUB-03: `/u/[publicSlug]/projects/[slug]`에서 프로젝트 상세(케이스 스터디)를 제공해야 한다.
 - FR-PUB-04: 프로젝트 상세는 최소 템플릿을 만족해야 한다.
   - Problem / Approach / Architecture / Results / Links
 - FR-PUB-05: SEO 메타데이터(OG, canonical, sitemap, robots)를 제공해야 한다.
 - FR-PUB-06: Public은 기본 index 허용, Private은 noindex 처리해야 한다.
 
-### 3.2 Auth / Owner Dashboard (P0)
+### 3.2 Auth / Private Workspace (P0)
 - FR-AUTH-01: 비로그인 상태에서 `/app/*` 접근 시 `/login`으로 리다이렉트해야 한다.
 - FR-AUTH-02: 로그인 성공 후 `next` 파라미터가 있으면 해당 경로로 복귀해야 한다.
-- FR-AUTH-03: 오너 only 정책을 지원해야 한다(화이트리스트 이메일 또는 단일 관리자 계정).
+- FR-AUTH-03: 로그인 사용자 기반 접근 정책을 지원해야 하며, 운영성 API는 `isOwner` 플래그로 제한해야 한다.
 - FR-AUTH-04: 세션 만료 시 보호 구간 접근 시 자동 재로그인 플로우가 동작해야 한다.
 
 ### 3.3 Portfolio Admin — Project/Experience (P0)
 - FR-PORT-01: Project CRUD(생성/조회/수정/삭제)를 제공해야 한다.
 - FR-PORT-02: Experience CRUD를 제공해야 한다.
-- FR-PORT-03: Project는 slug(고유)로 Public 상세를 제공할 수 있어야 한다.
+- FR-PORT-03: Project는 slug(고유)로 canonical Public 상세(`/u/[publicSlug]/projects/[slug]`)를 제공할 수 있어야 한다.
 - FR-PORT-04: Featured 설정(대표 지정)을 제공해야 한다.
 - FR-PORT-05: Public 노출 필드는 “노출 허용 필드만” 반환해야 한다(DTO/Select 제한).
 
@@ -148,9 +148,9 @@
 ---
 
 ## 6) 수용 기준(Acceptance Criteria) — MVP 완료 조건
-- AC-01: Public 3페이지(`/`, `/projects`, `/projects/[slug]`)가 로그인 없이 정상 동작한다.
+- AC-01: Public 핵심 페이지(`/`, `/projects`, `/u/[publicSlug]/projects/[slug]`)가 로그인 없이 정상 동작하고, `/projects/[slug]`는 canonical로 리다이렉트된다.
 - AC-02: `/app/*`는 비로그인 접근이 차단된다(리다이렉트/401).
-- AC-03: 오너가 Project/Experience CRUD 후 Public에 즉시 반영된다.
+- AC-03: 로그인 사용자가 Project/Experience CRUD 후 Public에 즉시 반영된다.
 - AC-04: Notes에서 후보 추천이 제공되고, confirmed edge가 탐색(연관 리스트)로 이어진다.
 - AC-05: Blog lint가 최소 10개 룰로 작동하며, Export 생성과 외부 URL 등록이 가능하다.
 
@@ -179,3 +179,4 @@
 - 섹션 단위 배포 게이트(`lint/build/jest/vercel-build`) 필수 통과
 - ownerId 스코프 기반 데이터 격리 유지
 - 파괴적 변경보다 확장 엔드포인트/필드 우선
+

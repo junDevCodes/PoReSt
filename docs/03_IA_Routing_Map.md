@@ -16,7 +16,7 @@
 - Login `/login`
 
 > 정책: Public 포트폴리오 영역에는 블로그/지식노트 콘텐츠를 “본문 섹션으로 포함하지 않음”.  
-> 필요 시 링크로만 분기(예: “Owner Dashboard” 또는 숨김 처리).
+> 필요 시 링크로만 분기(예: “Private Workspace” 또는 숨김 처리).
 
 ### 1.2 Private (로그인 사용자: 인증 필수)
 - Dashboard `/app`

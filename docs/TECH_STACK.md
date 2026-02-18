@@ -49,7 +49,7 @@
 - **next-auth**: `^4.24.13` (v4 stable)
 - **@auth/prisma-adapter**: `^2.11.1` (v4용)
 - **이유**: 검증된 안정 버전, Next.js 13+ App Router 지원
-- **주요 기능**: Prisma Adapter, Session 관리, 오너 전용 인증
+- **주요 기능**: Prisma Adapter, Session 관리, 로그인 사용자 인증 + 운영 권한(`isOwner`) 제어
 - **참고**: v5는 beta 상태로 production 사용 보류
 
 ---

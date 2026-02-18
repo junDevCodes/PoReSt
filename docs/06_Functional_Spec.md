@@ -2,7 +2,7 @@
 버전: v1.0  
 상태: Draft (개발 착수용)  
 우선순위: Portfolio > Notes > Blog > Feedback  
-권한 정책: Public(포트폴리오만) / Private(오너만)
+권한 정책: Public(포트폴리오만) / Private(로그인 사용자)
 
 ---
 
@@ -52,7 +52,7 @@
 
 ### 동작
 - Featured Projects는 `isFeatured=true` AND `visibility=PUBLIC` 조건을 기본으로 노출
-- Project 카드 클릭 → `/projects/[slug]`
+- Project 카드 클릭 → `/u/[publicSlug]/projects/[slug]` (legacy `/projects/[slug]` 리다이렉트 지원)
 
 ### 검증/예외
 - Featured가 0개면: 최신 Public 프로젝트 Top-N으로 fallback
@@ -74,7 +74,7 @@
 
 ---
 
-## 2.3 Project Detail `/projects/[slug]`
+## 2.3 Project Detail `/u/[publicSlug]/projects/[slug]`
 **목표:** 전형적인 케이스 스터디 포맷으로 신뢰도 있는 상세 제공
 
 ### 섹션 템플릿(최소)
@@ -90,10 +90,11 @@
 
 ### 예외
 - slug 미존재: 404 페이지 + `/projects` 이동 버튼
+- 레거시 경로(`/projects/[slug]`) 접근: canonical 경로로 리다이렉트
 
 ---
 
-## 3) Private 기능명세 (오너 대시보드)
+## 3) Private 기능명세 (로그인 사용자 워크스페이스)
 
 ## 3.1 Dashboard `/app`
 **목표:** 관리 진입점(최근 작업/요약)
@@ -243,7 +244,7 @@
 - 결과 모델:
   - severity: info/warn/error
   - ruleId, message, location(라인/문단), suggestion
-- 오너 액션:
+- 사용자 수동 액션:
   - Fix Later(기본): 수정 후 재검수
   - Ignore(옵션): 무시 사유 기록(required)
 
@@ -284,7 +285,7 @@
 ---
 
 # 9) MVP 완료 기준(기능명세 관점)
-- Public 3페이지가 완성도 있게 노출(홈/목록/상세)
+- Public 핵심 페이지가 완성도 있게 노출(홈/목록/canonical 상세)
 - /app 전 구간 인증 보호(라우트 + API)
 - Project/Experience CRUD → Public 반영
 - Notes: 후보 추천 + confirmed edge + 연관 탐색
