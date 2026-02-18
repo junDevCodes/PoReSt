@@ -1,6 +1,6 @@
-﻿# IA & Routing Map — Public Portfolio + Private Owner Dashboard
+# IA & Routing Map — Public Portfolio + Private Workspace
 버전: v1.0  
-목적: 공개(포트폴리오)와 비공개(오너 대시보드)를 URL/레이아웃/권한 관점에서 “완전히 분리”하여 개발/운영 안정성을 확보한다.
+목적: 공개(포트폴리오)와 비공개(사용자 워크스페이스)를 URL/레이아웃/권한 관점에서 “완전히 분리”하여 개발/운영 안정성을 확보한다.
 
 ---
 
@@ -8,14 +8,17 @@
 
 ### 1.1 Public (누구나)
 - Home `/`
-- Projects `/projects`
-- Project Detail `/projects/[slug]`
-- (옵션) Login `/login`  ← 공개 헤더/푸터에 작게만 노출
+- User Portfolio `/u/[publicSlug]`
+- User Projects `/u/[publicSlug]/projects`
+- User Project Detail `/u/[publicSlug]/projects/[slug]`
+- Global Projects `/projects`
+- Legacy Project Detail `/projects/[slug]` (정규 경로로 리다이렉트)
+- Login `/login`
 
 > 정책: Public 포트폴리오 영역에는 블로그/지식노트 콘텐츠를 “본문 섹션으로 포함하지 않음”.  
 > 필요 시 링크로만 분기(예: “Owner Dashboard” 또는 숨김 처리).
 
-### 1.2 Private (오너 전용: 로그인 필수)
+### 1.2 Private (로그인 사용자: 인증 필수)
 - Dashboard `/app`
 - Projects 관리: `/app/projects`
 - Experiences 관리: `/app/experiences`
@@ -44,9 +47,12 @@
 | URL | 접근 | 목적 | 데이터 | SEO/캐시 |
 |---|---|---|---|---|
 | `/` | Public | 대표 포트폴리오(전형적 포맷) | Featured Project/Experience | SSG/ISR, OG |
-| `/projects` | Public | 프로젝트 목록 | Project list | SSG/ISR |
-| `/projects/[slug]` | Public | 프로젝트 케이스 스터디 | Project detail | SSG/ISR |
-| `/login` | Public | 오너 로그인 | - | noindex 권장 |
+| `/u/[publicSlug]` | Public | 사용자 포트폴리오 홈 | Portfolio profile + featured items | ISR |
+| `/u/[publicSlug]/projects` | Public | 사용자 프로젝트 목록 | User project list | ISR |
+| `/u/[publicSlug]/projects/[slug]` | Public | 사용자 프로젝트 상세 | User project detail | ISR |
+| `/projects` | Public | 전체 공개 프로젝트 탐색 | Aggregated project list | ISR |
+| `/projects/[slug]` | Public | 레거시 상세 URL | canonical(`/u/...`)로 redirect | ISR |
+| `/login` | Public | GitHub 로그인 | - | noindex 권장 |
 
 **Public SEO 필수**
 - `sitemap.xml`, `robots.txt`
@@ -56,14 +62,14 @@
 ### 2.2 Private Routes
 | URL | 접근 | 목적 | 데이터 | 보안 |
 |---|---|---|---|---|
-| `/app` | Owner only | 대시보드 요약 | counts/recent | middleware 보호 |
-| `/app/projects*`, `/app/experiences*` | Owner only | 포트폴리오 원본 관리 | Project/Experience CRUD | middleware + API 권한 |
-| `/app/resumes/*` | Owner only | 회사/직무별 이력서 버전 | ResumeVersion CRUD | middleware + API 권한 |
-| `/app/notes/*` | Owner only | 지식노트 + 그래프 | Note/Edge CRUD | middleware + API 권한 |
-| `/app/domain-links` | Owner only | 교차 도메인 링크 관리 | DomainLink CRUD | middleware + API 권한 |
-| `/app/blog/*` | Owner only | 블로그 작성/검수/Export | BlogPost CRUD + lint | middleware + API 권한 |
-| `/app/audit` | Owner only | 감사 로그 조회 | AuditLog | middleware + API 권한 |
-| `/app/feedback/*` | Owner only | (후순위) 피드백 히스토리 | FeedbackRun | middleware + API 권한 |
+| `/app` | Authenticated | 대시보드 요약 | counts/recent | middleware 보호 |
+| `/app/projects*`, `/app/experiences*` | Authenticated | 포트폴리오 원본 관리 | Project/Experience CRUD | middleware + API owner scope |
+| `/app/resumes/*` | Authenticated | 회사/직무별 이력서 버전 | ResumeVersion CRUD | middleware + API owner scope |
+| `/app/notes/*` | Authenticated | 지식노트 + 그래프 | Note/Edge CRUD | middleware + API owner scope |
+| `/app/domain-links` | Authenticated | 교차 도메인 링크 관리 | DomainLink CRUD | middleware + API owner scope |
+| `/app/blog/*` | Authenticated | 블로그 작성/검수/Export | BlogPost CRUD + lint | middleware + API owner scope |
+| `/app/audit` | Authenticated | 감사 로그 조회 | AuditLog | middleware + API owner scope |
+| `/app/feedback/*` | Authenticated | (후순위) 피드백 히스토리 | FeedbackRun | middleware + API owner scope |
 
 ---
 
@@ -139,10 +145,15 @@ app/
 ### 5.1 Route 보호 (Middleware)
 - matcher로 `/app/:path*` 전부 보호
 - 비인증이면 `/login`으로 리다이렉트
+- 접근 조건은 `token.sub` 존재 여부(오너 여부 강제 없음)
 
 ### 5.2 API 보호 (Server-side Authorization)
 - Public에서 호출 가능한 API와 Private API 분리
-- Private API는 반드시 세션/토큰 체크 후 401/403 반환
+- Private API는 기본적으로 `requireAuth`로 보호하고 `ownerId` 스코프를 강제
+- 운영성 API만 `requireOwner` 유지
+  - `/api/app/revalidate`
+  - `/api/app/db-test`
+  - `/api/app/test/owner`
 - 데이터 노출 실수 방지: Public API는 “노출 허용 필드만” DTO로 반환
 
 ---

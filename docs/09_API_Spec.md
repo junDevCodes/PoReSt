@@ -45,11 +45,15 @@ app/
 - `/api/public/*`는 인증 없이 접근 가능.
 - 반환 데이터는 “공개 허용 필드만” 반환(DTO/Select 제한).
 
-### 1.2 Private (Owner only)
+### 1.2 Private (Authenticated)
 - `/api/app/*`는 항상 인증 필요.
 - 인증 실패: `401 Unauthorized`
-- 권한 없음(오너 아님): `403 Forbidden`
+- 권한 없음: `403 Forbidden` (운영성 API의 owner 체크에서 주로 발생)
 - 데이터 스코프: `ownerId = me.id` 강제
+- 운영성 API만 `requireOwner` 유지
+  - `/api/app/revalidate`
+  - `/api/app/db-test`
+  - `/api/app/test/owner`
 
 ---
 
@@ -128,6 +132,15 @@ Notes:
 - featuredProjects는 visibility=PUBLIC + isFeatured=true 반영
 - featuredExperiences는 visibility=PUBLIC + isFeatured=true (요약 중심)
 
+### 4.1.1 사용자 슬러그 기준 포트폴리오
+GET `/api/public/portfolio/{publicSlug}`
+
+Path:
+- `publicSlug`(required)
+
+Response.data:
+- `4.1`과 동일
+
 ---
 
 ## 4.2 공개 프로젝트 목록
@@ -157,6 +170,19 @@ Response.data:
   "techStack":[""], "repoUrl":"", "demoUrl":"", "highlights":{...},
   "updatedAt":""
 }
+
+### 4.3.1 사용자 공개 프로젝트 목록
+GET `/api/public/users/{publicSlug}/projects`
+
+Path:
+- `publicSlug`(required)
+
+### 4.3.2 사용자 공개 프로젝트 상세
+GET `/api/public/users/{publicSlug}/projects/{slug}`
+
+Path:
+- `publicSlug`(required)
+- `slug`(required)
 
 ---
 
@@ -195,7 +221,11 @@ GET `/api/app/me`
 
 Response.data:
 {
-  "id":"", "email":"", "isOwner": true
+  "id":"", "email":"", "isOwner": true,
+  "workspace": {
+    "publicSlug": "...",
+    "isPublic": true
+  }
 }
 
 ---
@@ -226,7 +256,8 @@ POST body:
 Rules:
 - slug unique (409 on conflict)
 - isFeatured=true면 visibility=PUBLIC이어야 함
-- PUBLIC 포트폴리오 라우팅(`/projects/[slug]`)을 쓰려면 Project.slug는 필수 컬럼(스키마에 반영되어야 함)
+- canonical 공개 라우팅은 `/u/[publicSlug]/projects/[slug]`를 사용
+- `/projects/[slug]`는 레거시 경로로 canonical 경로로 리다이렉트
 
 ---
 

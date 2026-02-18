@@ -1,7 +1,7 @@
 ﻿# PoReSt — 최종 통합 요약 (Master Summary)
 
 버전: v1.2 (2026-02-06 업데이트)  
-목표: "공개 포트폴리오(메인)" + "오너 전용 통합 관리(/app)"로 포트폴리오/이력서/지식노트/블로그를 한 플랫폼에서 운영한다.  
+목표: "공개 포트폴리오(메인)" + "사용자 워크스페이스(/app)"로 포트폴리오/이력서/지식노트/블로그를 한 플랫폼에서 운영한다.  
 우선순위: Portfolio > Notes > Blog > Feedback
 
 ---
@@ -31,15 +31,19 @@
 
 ### Public (누구나 접근)
 - `/` : 대표 포트폴리오
-- `/projects` : 공개 프로젝트 목록
-- `/projects/[slug]` : 케이스 스터디 상세
+- `/u/[publicSlug]` : 사용자 공개 포트폴리오 홈
+- `/u/[publicSlug]/projects` : 사용자 공개 프로젝트 목록
+- `/u/[publicSlug]/projects/[slug]` : 사용자 공개 프로젝트 상세
+- `/projects` : 전체 공개 프로젝트 탐색
+- `/projects/[slug]` : 레거시 상세 경로(정규 경로로 리다이렉트)
 
-### Private (오너만 접근)
+### Private (로그인 사용자 접근)
 - `/app/*` : 포트폴리오 관리 / 이력서 / 노트 / 블로그 / (후순위) 피드백
 
 **핵심 정책**
 - Public은 **포트폴리오만** 보여준다.
 - Private은 **로그인/인증** 없으면 진입 불가.
+- 운영성 API(`/api/app/revalidate`, `/api/app/db-test`, `/api/app/test/owner`)는 오너 권한 필요.
 - 데이터 노출 방지: **Route 보호 + API 보호 2중 방어**.
 
 ---
@@ -156,8 +160,11 @@
 
 ### Public API
 - `/api/public/portfolio` - 포트폴리오 홈 데이터
+- `/api/public/portfolio/{publicSlug}` - 사용자 공개 포트폴리오 홈 데이터
 - `/api/public/projects` - 프로젝트 목록
 - `/api/public/projects/{slug}` - 프로젝트 상세
+- `/api/public/users/{publicSlug}/projects` - 사용자 공개 프로젝트 목록
+- `/api/public/users/{publicSlug}/projects/{slug}` - 사용자 공개 프로젝트 상세
 
 ### Private API
 - `/api/app/me` - 내 정보
@@ -169,6 +176,8 @@
 - `/api/app/blog/posts` - BlogPost CRUD
 - `/api/app/blog/posts/{id}/lint` - Lint 실행
 - `/api/app/blog/posts/{id}/export` - Export 생성
+- `/api/app/revalidate` - 운영용 캐시 갱신(오너 전용)
+- `/api/app/db-test` - 운영용 DB 점검(오너 전용)
 
 ---
 
