@@ -21,7 +21,7 @@ export async function GET(request: Request, context: BlogPostIdRouteContext) {
       {
         error: {
           code: "BAD_REQUEST",
-          message: "吏?먰븯吏 ?딅뒗 export ?뺤떇?낅땲?? html, md, zip 以??섎굹瑜??ъ슜?댁＜?몄슂.",
+          message: "지원하지 않는 export 형식입니다. html, md, zip 중 하나를 사용해주세요.",
         },
       },
       { status: 400 },

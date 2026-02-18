@@ -52,49 +52,49 @@ type NormalizedProjectUpdateInput = {
 };
 
 const createProjectSchema = z.object({
-  slug: z.string().trim().min(1, "?щ윭洹몃? ?낅젰?댁＜?몄슂.").max(MAX_PROJECT_SLUG_LENGTH, "?щ윭洹몃뒗 100???댄븯濡??낅젰?댁＜?몄슂.").optional(),
-  title: z.string().trim().min(MIN_TITLE_LENGTH, "?쒕ぉ? 2???댁긽?댁뼱???⑸땲??").max(MAX_TITLE_LENGTH, "?쒕ぉ? 80???댄븯濡??낅젰?댁＜?몄슂."),
-  subtitle: z.string().trim().max(MAX_SUBTITLE_LENGTH, "遺?쒕ぉ? 120???댄븯濡??낅젰?댁＜?몄슂.").optional().nullable(),
+  slug: z.string().trim().min(1, "슬러그를 입력해주세요.").max(MAX_PROJECT_SLUG_LENGTH, "슬러그는 100자 이하로 입력해주세요.").optional(),
+  title: z.string().trim().min(MIN_TITLE_LENGTH, "제목은 2자 이상이어야 합니다.").max(MAX_TITLE_LENGTH, "제목은 80자 이하로 입력해주세요."),
+  subtitle: z.string().trim().max(MAX_SUBTITLE_LENGTH, "부제목은 120자 이하로 입력해주세요.").optional().nullable(),
   description: z
     .string()
     .trim()
-    .max(MAX_DESCRIPTION_LENGTH, "?ㅻ챸? 200???댄븯濡??낅젰?댁＜?몄슂.")
+    .max(MAX_DESCRIPTION_LENGTH, "설명은 200자 이하로 입력해주세요.")
     .optional()
     .nullable(),
-  contentMd: z.string().trim().min(1, "蹂몃Ц? 鍮꾩뼱 ?덉쓣 ???놁뒿?덈떎."),
-  techStack: z.array(z.string().trim().min(1, "湲곗닠 ?ㅽ깮 ??ぉ? 鍮꾩뼱 ?덉쓣 ???놁뒿?덈떎.")).max(MAX_TECH_STACK_SIZE, "湲곗닠 ?ㅽ깮? 理쒕? 50媛쒓퉴吏 ?낅젰?????덉뒿?덈떎.").optional().default([]),
-  repoUrl: z.string().url("repoUrl? ?щ컮瑜?URL?댁뼱???⑸땲??").optional().nullable(),
-  demoUrl: z.string().url("demoUrl? ?щ컮瑜?URL?댁뼱???⑸땲??").optional().nullable(),
-  thumbnailUrl: z.string().url("thumbnailUrl? ?щ컮瑜?URL?댁뼱???⑸땲??").optional().nullable(),
+  contentMd: z.string().trim().min(1, "본문은 비어 있을 수 없습니다."),
+  techStack: z.array(z.string().trim().min(1, "기술 스택 항목은 비어 있을 수 없습니다.")).max(MAX_TECH_STACK_SIZE, "기술 스택은 최대 50개까지 입력할 수 있습니다.").optional().default([]),
+  repoUrl: z.string().url("repoUrl은 올바른 URL이어야 합니다.").optional().nullable(),
+  demoUrl: z.string().url("demoUrl은 올바른 URL이어야 합니다.").optional().nullable(),
+  thumbnailUrl: z.string().url("thumbnailUrl은 올바른 URL이어야 합니다.").optional().nullable(),
   visibility: z.nativeEnum(Visibility).optional().default(Visibility.PUBLIC),
   isFeatured: z.boolean().optional().default(false),
-  order: z.number().int("order???뺤닔?ъ빞 ?⑸땲??").min(MIN_ORDER, "order??0 ?댁긽?댁뼱???⑸땲??").max(MAX_ORDER, "order??9999 ?댄븯?ъ빞 ?⑸땲??").optional().default(0),
+  order: z.number().int("order는 정수여야 합니다.").min(MIN_ORDER, "order는 0 이상이어야 합니다.").max(MAX_ORDER, "order는 9999 이하여야 합니다.").optional().default(0),
   highlightsJson: z.unknown().optional().nullable(),
 });
 
 const updateProjectSchema = z
   .object({
-    slug: z.string().trim().min(1, "?щ윭洹몃? ?낅젰?댁＜?몄슂.").max(MAX_PROJECT_SLUG_LENGTH, "?щ윭洹몃뒗 100???댄븯濡??낅젰?댁＜?몄슂.").optional(),
-    title: z.string().trim().min(MIN_TITLE_LENGTH, "?쒕ぉ? 2???댁긽?댁뼱???⑸땲??").max(MAX_TITLE_LENGTH, "?쒕ぉ? 80???댄븯濡??낅젰?댁＜?몄슂.").optional(),
-    subtitle: z.string().trim().max(MAX_SUBTITLE_LENGTH, "遺?쒕ぉ? 120???댄븯濡??낅젰?댁＜?몄슂.").optional().nullable(),
+    slug: z.string().trim().min(1, "슬러그를 입력해주세요.").max(MAX_PROJECT_SLUG_LENGTH, "슬러그는 100자 이하로 입력해주세요.").optional(),
+    title: z.string().trim().min(MIN_TITLE_LENGTH, "제목은 2자 이상이어야 합니다.").max(MAX_TITLE_LENGTH, "제목은 80자 이하로 입력해주세요.").optional(),
+    subtitle: z.string().trim().max(MAX_SUBTITLE_LENGTH, "부제목은 120자 이하로 입력해주세요.").optional().nullable(),
     description: z
       .string()
       .trim()
-      .max(MAX_DESCRIPTION_LENGTH, "?ㅻ챸? 200???댄븯濡??낅젰?댁＜?몄슂.")
+      .max(MAX_DESCRIPTION_LENGTH, "설명은 200자 이하로 입력해주세요.")
       .optional()
       .nullable(),
-    contentMd: z.string().trim().min(1, "蹂몃Ц? 鍮꾩뼱 ?덉쓣 ???놁뒿?덈떎.").optional(),
-    techStack: z.array(z.string().trim().min(1, "湲곗닠 ?ㅽ깮 ??ぉ? 鍮꾩뼱 ?덉쓣 ???놁뒿?덈떎.")).max(MAX_TECH_STACK_SIZE, "湲곗닠 ?ㅽ깮? 理쒕? 50媛쒓퉴吏 ?낅젰?????덉뒿?덈떎.").optional(),
-    repoUrl: z.string().url("repoUrl? ?щ컮瑜?URL?댁뼱???⑸땲??").optional().nullable(),
-    demoUrl: z.string().url("demoUrl? ?щ컮瑜?URL?댁뼱???⑸땲??").optional().nullable(),
-    thumbnailUrl: z.string().url("thumbnailUrl? ?щ컮瑜?URL?댁뼱???⑸땲??").optional().nullable(),
+    contentMd: z.string().trim().min(1, "본문은 비어 있을 수 없습니다.").optional(),
+    techStack: z.array(z.string().trim().min(1, "기술 스택 항목은 비어 있을 수 없습니다.")).max(MAX_TECH_STACK_SIZE, "기술 스택은 최대 50개까지 입력할 수 있습니다.").optional(),
+    repoUrl: z.string().url("repoUrl은 올바른 URL이어야 합니다.").optional().nullable(),
+    demoUrl: z.string().url("demoUrl은 올바른 URL이어야 합니다.").optional().nullable(),
+    thumbnailUrl: z.string().url("thumbnailUrl은 올바른 URL이어야 합니다.").optional().nullable(),
     visibility: z.nativeEnum(Visibility).optional(),
     isFeatured: z.boolean().optional(),
-    order: z.number().int("order???뺤닔?ъ빞 ?⑸땲??").min(MIN_ORDER, "order??0 ?댁긽?댁뼱???⑸땲??").max(MAX_ORDER, "order??9999 ?댄븯?ъ빞 ?⑸땲??").optional(),
+    order: z.number().int("order는 정수여야 합니다.").min(MIN_ORDER, "order는 0 이상이어야 합니다.").max(MAX_ORDER, "order는 9999 이하여야 합니다.").optional(),
     highlightsJson: z.unknown().optional().nullable(),
   })
   .refine((input) => Object.keys(input).length > EMPTY_LENGTH, {
-    message: "?섏젙???꾨뱶瑜?理쒖냼 1媛??댁긽 ?낅젰?댁＜?몄슂.",
+    message: "수정할 필드를 최소 1개 이상 입력해주세요.",
     path: ["root"],
   });
 
@@ -390,8 +390,8 @@ function validateFeaturedRule(visibility: Visibility, isFeatured: boolean) {
 function normalizeCreateInput(input: z.infer<typeof createProjectSchema>) {
   const normalizedSlug = buildProjectSlug(input.slug ?? input.title);
   if (!PROJECT_SLUG_PATTERN.test(normalizedSlug)) {
-    throw new ProjectServiceError("VALIDATION_ERROR", 422, "?щ윭洹??뺤떇???щ컮瑜댁? ?딆뒿?덈떎.", {
-      slug: "?щ윭洹몃뒗 ?곷Ц ?뚮Ц?? ?レ옄, ?섏씠?덈쭔 ?ъ슜?????덉뒿?덈떎.",
+    throw new ProjectServiceError("VALIDATION_ERROR", 422, "슬러그 형식이 올바르지 않습니다.", {
+      slug: "슬러그는 영문 소문자, 숫자, 하이픈만 사용할 수 있습니다.",
     });
   }
 
@@ -420,8 +420,8 @@ function normalizeUpdateInput(input: z.infer<typeof updateProjectSchema>): Norma
   if (input.slug !== undefined) {
     const slug = buildProjectSlug(input.slug);
     if (!PROJECT_SLUG_PATTERN.test(slug)) {
-      throw new ProjectServiceError("VALIDATION_ERROR", 422, "?щ윭洹??뺤떇???щ컮瑜댁? ?딆뒿?덈떎.", {
-        slug: "?щ윭洹몃뒗 ?곷Ц ?뚮Ц?? ?レ옄, ?섏씠?덈쭔 ?ъ슜?????덉뒿?덈떎.",
+      throw new ProjectServiceError("VALIDATION_ERROR", 422, "슬러그 형식이 올바르지 않습니다.", {
+        slug: "슬러그는 영문 소문자, 숫자, 하이픈만 사용할 수 있습니다.",
       });
     }
     normalized.slug = slug;
@@ -490,7 +490,7 @@ export function parseProjectCreateInput(input: unknown): ProjectCreateInput {
     }
 
     if (error instanceof z.ZodError) {
-      throw new ProjectServiceError("VALIDATION_ERROR", 422, "?꾨줈?앺듃 ?낅젰媛믪씠 ?щ컮瑜댁? ?딆뒿?덈떎.", extractZodFieldErrors(error));
+      throw new ProjectServiceError("VALIDATION_ERROR", 422, "프로젝트 입력값이 올바르지 않습니다.", extractZodFieldErrors(error));
     }
 
     throw error;
@@ -507,7 +507,7 @@ export function parseProjectUpdateInput(input: unknown): NormalizedProjectUpdate
     }
 
     if (error instanceof z.ZodError) {
-      throw new ProjectServiceError("VALIDATION_ERROR", 422, "?꾨줈?앺듃 ?섏젙 ?낅젰媛믪씠 ?щ컮瑜댁? ?딆뒿?덈떎.", extractZodFieldErrors(error));
+      throw new ProjectServiceError("VALIDATION_ERROR", 422, "프로젝트 수정 입력값이 올바르지 않습니다.", extractZodFieldErrors(error));
     }
 
     throw error;
@@ -516,8 +516,8 @@ export function parseProjectUpdateInput(input: unknown): NormalizedProjectUpdate
 
 function handleKnownPrismaError(error: unknown): never {
   if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-    throw new ProjectServiceError("CONFLICT", 409, "?대? ?ъ슜 以묒씤 ?щ윭洹몄엯?덈떎.", {
-      slug: "slug 媛믪씠 以묐났?섏뿀?듬땲??",
+    throw new ProjectServiceError("CONFLICT", 409, "이미 사용 중인 슬러그입니다.", {
+      slug: "slug 값이 중복되었습니다.",
     });
   }
 
@@ -622,11 +622,11 @@ export function createProjectsService(deps: { prisma: ProjectServicePrismaClient
       });
 
       if (!project) {
-        throw new ProjectServiceError("NOT_FOUND", 404, "?꾨줈?앺듃瑜?李얠쓣 ???놁뒿?덈떎.");
+        throw new ProjectServiceError("NOT_FOUND", 404, "프로젝트를 찾을 수 없습니다.");
       }
 
       if (project.ownerId !== ownerId) {
-        throw new ProjectServiceError("FORBIDDEN", 403, "?ㅻⅨ ?ъ슜?먯쓽 ?꾨줈?앺듃?먮뒗 ?묎렐?????놁뒿?덈떎.");
+        throw new ProjectServiceError("FORBIDDEN", 403, "다른 사용자의 프로젝트에는 접근할 수 없습니다.");
       }
 
       const { ownerId: ownerIdFromRecord, ...dto } = project;
@@ -676,11 +676,11 @@ export function createProjectsService(deps: { prisma: ProjectServicePrismaClient
       });
 
       if (!existing) {
-        throw new ProjectServiceError("NOT_FOUND", 404, "?꾨줈?앺듃瑜?李얠쓣 ???놁뒿?덈떎.");
+        throw new ProjectServiceError("NOT_FOUND", 404, "프로젝트를 찾을 수 없습니다.");
       }
 
       if (existing.ownerId !== ownerId) {
-        throw new ProjectServiceError("FORBIDDEN", 403, "?ㅻⅨ ?ъ슜?먯쓽 ?꾨줈?앺듃???섏젙?????놁뒿?덈떎.");
+        throw new ProjectServiceError("FORBIDDEN", 403, "다른 사용자의 프로젝트는 수정할 수 없습니다.");
       }
 
       const parsed = parseProjectUpdateInput(input);
@@ -709,11 +709,11 @@ export function createProjectsService(deps: { prisma: ProjectServicePrismaClient
       });
 
       if (!existing) {
-        throw new ProjectServiceError("NOT_FOUND", 404, "?꾨줈?앺듃瑜?李얠쓣 ???놁뒿?덈떎.");
+        throw new ProjectServiceError("NOT_FOUND", 404, "프로젝트를 찾을 수 없습니다.");
       }
 
       if (existing.ownerId !== ownerId) {
-        throw new ProjectServiceError("FORBIDDEN", 403, "?ㅻⅨ ?ъ슜?먯쓽 ?꾨줈?앺듃????젣?????놁뒿?덈떎.");
+        throw new ProjectServiceError("FORBIDDEN", 403, "다른 사용자의 프로젝트는 삭제할 수 없습니다.");
       }
 
       await prisma.project.delete({

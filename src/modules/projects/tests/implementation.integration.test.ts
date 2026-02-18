@@ -65,7 +65,7 @@ describeWithDatabase("projects service integration", () => {
   }
 
   it("동일 slug로 프로젝트를 두 번 생성하면 409 에러를 반환해야 한다", async () => {
-    // 준비: 동일 슬러그를 가진 두 입력 준비
+    // 준비: 동일 슬러그 입력을 만든다.
     await runWithRollback(async (service, tx) => {
       const unique = `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
       const owner = await createOwner(tx, `slug-${unique}`);
@@ -76,10 +76,10 @@ describeWithDatabase("projects service integration", () => {
         visibility: Visibility.PUBLIC,
       };
 
-      // 실행: 첫 생성 후 동일 슬러그로 재생성
+      // 실행: 첫 생성 후 동일 슬러그를 다시 생성한다.
       await service.createProject(owner.id, input);
 
-      // 검증: 409 충돌 확인
+      // 검증: 409 충돌 에러가 발생해야 한다.
       await expect(service.createProject(owner.id, input)).rejects.toMatchObject({
         code: "CONFLICT",
         status: 409,
@@ -88,7 +88,7 @@ describeWithDatabase("projects service integration", () => {
   });
 
   it("PUBLIC 프로젝트만 공개 목록에서 조회되어야 한다", async () => {
-    // 준비: PUBLIC/PRIVATE/UNLISTED 프로젝트 생성
+    // 준비: 공개/비공개/언리스트 프로젝트를 생성한다.
     await runWithRollback(async (service, tx) => {
       const unique = `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
       const owner = await createOwner(tx, `visibility-${unique}`);
@@ -115,18 +115,18 @@ describeWithDatabase("projects service integration", () => {
         visibility: Visibility.UNLISTED,
       });
 
-      // 실행: 공개 목록 조회
+      // 실행: 공개 프로젝트 목록을 조회한다.
       const projects = await service.listPublicProjects();
       const slugs = projects.map((project) => project.slug);
 
-      // 검증: PUBLIC만 노출 확인
+      // 검증: 공개 프로젝트만 포함되어야 한다.
       expect(slugs).toContain(publicSlug);
       expect(slugs).not.toContain(privateSlug);
       expect(slugs).not.toContain(unlistedSlug);
     });
   });
 
-  it("공개 프로젝트 검색/필터/커서 페이지네이션이 동작해야 한다", async () => {
+  it("공개 프로젝트 검색과 필터, 커서 페이지네이션이 동작해야 한다", async () => {
     await runWithRollback(async (service, tx) => {
       const unique = `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
       const ownerA = await createOwner(tx, `search-a-${unique}`);
@@ -134,7 +134,7 @@ describeWithDatabase("projects service integration", () => {
       const ownerAPublicSlug = `owner-search-a-${unique}`;
 
       await service.createProject(ownerA.id, {
-        title: `검색 대상 React ${unique}`,
+        title: `검색대상 React ${unique}`,
         slug: `search-react-${unique}`,
         description: "React 기반 프로젝트",
         contentMd: "React와 Next.js를 사용한 공개 프로젝트",
@@ -142,7 +142,7 @@ describeWithDatabase("projects service integration", () => {
         visibility: Visibility.PUBLIC,
       });
       await service.createProject(ownerA.id, {
-        title: `검색 대상 Node ${unique}`,
+        title: `검색대상 Node ${unique}`,
         slug: `search-node-${unique}`,
         description: "Node 기반 프로젝트",
         contentMd: "Node.js와 Prisma를 사용한 공개 프로젝트",
@@ -150,7 +150,7 @@ describeWithDatabase("projects service integration", () => {
         visibility: Visibility.PUBLIC,
       });
       await service.createProject(ownerA.id, {
-        title: `검색 대상 Data ${unique}`,
+        title: `검색대상 Data ${unique}`,
         slug: `search-data-${unique}`,
         description: "데이터 파이프라인 프로젝트",
         contentMd: "ETL 파이프라인과 대시보드 구성",
@@ -173,7 +173,7 @@ describeWithDatabase("projects service integration", () => {
       });
 
       const firstPage = await service.searchPublicProjects({
-        q: "검색 대상",
+        q: "검색대상",
         limit: 2,
         publicSlug: ownerAPublicSlug,
       });
@@ -183,7 +183,7 @@ describeWithDatabase("projects service integration", () => {
       expect(firstPage.nextCursor).not.toBeNull();
 
       const secondPage = await service.searchPublicProjects({
-        q: "검색 대상",
+        q: "검색대상",
         limit: 2,
         publicSlug: ownerAPublicSlug,
         cursor: firstPage.nextCursor ?? undefined,
@@ -203,12 +203,12 @@ describeWithDatabase("projects service integration", () => {
   });
 
   it("isFeatured=true와 visibility=PRIVATE 조합은 422 에러를 반환해야 한다", async () => {
-    // 준비: 비공개 + 대표 노출 입력 준비
+    // 준비: 비공개 + 대표 노출 입력을 만든다.
     await runWithRollback(async (service, tx) => {
       const unique = `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
       const owner = await createOwner(tx, `featured-${unique}`);
 
-      // 실행 및 검증: 422 검증 에러 확인
+      // 실행/검증: 422 검증 에러를 반환해야 한다.
       await expect(
         service.createProject(owner.id, {
           title: "대표 비공개 프로젝트",
@@ -225,11 +225,11 @@ describeWithDatabase("projects service integration", () => {
   });
 
   it("존재하지 않는 slug 조회 시 404 에러를 반환해야 한다", async () => {
-    // 준비: 존재하지 않는 slug 준비
+    // 준비: 존재하지 않는 slug를 만든다.
     await runWithRollback(async (service) => {
       const slug = `not-found-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
 
-      // 실행 및 검증: 404 확인
+      // 실행/검증: 404 에러를 반환해야 한다.
       await expect(service.getPublicProjectBySlug(slug)).rejects.toMatchObject({
         code: "NOT_FOUND",
         status: 404,
@@ -238,7 +238,7 @@ describeWithDatabase("projects service integration", () => {
   });
 
   it("ownerId가 다른 사용자가 수정 시도하면 403 에러를 반환해야 한다", async () => {
-    // 준비: 서로 다른 오너 2명 생성
+    // 준비: 서로 다른 오너 2명을 만든다.
     await runWithRollback(async (service, tx) => {
       const unique = `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
       const ownerA = await createOwner(tx, `owner-a-${unique}`);
@@ -251,7 +251,7 @@ describeWithDatabase("projects service integration", () => {
         visibility: Visibility.PUBLIC,
       });
 
-      // 실행 및 검증: owner 불일치 403 확인
+      // 실행/검증: owner 불일치 403 에러를 반환해야 한다.
       await expect(
         service.updateProject(ownerB.id, project.id, {
           title: "수정 시도",
