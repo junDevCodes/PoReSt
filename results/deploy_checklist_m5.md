@@ -36,4 +36,12 @@
 - [x] `results/pr_m5_preview.md` 작성/갱신
 - [x] PR 리뷰 요청 완료
 
+## 7) Auth 전환 회귀 (2026-02-18)
+- [x] 비로그인 사용자가 `/app/*` 접근 시 `/login?next=...`로 리다이렉트
+- [x] 로그인 사용자 CRUD 정상 동작(`/app/projects`, `/app/resumes`, `/app/notes`, `/app/blog`)
+- [x] 사용자 간 ownerId 스코프 격리 유지(타 사용자 데이터 접근 불가)
+- [x] 운영성 API(`/api/app/revalidate`, `/api/app/db-test`, `/api/app/test/owner`) 비오너 403 유지
+- [x] canonical 공개 경로(`/u/[publicSlug]`, `/u/[publicSlug]/projects`, `/u/[publicSlug]/projects/[slug]`) 정상 동작
+- [x] 레거시 경로(`/projects/[slug]`)가 canonical 경로로 리다이렉트
+
 

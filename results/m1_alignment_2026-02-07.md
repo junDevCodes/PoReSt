@@ -22,7 +22,7 @@
 | FR-PUB-06 | Pass | Public index + Private noindex: `src/app/(private)/layout.tsx` |
 | FR-AUTH-01 | Pass | `/app/*` 비인증 접근 시 `/login?next=...` 리다이렉트: `middleware.ts`, `src/lib/__tests__/middleware-auth-flow.test.ts` |
 | FR-AUTH-02 | Pass | 로그인 시 `next` 우선 callback 적용: `src/components/auth/OwnerSignInView.tsx` |
-| FR-AUTH-03 | Pass | 오너 전용 접근 제어(`isOwner`) 적용: `middleware.ts` |
+| FR-AUTH-03 | Pass | 운영 권한 접근 제어(`isOwner`) 적용: `middleware.ts` |
 | FR-AUTH-04 | Pass | 세션 부재/만료 시 보호 경로 재로그인 플로우 동작: `middleware.ts`, `src/lib/__tests__/middleware-auth-flow.test.ts` |
 | FR-PORT-01 | Pass | Project CRUD API + 관리 UI 구현: `src/app/api/app/projects/`, `src/app/(private)/app/projects/page.tsx` |
 | FR-PORT-02 | Pass | Experience CRUD API + 관리 UI 구현: `src/app/api/app/experiences/`, `src/app/(private)/app/experiences/page.tsx` |

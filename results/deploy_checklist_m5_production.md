@@ -31,4 +31,12 @@
 - [x] `results/progress_YYYY-MM-DD.md` 배포 결과 기록
 - [x] M1.1 Deferred 및 UI/UX 개선 백로그 착수
 
+## 6) Auth 전환 회귀 (2026-02-18)
+- [x] 비로그인 `/app/*` 접근 시 `/login?next=...` 리다이렉트 확인
+- [x] 일반 로그인 사용자 도메인 CRUD 정상 동작 확인
+- [x] ownerId 데이터 격리 유지 확인(타 사용자 데이터 접근 차단)
+- [x] 운영성 API 비오너 접근 시 403 유지 확인
+- [x] canonical 공개 경로(`/u/[publicSlug]/*`) 정상 응답 확인
+- [x] 레거시 `/projects/[slug]` 접근 시 canonical 경로 리다이렉트 확인
+
 

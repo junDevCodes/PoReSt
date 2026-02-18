@@ -8,35 +8,35 @@
 - [x] G1 UI 완료
 - [x] G1 테스트 통과
 - [x] G1 문서 반영
-- [ ] G1 배포 확인
+- [x] G1 배포 확인
 
 - [x] G2 Notebook CRUD + Notes 작성 파이프라인
 - [x] G2 API 완료
 - [x] G2 UI 완료
 - [x] G2 테스트 통과
 - [x] G2 문서 반영
-- [ ] G2 배포 확인
+- [x] G2 배포 확인
 
 - [x] G3 Public Projects 검색/필터/페이지네이션
 - [x] G3 API 완료
 - [x] G3 UI 완료
 - [x] G3 테스트 통과
 - [x] G3 문서 반영
-- [ ] G3 배포 확인
+- [x] G3 배포 확인
 
 - [x] G4 Feedback 대상 선택 자동화
 - [x] G4 API 완료
 - [x] G4 UI 완료
 - [x] G4 테스트 통과
 - [x] G4 문서 반영
-- [ ] G4 배포 확인
+- [x] G4 배포 확인
 
 - [x] G5 Blog Lint Rule10
 - [x] G5 API 완료
 - [x] G5 UI 완료
 - [x] G5 테스트 통과
 - [x] G5 문서 반영
-- [ ] G5 배포 확인
+- [x] G5 배포 확인
 
 ## 추가 기능 P1 게이트
 - [x] G6 Resume 공유 링크

@@ -312,7 +312,7 @@
 ### 완료일: 2026-02-18
 - 기능 ID(Gx): Auth 정책 전환 + 공개 canonical 경로 정리
 - 핵심 변경:
-  - Auth.js GitHub 로그인 정책을 오너 전용에서 로그인 사용자 전체 허용으로 전환
+  - Auth.js GitHub 로그인 정책을 기존 제한 방식에서 로그인 사용자 전체 허용으로 전환
   - 로그인 시 사용자 레코드 upsert 및 `PortfolioSettings(publicSlug)` 자동 보장
   - `/api/app/*` 도메인 CRUD를 `requireAuth` 기준으로 전환(운영성 API는 `requireOwner` 유지)
   - 공개 경로 canonical을 `/u/[publicSlug]/*`로 확정하고 `/projects/[slug]`는 레거시 리다이렉트로 유지
@@ -323,5 +323,25 @@
   - `npx jest --runInBand` 통과 (25 passed, 12 skipped)
   - `npm run vercel-build` 통과
 - 리스크/후속 항목:
-  - 문서 전반(legacy owner-only 표현) 추가 정리가 필요
+  - 문서 전반의 legacy 권한 표현 추가 정리가 필요
   - 운영 환경에서 GitHub OAuth callback 도메인/환경변수 최종 검증 필요
+
+### 완료일: 2026-02-18
+- 기능 ID(Gx): 최종 안정화 마감(인코딩 복구 + 문서/배포 체크 동기화)
+- 핵심 변경:
+  - 프로젝트/블로그 도메인 한글 깨짐 문구 3개 파일 전수 복구
+  - 인증/권한 문서를 로그인 사용자 워크스페이스 정책으로 일괄 동기화
+  - canonical 공개 경로(`/u/[publicSlug]/*`)와 레거시 리다이렉트(`/projects/[slug]`) 정책 정리
+  - `plans/checklist.md` P0 배포 확인(G1~G5) 완료 처리
+  - M5 Preview/Production 체크리스트에 Auth 전환 회귀 검증 결과 반영
+- 테스트/배포 결과:
+  - `npx jest src/modules/projects/tests/validation.test.ts --runInBand` 통과
+  - `npx jest src/modules/projects/tests/implementation.integration.test.ts --runInBand` 통과
+  - `npx jest src/modules/blog/tests/validation.test.ts --runInBand` 통과
+  - `npm run lint` 통과
+  - `npm run build` 통과
+  - `npx jest --runInBand` 통과
+  - `npm run vercel-build` 통과
+- 리스크/후속 항목:
+  - 신규 기능 리스크 없음
+  - UI/UX 고도화 라운드에서 디자인/인터랙션 개선 작업만 후속 진행
