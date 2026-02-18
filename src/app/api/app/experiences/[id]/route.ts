@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireOwner } from "@/lib/auth-guard";
+import { requireAuth } from "@/lib/auth-guard";
 import { prisma } from "@/lib/prisma";
 import { parseJsonBodyWithLimit } from "@/lib/request-json";
 import { revalidatePublicPortfolio } from "@/lib/revalidate-public";
@@ -17,7 +17,7 @@ type ExperienceIdRouteContext = {
 };
 
 export async function PUT(request: Request, context: ExperienceIdRouteContext) {
-  const authResult = await requireOwner();
+  const authResult = await requireAuth();
   if ("response" in authResult) {
     return authResult.response;
   }
@@ -45,7 +45,7 @@ export async function PUT(request: Request, context: ExperienceIdRouteContext) {
 }
 
 export async function DELETE(_: Request, context: ExperienceIdRouteContext) {
-  const authResult = await requireOwner();
+  const authResult = await requireAuth();
   if ("response" in authResult) {
     return authResult.response;
   }
@@ -59,3 +59,4 @@ export async function DELETE(_: Request, context: ExperienceIdRouteContext) {
     return createExperienceErrorResponse(error);
   }
 }
+

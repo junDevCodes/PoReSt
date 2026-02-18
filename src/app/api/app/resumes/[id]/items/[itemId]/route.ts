@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireOwner } from "@/lib/auth-guard";
+import { requireAuth } from "@/lib/auth-guard";
 import { parseJsonBodyWithLimit } from "@/lib/request-json";
 import { prisma } from "@/lib/prisma";
 import {
@@ -16,7 +16,7 @@ type ResumeItemRouteContext = {
 const resumesService = createResumesService({ prisma });
 
 export async function PUT(request: Request, context: ResumeItemRouteContext) {
-  const authResult = await requireOwner();
+  const authResult = await requireAuth();
   if ("response" in authResult) {
     return authResult.response;
   }
@@ -44,7 +44,7 @@ export async function PUT(request: Request, context: ResumeItemRouteContext) {
 }
 
 export async function DELETE(_: Request, context: ResumeItemRouteContext) {
-  const authResult = await requireOwner();
+  const authResult = await requireAuth();
   if ("response" in authResult) {
     return authResult.response;
   }
@@ -61,3 +61,4 @@ export async function DELETE(_: Request, context: ResumeItemRouteContext) {
     return createResumeErrorResponse(error);
   }
 }
+

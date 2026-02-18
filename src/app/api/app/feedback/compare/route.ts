@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { requireOwner } from "@/lib/auth-guard";
+import { requireAuth } from "@/lib/auth-guard";
 import { prisma } from "@/lib/prisma";
 import { createFeedbackErrorResponse, createFeedbackService } from "@/modules/feedback";
 
 const feedbackService = createFeedbackService({ prisma });
 
 export async function GET(request: Request) {
-  const authResult = await requireOwner();
+  const authResult = await requireAuth();
   if ("response" in authResult) {
     return authResult.response;
   }
@@ -25,3 +25,4 @@ export async function GET(request: Request) {
     return createFeedbackErrorResponse(error);
   }
 }
+

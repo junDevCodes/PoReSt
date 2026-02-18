@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireOwner } from "@/lib/auth-guard";
+import { requireAuth } from "@/lib/auth-guard";
 import { parseJsonBodyWithLimit } from "@/lib/request-json";
 import { revalidatePublicPortfolio } from "@/lib/revalidate-public";
 import {
@@ -13,7 +13,7 @@ import {
 const projectsService = createProjectsService({ prisma });
 
 export async function GET() {
-  const authResult = await requireOwner();
+  const authResult = await requireAuth();
   if ("response" in authResult) {
     return authResult.response;
   }
@@ -27,7 +27,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const authResult = await requireOwner();
+  const authResult = await requireAuth();
   if ("response" in authResult) {
     return authResult.response;
   }
@@ -48,3 +48,4 @@ export async function POST(request: Request) {
     return createProjectErrorResponse(error);
   }
 }
+

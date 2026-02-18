@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireOwner } from "@/lib/auth-guard";
+import { requireAuth } from "@/lib/auth-guard";
 import { prisma } from "@/lib/prisma";
 import { parseJsonBodyWithLimit } from "@/lib/request-json";
 import { revalidatePublicPortfolio } from "@/lib/revalidate-public";
@@ -15,7 +15,7 @@ import {
 const portfolioSettingsService = createPortfolioSettingsService({ prisma });
 
 export async function GET() {
-  const authResult = await requireOwner();
+  const authResult = await requireAuth();
   if ("response" in authResult) {
     return authResult.response;
   }
@@ -31,7 +31,7 @@ export async function GET() {
 }
 
 export async function PUT(request: Request) {
-  const authResult = await requireOwner();
+  const authResult = await requireAuth();
   if ("response" in authResult) {
     return authResult.response;
   }
@@ -55,3 +55,4 @@ export async function PUT(request: Request) {
     return createPortfolioSettingsErrorResponse(error);
   }
 }
+

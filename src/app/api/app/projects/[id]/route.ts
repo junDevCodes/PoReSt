@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireOwner } from "@/lib/auth-guard";
+import { requireAuth } from "@/lib/auth-guard";
 import { parseJsonBodyWithLimit } from "@/lib/request-json";
 import { revalidatePublicPortfolio } from "@/lib/revalidate-public";
 import {
@@ -17,7 +17,7 @@ type ProjectIdRouteContext = {
 };
 
 export async function GET(_: Request, context: ProjectIdRouteContext) {
-  const authResult = await requireOwner();
+  const authResult = await requireAuth();
   if ("response" in authResult) {
     return authResult.response;
   }
@@ -32,7 +32,7 @@ export async function GET(_: Request, context: ProjectIdRouteContext) {
 }
 
 export async function PUT(request: Request, context: ProjectIdRouteContext) {
-  const authResult = await requireOwner();
+  const authResult = await requireAuth();
   if ("response" in authResult) {
     return authResult.response;
   }
@@ -60,7 +60,7 @@ export async function PUT(request: Request, context: ProjectIdRouteContext) {
 }
 
 export async function DELETE(_: Request, context: ProjectIdRouteContext) {
-  const authResult = await requireOwner();
+  const authResult = await requireAuth();
   if ("response" in authResult) {
     return authResult.response;
   }
@@ -74,3 +74,4 @@ export async function DELETE(_: Request, context: ProjectIdRouteContext) {
     return createProjectErrorResponse(error);
   }
 }
+

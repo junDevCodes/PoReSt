@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "../(public)/globals.css";
 
 export const metadata: Metadata = {
-  title: "Dev OS — 오너",
-  description: "Dev OS 오너 전용 대시보드입니다.",
+  title: "Dev OS — Workspace",
+  description: "Dev OS 사용자 워크스페이스입니다.",
   robots: {
     index: false,
     follow: false,

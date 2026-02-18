@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireOwner } from "@/lib/auth-guard";
+import { requireAuth } from "@/lib/auth-guard";
 import { prisma } from "@/lib/prisma";
 import { createResumeErrorResponse, createResumesService } from "@/modules/resumes";
 
@@ -10,7 +10,7 @@ type ResumePreviewRouteContext = {
 const resumesService = createResumesService({ prisma });
 
 export async function GET(_: Request, context: ResumePreviewRouteContext) {
-  const authResult = await requireOwner();
+  const authResult = await requireAuth();
   if ("response" in authResult) {
     return authResult.response;
   }
@@ -23,3 +23,4 @@ export async function GET(_: Request, context: ResumePreviewRouteContext) {
     return createResumeErrorResponse(error);
   }
 }
+

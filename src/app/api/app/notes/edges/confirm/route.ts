@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireOwner } from "@/lib/auth-guard";
+import { requireAuth } from "@/lib/auth-guard";
 import { parseJsonBodyWithLimit } from "@/lib/request-json";
 import { prisma } from "@/lib/prisma";
 import {
@@ -12,7 +12,7 @@ import {
 const notesService = createNotesService({ prisma });
 
 export async function POST(request: Request) {
-  const authResult = await requireOwner();
+  const authResult = await requireAuth();
   if ("response" in authResult) {
     return authResult.response;
   }
@@ -32,3 +32,4 @@ export async function POST(request: Request) {
     return createNoteErrorResponse(error);
   }
 }
+

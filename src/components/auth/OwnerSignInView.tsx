@@ -6,9 +6,9 @@ import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 
 const ERROR_MESSAGES: Record<string, string> = {
-  unauthorized: "오너 대시보드에 접근하려면 로그인해야 합니다.",
-  owner: "이 계정은 오너로 승인되지 않았습니다.",
-  AccessDenied: "접근이 거부되었습니다. 오너 계정으로 로그인하세요.",
+  unauthorized: "로그인이 필요합니다.",
+  owner: "운영 권한이 필요한 기능입니다.",
+  AccessDenied: "로그인 접근이 거부되었습니다. 다시 시도해주세요.",
 };
 
 function SignInContent() {
@@ -32,13 +32,12 @@ function SignInContent() {
             </div>
             <div>
               <p className="text-xs uppercase tracking-[0.3em] text-white/60">Dev OS</p>
-              <h1 className="text-2xl font-semibold">오너 로그인</h1>
+              <h1 className="text-2xl font-semibold">로그인</h1>
             </div>
           </div>
 
           <p className="mt-4 text-sm leading-6 text-white/70">
-            비공개 대시보드는 오너 계정만 접근할 수 있습니다. Auth.js와 데이터베이스에
-            등록된 오너 계정으로 로그인해주세요.
+            GitHub 계정으로 로그인하면 개인 워크스페이스와 공개 포트폴리오 URL이 자동으로 준비됩니다.
           </p>
 
           {message ? (
@@ -59,11 +58,6 @@ function SignInContent() {
             <span className="h-2 w-2 rounded-full bg-emerald-500" />
             GitHub로 로그인
           </button>
-
-          <div className="mt-6 border-t border-white/10 pt-4 text-xs text-white/50">
-            접근 권한이 필요하신가요? 팀장에게 오너 권한을 요청하거나 OWNER_EMAIL
-            허용 목록을 설정해주세요.
-          </div>
         </div>
       </main>
     </div>

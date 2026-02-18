@@ -17,7 +17,7 @@ export default async function NoteDetailPage({ params }: NoteDetailPageProps) {
   const session = await getServerSession(authOptions);
   const ownerId = session?.user?.id;
 
-  if (!ownerId || !session.user.isOwner) {
+  if (!ownerId) {
     redirect(`/login?next=/app/notes/${noteId}`);
   }
 

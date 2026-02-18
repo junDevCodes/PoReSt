@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireOwner } from "@/lib/auth-guard";
+import { requireAuth } from "@/lib/auth-guard";
 import { prisma } from "@/lib/prisma";
 import { createNoteErrorResponse, createNotesService } from "@/modules/notes";
 
@@ -10,7 +10,7 @@ type NoteEdgesRouteContext = {
 const notesService = createNotesService({ prisma });
 
 export async function GET(_: Request, context: NoteEdgesRouteContext) {
-  const authResult = await requireOwner();
+  const authResult = await requireAuth();
   if ("response" in authResult) {
     return authResult.response;
   }
@@ -23,3 +23,4 @@ export async function GET(_: Request, context: NoteEdgesRouteContext) {
     return createNoteErrorResponse(error);
   }
 }
+
