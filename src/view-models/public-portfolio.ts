@@ -2,7 +2,6 @@ const MAX_FEATURED_PROJECTS = 3;
 const SECTION_KEYS = ["problem", "approach", "architecture", "results", "links"] as const;
 
 type SectionKey = (typeof SECTION_KEYS)[number];
-
 type UnknownRecord = Record<string, unknown>;
 
 function isRecord(value: unknown): value is UnknownRecord {
@@ -94,6 +93,7 @@ function extractSections(contentMd: string): Record<SectionKey, string> {
 }
 
 export type PublicHomeViewModel = {
+  publicSlug: string | null;
   profile: {
     displayName: string;
     headline: string;
@@ -106,6 +106,8 @@ export type PublicHomeViewModel = {
   };
   featuredProjects: Array<{
     id: string;
+    publicSlug: string;
+    publicPath: string;
     slug: string;
     title: string;
     subtitle: string | null;
@@ -125,6 +127,8 @@ export type PublicHomeViewModel = {
 
 export type PublicProjectsListItemViewModel = {
   id: string;
+  publicSlug: string;
+  publicPath: string;
   slug: string;
   title: string;
   description: string | null;
@@ -147,6 +151,7 @@ export type PublicProjectDetailViewModel = {
 
 export function toPublicHomeViewModel(input: unknown): PublicHomeViewModel {
   const root = isRecord(input) ? input : {};
+  const rootPublicSlug = toNullableString(root.publicSlug);
   const profileRaw = isRecord(root.profile) ? root.profile : {};
   const featuredProjectsRaw = Array.isArray(root.featuredProjects) ? root.featuredProjects : [];
   const featuredExperiencesRaw = Array.isArray(root.featuredExperiences)
@@ -156,10 +161,11 @@ export function toPublicHomeViewModel(input: unknown): PublicHomeViewModel {
   const profileLinks = Array.isArray(profileRaw.links) ? profileRaw.links : [];
 
   return {
+    publicSlug: rootPublicSlug,
     profile: {
       displayName: toNullableString(profileRaw.displayName) ?? "이름을 준비 중입니다.",
       headline: toNullableString(profileRaw.headline) ?? "헤드라인을 준비 중입니다.",
-      bio: toNullableString(profileRaw.bio) ?? "자기소개를 준비 중입니다.",
+      bio: toNullableString(profileRaw.bio) ?? "소개 문구를 준비 중입니다.",
       avatarUrl: sanitizeExternalUrl(profileRaw.avatarUrl),
       links: profileLinks
         .map((link) => {
@@ -184,8 +190,13 @@ export function toPublicHomeViewModel(input: unknown): PublicHomeViewModel {
           return null;
         }
 
+        const publicSlug = toNullableString(record.publicSlug) ?? rootPublicSlug ?? "owner";
+        const publicPath = `/u/${encodeURIComponent(publicSlug)}/projects/${encodeURIComponent(slug)}`;
+
         return {
           id,
+          publicSlug,
+          publicPath,
           slug,
           title,
           subtitle: toNullableString(record.subtitle),
@@ -234,12 +245,15 @@ export function toPublicProjectsListViewModel(input: unknown): PublicProjectsLis
       const id = toNullableString(record.id);
       const slug = toNullableString(record.slug);
       const title = toNullableString(record.title);
+      const publicSlug = toNullableString(record.publicSlug) ?? "owner";
       if (!id || !slug || !title) {
         return null;
       }
 
       return {
         id,
+        publicSlug,
+        publicPath: `/u/${encodeURIComponent(publicSlug)}/projects/${encodeURIComponent(slug)}`,
         slug,
         title,
         description: toNullableString(record.description),

@@ -4,15 +4,17 @@ import { createProjectErrorResponse, createProjectsService } from "@/modules/pro
 
 const projectsService = createProjectsService({ prisma });
 
-export async function GET(request: Request) {
+type PublicSlugRouteContext = {
+  params: Promise<{ publicSlug: string }> | { publicSlug: string };
+};
+
+export async function GET(_: Request, context: PublicSlugRouteContext) {
   try {
-    const url = new URL(request.url);
-    const publicSlug = url.searchParams.get("slug") ?? undefined;
-    const portfolio = publicSlug
-      ? await projectsService.getPublicPortfolioBySlug(publicSlug)
-      : await projectsService.getPublicPortfolio();
+    const params = await context.params;
+    const portfolio = await projectsService.getPublicPortfolioBySlug(params.publicSlug);
     return NextResponse.json({ data: portfolio });
   } catch (error) {
     return createProjectErrorResponse(error);
   }
 }
+

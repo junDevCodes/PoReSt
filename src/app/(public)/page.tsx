@@ -9,8 +9,8 @@ const DEFAULT_OG_IMAGE_PATH = "/favicon.ico";
 
 export const metadata: Metadata = {
   metadataBase: getMetadataBase(),
-  title: "홈",
-  description: "대표 프로젝트와 기본 프로필 정보를 제공하는 공개 포트폴리오 홈입니다.",
+  title: "Dev OS 포트폴리오",
+  description: "프로젝트와 경력 정보를 제공하는 공개 포트폴리오입니다.",
   alternates: {
     canonical: "/",
   },
@@ -18,18 +18,14 @@ export const metadata: Metadata = {
     type: "website",
     siteName: "Dev OS",
     url: "/",
-    title: "홈 | Dev OS 포트폴리오",
-    description: "대표 프로젝트와 기본 프로필 정보를 제공하는 공개 포트폴리오 홈입니다.",
-    images: [
-      {
-        url: DEFAULT_OG_IMAGE_PATH,
-      },
-    ],
+    title: "Dev OS 포트폴리오",
+    description: "프로젝트와 경력 정보를 제공하는 공개 포트폴리오입니다.",
+    images: [{ url: DEFAULT_OG_IMAGE_PATH }],
   },
   twitter: {
     card: "summary",
-    title: "홈 | Dev OS 포트폴리오",
-    description: "대표 프로젝트와 기본 프로필 정보를 제공하는 공개 포트폴리오 홈입니다.",
+    title: "Dev OS 포트폴리오",
+    description: "프로젝트와 경력 정보를 제공하는 공개 포트폴리오입니다.",
     images: [DEFAULT_OG_IMAGE_PATH],
   },
 };
@@ -37,6 +33,21 @@ export const metadata: Metadata = {
 export const revalidate = 60;
 
 const projectsService = createProjectsService({ prisma });
+
+function buildPublicLinks(publicSlug: string | null) {
+  if (!publicSlug) {
+    return {
+      profilePath: "/projects",
+      projectsPath: "/projects",
+    };
+  }
+
+  const encoded = encodeURIComponent(publicSlug);
+  return {
+    profilePath: `/u/${encoded}`,
+    projectsPath: `/u/${encoded}/projects`,
+  };
+}
 
 export default async function HomePage() {
   let portfolio: unknown = {
@@ -56,6 +67,7 @@ export default async function HomePage() {
   }
 
   const viewModel = toPublicHomeViewModel(portfolio);
+  const links = buildPublicLinks(viewModel.publicSlug);
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#f6f5f2] text-[#1a1a1a]">
@@ -76,7 +88,7 @@ export default async function HomePage() {
         <div className="mt-8 flex flex-wrap gap-3">
           <Link
             className="rounded-full bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
-            href="/projects"
+            href={links.projectsPath}
           >
             프로젝트 보기
           </Link>
@@ -84,7 +96,7 @@ export default async function HomePage() {
             className="rounded-full border border-black/20 px-5 py-3 text-sm font-semibold text-black transition hover:border-black/40"
             href="/login"
           >
-            오너 로그인
+            로그인
           </Link>
         </div>
 
@@ -107,7 +119,7 @@ export default async function HomePage() {
         <section className="mt-14">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-semibold">대표 프로젝트</h2>
-            <Link className="text-sm font-medium text-black/60 hover:text-black" href="/projects">
+            <Link className="text-sm font-medium text-black/60 hover:text-black" href={links.projectsPath}>
               전체 보기
             </Link>
           </div>
@@ -125,15 +137,13 @@ export default async function HomePage() {
                 >
                   <h3 className="text-lg font-semibold">{project.title}</h3>
                   <p className="mt-2 line-clamp-3 text-sm text-black/60">
-                    {project.description ?? "설명을 준비 중입니다."}
+                    {project.description ?? "설명 준비 중입니다."}
                   </p>
                   <p className="mt-3 text-xs text-black/50">
-                    {project.techStack.length > 0
-                      ? project.techStack.join(" · ")
-                      : "기술 스택 준비 중"}
+                    {project.techStack.length > 0 ? project.techStack.join(" · ") : "기술 스택 준비 중"}
                   </p>
                   <Link
-                    href={`/projects/${project.slug}`}
+                    href={project.publicPath}
                     className="mt-4 inline-flex text-sm font-semibold text-black/80 hover:text-black"
                   >
                     상세 보기
@@ -145,23 +155,34 @@ export default async function HomePage() {
         </section>
 
         <section className="mt-14">
-          <h2 className="text-2xl font-semibold">연락 및 링크</h2>
+          <h2 className="text-2xl font-semibold">연락 링크</h2>
           <p className="mt-3 text-sm text-black/60">
-            프로젝트 협업, 기술 논의, 인터뷰 제안은 아래 링크로 연락주세요.
+            협업, 기술 논의, 인터뷰 제안은 아래 링크를 통해 연락해주세요.
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
-            {viewModel.profile.links.map((link) => (
-              <a
-                key={`contact-${link.label}-${link.url}`}
-                href={link.url}
-                target="_blank"
-                rel="noreferrer"
-                className="rounded-full bg-black px-4 py-2 text-sm text-white"
-              >
-                {link.label}
-              </a>
-            ))}
+            {viewModel.profile.links.length === 0 ? (
+              <p className="text-sm text-black/60">등록된 링크가 없습니다.</p>
+            ) : (
+              viewModel.profile.links.map((link) => (
+                <a
+                  key={`contact-${link.label}-${link.url}`}
+                  href={link.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="rounded-full bg-black px-4 py-2 text-sm text-white"
+                >
+                  {link.label}
+                </a>
+              ))
+            )}
           </div>
+          {viewModel.publicSlug ? (
+            <div className="mt-4">
+              <Link className="text-sm font-medium text-black/70 hover:text-black" href={links.profilePath}>
+                개인 공개 페이지로 이동
+              </Link>
+            </div>
+          ) : null}
         </section>
       </main>
     </div>
