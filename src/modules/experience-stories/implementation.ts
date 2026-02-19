@@ -107,6 +107,20 @@ function normalizeTags(tags: string[] | undefined): string[] | undefined {
   return Array.from(unique);
 }
 
+function toNullableJsonInput(
+  value: Prisma.InputJsonValue | null | undefined,
+): Prisma.InputJsonValue | Prisma.NullTypes.DbNull | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (value === null) {
+    return Prisma.DbNull;
+  }
+
+  return value;
+}
+
 function encodeCursor(payload: ExperienceStoriesCursorPayload): string {
   return Buffer.from(JSON.stringify(payload), "utf8").toString("base64url");
 }
@@ -316,8 +330,8 @@ export function createExperienceStoriesService(deps: {
           action: parsed.action,
           result: parsed.result,
           tags: parsed.tags ?? [],
-          metricsJson: parsed.metricsJson ?? null,
-          linksJson: parsed.linksJson ?? null,
+          metricsJson: toNullableJsonInput(parsed.metricsJson),
+          linksJson: toNullableJsonInput(parsed.linksJson),
         },
         select: ownerExperienceStorySelect,
       });
@@ -367,8 +381,8 @@ export function createExperienceStoriesService(deps: {
           ...(parsed.action !== undefined ? { action: parsed.action } : {}),
           ...(parsed.result !== undefined ? { result: parsed.result } : {}),
           ...(parsed.tags !== undefined ? { tags: parsed.tags } : {}),
-          ...(parsed.metricsJson !== undefined ? { metricsJson: parsed.metricsJson } : {}),
-          ...(parsed.linksJson !== undefined ? { linksJson: parsed.linksJson } : {}),
+          ...(parsed.metricsJson !== undefined ? { metricsJson: toNullableJsonInput(parsed.metricsJson) } : {}),
+          ...(parsed.linksJson !== undefined ? { linksJson: toNullableJsonInput(parsed.linksJson) } : {}),
         },
         select: ownerExperienceStorySelect,
       });
@@ -395,4 +409,3 @@ export function createExperienceStoriesService(deps: {
     },
   };
 }
-
