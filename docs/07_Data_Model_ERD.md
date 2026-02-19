@@ -33,6 +33,8 @@
 User 1 ── 1 PortfolioSettings ── N PortfolioLink
 User 1 ── N Project ── N ProjectLink
 User 1 ── N Experience
+Experience 1 ?? N ExperienceStory
+User 1 ?? N CompanyTarget
 User 1 ── N Resume ── N ResumeItem ── 1 Experience
 User 1 ── N Note ── 0..1 NoteEmbedding
 Note 1 ── N NoteEdge (fromNoteId)
@@ -150,6 +152,54 @@ User 1 ── N BlogPost ── 0..N BlogExportArtifact
 **인덱스**
 - index(ownerId, visibility, updatedAt desc)
 - index(isFeatured)
+
+---
+
+## 3.6.1 ExperienceStory (STAR ??? ??: Experience ??)
+- id (PK)
+- ownerId (FK -> User)
+- experienceId (FK -> Experience)
+- title (required)
+- situation (text, required)
+- task (text, required)
+- action (text, required)
+- result (text, required)
+- tags (string[])
+- metricsJson (jsonb, nullable)
+- linksJson (jsonb, nullable)
+- createdAt, updatedAt
+
+**??**
+- ?? Private(?? ?????/?? API? ???? ??)
+- Experience ???(ownerId) ??? ??
+
+**???**
+- index(ownerId, updatedAt desc)
+- index(experienceId, updatedAt desc)
+
+---
+
+## 3.6.2 CompanyTarget (?? ?? ??: ??+?? ??)
+- id (PK)
+- ownerId (FK -> User)
+- company (required)
+- role (required)
+- status (enum: INTERESTED/APPLIED/INTERVIEWING/OFFER/REJECTED/ARCHIVED, default INTERESTED)
+- priority (int, default 0)
+- summary (text, nullable)
+- analysisMd (text, nullable)
+- linksJson (jsonb, nullable)
+- tags (string[])
+- createdAt, updatedAt
+
+**??**
+- ?? Private(?? ?????/?? API? ???? ??)
+- ?? ???(ownerId) ?? company+role ?? ??
+
+**??/???**
+- unique(ownerId, company, role)
+- index(ownerId, status, updatedAt desc)
+- index(ownerId, priority, updatedAt desc)
 
 ---
 

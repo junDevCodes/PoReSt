@@ -139,6 +139,7 @@ Private은 개인 데이터 관리 공간이다.
 핵심 엔티티(요약):
 - Auth: `User`, `Account`, `Session`, `VerificationToken`
 - Portfolio: `PortfolioSettings`, `PortfolioLink`, `Project`, `ProjectLink`, `Experience` 등
+- Private: `ExperienceStory`(STAR ???), `CompanyTarget`(?? ?? ??)
 - Resume: `Resume`, `ResumeItem`, `ResumeShareLink`
 - Notes: `Notebook`, `Note`, `NoteEdge`, `NoteEmbedding`
 - Blog: `BlogPost`, `BlogExportArtifact`, `BlogIntegration` 등

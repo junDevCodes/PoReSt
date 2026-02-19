@@ -297,6 +297,58 @@ DELETE `/api/app/experiences/{id}`
 
 ---
 
+---
+
+## 6.5 ?? ??(STAR) ? ExperienceStory
+GET  `/api/app/experience-stories`
+POST `/api/app/experience-stories`
+
+Query(??):
+- `experienceId`(optional)
+- `q`(optional)
+- `limit`, `cursor`
+
+POST body:
+{
+  "experienceId":"...",
+  "title":"...",
+  "situation":"...",
+  "task":"...",
+  "action":"...",
+  "result":"...",
+  "tags":["..."]
+}
+
+GET    `/api/app/experience-stories/{id}`
+PUT    `/api/app/experience-stories/{id}`
+DELETE `/api/app/experience-stories/{id}`
+
+---
+
+## 6.6 ?? ?? ?? ? CompanyTarget
+GET  `/api/app/company-targets`
+POST `/api/app/company-targets`
+
+Query(??):
+- `status`(optional: INTERESTED|APPLIED|INTERVIEWING|OFFER|REJECTED|ARCHIVED)
+- `q`(optional)
+- `limit`, `cursor`
+
+POST body:
+{
+  "company":"...",
+  "role":"...",
+  "status":"INTERESTED",
+  "priority": 0,
+  "summary": null,
+  "analysisMd": null,
+  "tags":["..."]
+}
+
+GET    `/api/app/company-targets/{id}`
+PUT    `/api/app/company-targets/{id}`
+DELETE `/api/app/company-targets/{id}`
+
 ## 7) Private API — Resumes
 
 ## 7.1 이력서 목록/생성
@@ -672,6 +724,10 @@ Response.data:
 - `GET /api/app/blog/posts/[id]/exports/[exportId]`
 - `GET /api/app/audit`
 - `GET /api/app/notes/[id]/similar?limit&minScore`
+- `GET|POST /api/app/experience-stories`
+- `GET|PUT|DELETE /api/app/experience-stories/[id]`
+- `GET|POST /api/app/company-targets`
+- `GET|PUT|DELETE /api/app/company-targets/[id]`
 - `GET /api/public/users?q&limit&cursor`
 
 ### 확장 엔드포인트

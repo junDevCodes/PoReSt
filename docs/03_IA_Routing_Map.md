@@ -22,6 +22,8 @@
 - Dashboard `/app`
 - Projects 관리: `/app/projects`
 - Experiences 관리: `/app/experiences`
+- ?? ??(STAR) `/app/experience-stories`
+- ?? ?? ?? `/app/company-targets`
 - Resume 관리 `/app/resumes`
   - Resume 목록: `/app/resumes`
   - Resume 편집: `/app/resumes/[id]`
@@ -64,6 +66,8 @@
 |---|---|---|---|---|
 | `/app` | Authenticated | 대시보드 요약 | counts/recent | middleware 보호 |
 | `/app/projects*`, `/app/experiences*` | Authenticated | 포트폴리오 원본 관리 | Project/Experience CRUD | middleware + API owner scope |
+| `/app/experience-stories` | Authenticated | ??? STAR ??? ?? | ExperienceStory CRUD | middleware + API owner scope |
+| `/app/company-targets` | Authenticated | ?? ?? ?? ?? | CompanyTarget CRUD | middleware + API owner scope |
 | `/app/resumes/*` | Authenticated | 회사/직무별 이력서 버전 | ResumeVersion CRUD | middleware + API owner scope |
 | `/app/notes/*` | Authenticated | 지식노트 + 그래프 | Note/Edge CRUD | middleware + API owner scope |
 | `/app/domain-links` | Authenticated | 교차 도메인 링크 관리 | DomainLink CRUD | middleware + API owner scope |
@@ -98,6 +102,10 @@ app/
         page.tsx             # /app/experiences
         [id]/
           page.tsx
+      experience-stories/
+        page.tsx             # /app/experience-stories
+      company-targets/
+        page.tsx             # /app/company-targets
       resumes/
         page.tsx             # /app/resumes
         [id]/
@@ -205,6 +213,10 @@ app/
 - `DELETE /api/app/domain-links/[id]`
 - `POST /api/app/notes/embeddings/rebuild`
 - `GET /api/app/notes/[id]/similar?limit&minScore`
+- `GET|POST /api/app/experience-stories`
+- `GET|PUT|DELETE /api/app/experience-stories/[id]`
+- `GET|POST /api/app/company-targets`
+- `GET|PUT|DELETE /api/app/company-targets/[id]`
 
 ### Public API
 - `GET /api/public/projects?q&tag&limit&cursor&publicSlug`
