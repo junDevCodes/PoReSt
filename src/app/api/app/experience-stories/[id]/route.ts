@@ -12,9 +12,7 @@ import {
 const service = createExperienceStoriesService({ prisma });
 
 type RouteContext = {
-  params: {
-    id: string;
-  };
+  params: Promise<{ id: string }> | { id: string };
 };
 
 export async function GET(_request: Request, context: RouteContext) {
@@ -24,7 +22,8 @@ export async function GET(_request: Request, context: RouteContext) {
   }
 
   try {
-    const story = await service.getStoryForOwner(authResult.session.user.id, context.params.id);
+    const params = await context.params;
+    const story = await service.getStoryForOwner(authResult.session.user.id, params.id);
     return NextResponse.json({ data: story });
   } catch (error) {
     return createExperienceStoryErrorResponse(error);
@@ -46,9 +45,10 @@ export async function PUT(request: Request, context: RouteContext) {
   }
 
   try {
+    const params = await context.params;
     const story = await service.updateStory(
       authResult.session.user.id,
-      context.params.id,
+      params.id,
       parsedBody.value,
     );
     return NextResponse.json({ data: story });
@@ -64,10 +64,10 @@ export async function DELETE(_request: Request, context: RouteContext) {
   }
 
   try {
-    const result = await service.deleteStory(authResult.session.user.id, context.params.id);
+    const params = await context.params;
+    const result = await service.deleteStory(authResult.session.user.id, params.id);
     return NextResponse.json({ data: result });
   } catch (error) {
     return createExperienceStoryErrorResponse(error);
   }
 }
-

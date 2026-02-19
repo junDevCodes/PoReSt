@@ -12,9 +12,7 @@ import {
 const service = createCompanyTargetsService({ prisma });
 
 type RouteContext = {
-  params: {
-    id: string;
-  };
+  params: Promise<{ id: string }> | { id: string };
 };
 
 export async function GET(_request: Request, context: RouteContext) {
@@ -24,7 +22,8 @@ export async function GET(_request: Request, context: RouteContext) {
   }
 
   try {
-    const target = await service.getTargetForOwner(authResult.session.user.id, context.params.id);
+    const params = await context.params;
+    const target = await service.getTargetForOwner(authResult.session.user.id, params.id);
     return NextResponse.json({ data: target });
   } catch (error) {
     return createCompanyTargetErrorResponse(error);
@@ -46,9 +45,10 @@ export async function PUT(request: Request, context: RouteContext) {
   }
 
   try {
+    const params = await context.params;
     const target = await service.updateTarget(
       authResult.session.user.id,
-      context.params.id,
+      params.id,
       parsedBody.value,
     );
     return NextResponse.json({ data: target });
@@ -64,10 +64,10 @@ export async function DELETE(_request: Request, context: RouteContext) {
   }
 
   try {
-    const result = await service.deleteTarget(authResult.session.user.id, context.params.id);
+    const params = await context.params;
+    const result = await service.deleteTarget(authResult.session.user.id, params.id);
     return NextResponse.json({ data: result });
   } catch (error) {
     return createCompanyTargetErrorResponse(error);
   }
 }
-
