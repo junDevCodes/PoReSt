@@ -73,6 +73,16 @@ enum DomainLinkEntityType {
   BLOG_POST
 }
 
+enum CompanyTargetStatus {
+  INTERESTED
+  APPLIED
+  INTERVIEWING
+  OFFER
+  REJECTED
+  ARCHIVED
+}
+
+
 // ========== AUTH (Auth.js / Prisma Adapter 기준) ==========
 // 공식 예시를 그대로 사용 (필드명/맵핑 포함)
 
@@ -137,6 +147,8 @@ model User {
   feedbackRequests  FeedbackRequest[]
   auditLogs         AuditLog[]
   domainLinks       DomainLink[]
+  experienceStories ExperienceStory[]
+  companyTargets    CompanyTarget[]
 
   @@map("users")
 }
@@ -209,6 +221,7 @@ model Experience {
   techTags    String[]   // 기술 스택
 
   resumeItems ResumeItem[]  // Resume에서 재사용
+  stories     ExperienceStory[]
 
   order       Int        @default(0)
   createdAt   DateTime   @default(now())
@@ -218,6 +231,58 @@ model Experience {
   @@map("experiences")
 }
 
+
+
+model ExperienceStory {
+  id           String     @id @default(cuid())
+  ownerId      String
+  owner        User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  experienceId String
+  experience   Experience @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+
+  title        String
+  situation    String     @db.Text
+  task         String     @db.Text
+  action       String     @db.Text
+  result       String     @db.Text
+
+  tags         String[]
+  metricsJson  Json?
+  linksJson    Json?
+
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([ownerId, updatedAt])
+  @@index([experienceId, updatedAt])
+  @@map("experience_stories")
+}
+
+
+model CompanyTarget {
+  id         String              @id @default(cuid())
+  ownerId    String
+  owner      User                @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  company    String
+  role       String
+  status     CompanyTargetStatus @default(INTERESTED)
+  priority   Int                 @default(0)
+
+  summary    String?             @db.Text
+  analysisMd String?             @db.Text
+  linksJson  Json?
+  tags       String[]
+
+  createdAt  DateTime            @default(now())
+  updatedAt  DateTime            @updatedAt
+
+  @@unique([ownerId, company, role])
+  @@index([ownerId, status, updatedAt])
+  @@index([ownerId, priority, updatedAt])
+  @@map("company_targets")
+}
 model Education {
   id          String     @id @default(cuid())
   ownerId     String
