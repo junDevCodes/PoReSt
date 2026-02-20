@@ -1,16 +1,6 @@
-export type OwnerNoteListItemDto = {
-  id: string;
-  notebookId: string;
-  visibility: "PUBLIC" | "UNLISTED" | "PRIVATE";
-  title: string;
-  summary: string | null;
-  tags: string[];
-  updatedAt: string;
-  notebook: {
-    id: string;
-    name: string;
-  };
-};
+﻿import type { SerializedOwnerNoteListItemDto } from "@/app/(private)/app/_lib/server-serializers";
+
+export type OwnerNoteListItemDto = SerializedOwnerNoteListItemDto;
 
 export type NotebookNoteSection = {
   notebook: {
