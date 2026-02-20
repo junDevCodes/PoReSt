@@ -1,4 +1,4 @@
-export type ApiErrorPayload = {
+﻿export type ApiErrorPayload = {
   error?:
     | string
     | {

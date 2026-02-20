@@ -1,25 +1,25 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { getMetadataBase } from "@/lib/site-url";
 import "./globals.css";
 
-const DEFAULT_OG_IMAGE_PATH = "/favicon.ico";
+const DEFAULT_OG_IMAGE_PATH = "/og-default.png";
 
 export const metadata: Metadata = {
   metadataBase: getMetadataBase(),
   title: {
-    default: "Dev OS 포트폴리오",
-    template: "%s | Dev OS",
+    default: "PoReSt 포트폴리오",
+    template: "%s | PoReSt",
   },
-  description: "공개 포트폴리오와 오너 전용 대시보드를 제공하는 Dev OS 프로젝트입니다.",
+  description: "공개 포트폴리오와 개인 작업공간을 함께 제공하는 PoReSt 서비스입니다.",
   alternates: {
     canonical: "/",
   },
   openGraph: {
     type: "website",
-    siteName: "Dev OS",
+    siteName: "PoReSt",
     url: "/",
-    title: "Dev OS 포트폴리오",
-    description: "공개 포트폴리오와 오너 전용 대시보드를 제공하는 Dev OS 프로젝트입니다.",
+    title: "PoReSt 포트폴리오",
+    description: "공개 포트폴리오와 개인 작업공간을 함께 제공하는 PoReSt 서비스입니다.",
     images: [
       {
         url: DEFAULT_OG_IMAGE_PATH,
@@ -27,9 +27,9 @@ export const metadata: Metadata = {
     ],
   },
   twitter: {
-    card: "summary",
-    title: "Dev OS 포트폴리오",
-    description: "공개 포트폴리오와 오너 전용 대시보드를 제공하는 Dev OS 프로젝트입니다.",
+    card: "summary_large_image",
+    title: "PoReSt 포트폴리오",
+    description: "공개 포트폴리오와 개인 작업공간을 함께 제공하는 PoReSt 서비스입니다.",
     images: [DEFAULT_OG_IMAGE_PATH],
   },
 };

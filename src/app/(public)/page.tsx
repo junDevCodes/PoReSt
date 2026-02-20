@@ -1,31 +1,31 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { getMetadataBase } from "@/lib/site-url";
 import { createProjectsService } from "@/modules/projects";
 import { toPublicHomeViewModel } from "@/view-models/public-portfolio";
 
-const DEFAULT_OG_IMAGE_PATH = "/favicon.ico";
+const DEFAULT_OG_IMAGE_PATH = "/og-default.png";
 
 export const metadata: Metadata = {
   metadataBase: getMetadataBase(),
-  title: "Dev OS 포트폴리오",
-  description: "프로젝트와 경력 정보를 제공하는 공개 포트폴리오입니다.",
+  title: "PoReSt 포트폴리오",
+  description: "프로젝트와 경력을 중심으로 문제 해결 과정을 공개하는 포트폴리오입니다.",
   alternates: {
     canonical: "/",
   },
   openGraph: {
     type: "website",
-    siteName: "Dev OS",
+    siteName: "PoReSt",
     url: "/",
-    title: "Dev OS 포트폴리오",
-    description: "프로젝트와 경력 정보를 제공하는 공개 포트폴리오입니다.",
+    title: "PoReSt 포트폴리오",
+    description: "프로젝트와 경력을 중심으로 문제 해결 과정을 공개하는 포트폴리오입니다.",
     images: [{ url: DEFAULT_OG_IMAGE_PATH }],
   },
   twitter: {
-    card: "summary",
-    title: "Dev OS 포트폴리오",
-    description: "프로젝트와 경력 정보를 제공하는 공개 포트폴리오입니다.",
+    card: "summary_large_image",
+    title: "PoReSt 포트폴리오",
+    description: "프로젝트와 경력을 중심으로 문제 해결 과정을 공개하는 포트폴리오입니다.",
     images: [DEFAULT_OG_IMAGE_PATH],
   },
 };
@@ -47,6 +47,21 @@ function buildPublicLinks(publicSlug: string | null) {
     profilePath: `/u/${encoded}`,
     projectsPath: `/u/${encoded}/projects`,
   };
+}
+
+function getPrimaryTitle(displayName: string | null) {
+  return displayName ?? "문제 해결을 기록하는 개발자 포트폴리오";
+}
+
+function getPrimaryHeadline(headline: string | null) {
+  return headline ?? "프로젝트의 맥락, 설계, 결과를 명확하게 전달합니다.";
+}
+
+function getPrimaryBio(bio: string | null) {
+  return (
+    bio ??
+    "PoReSt는 공개 포트폴리오와 개인 작업공간을 함께 제공하는 서비스입니다. 프로젝트와 경력을 구조화해 빠르게 공유할 수 있습니다."
+  );
 }
 
 export default async function HomePage() {
@@ -80,10 +95,10 @@ export default async function HomePage() {
       <main className="relative mx-auto flex min-h-screen w-full max-w-5xl flex-col px-6 py-20">
         <p className="text-xs uppercase tracking-[0.3em] text-black/50">Portfolio</p>
         <h1 className="mt-4 text-4xl font-semibold leading-tight md:text-5xl">
-          {viewModel.profile.displayName}
+          {getPrimaryTitle(viewModel.profile.displayName)}
         </h1>
-        <p className="mt-2 text-xl text-black/70">{viewModel.profile.headline}</p>
-        <p className="mt-4 max-w-3xl text-base leading-7 text-black/60">{viewModel.profile.bio}</p>
+        <p className="mt-2 text-xl text-black/70">{getPrimaryHeadline(viewModel.profile.headline)}</p>
+        <p className="mt-4 max-w-3xl text-base leading-7 text-black/60">{getPrimaryBio(viewModel.profile.bio)}</p>
 
         <div className="mt-8 flex flex-wrap gap-3">
           <Link
@@ -94,9 +109,9 @@ export default async function HomePage() {
           </Link>
           <Link
             className="rounded-full border border-black/20 px-5 py-3 text-sm font-semibold text-black transition hover:border-black/40"
-            href="/login"
+            href="/users"
           >
-            로그인
+            사용자 디렉토리
           </Link>
         </div>
 
@@ -126,7 +141,7 @@ export default async function HomePage() {
 
           {viewModel.featuredProjects.length === 0 ? (
             <div className="mt-6 rounded-2xl border border-black/10 bg-white/70 p-6 text-sm text-black/60">
-              대표 프로젝트를 준비 중입니다.
+              아직 공개된 대표 프로젝트가 없습니다.
             </div>
           ) : (
             <div className="mt-6 grid gap-4 md:grid-cols-3">
@@ -137,10 +152,10 @@ export default async function HomePage() {
                 >
                   <h3 className="text-lg font-semibold">{project.title}</h3>
                   <p className="mt-2 line-clamp-3 text-sm text-black/60">
-                    {project.description ?? "설명 준비 중입니다."}
+                    {project.description ?? "설명이 아직 등록되지 않았습니다."}
                   </p>
                   <p className="mt-3 text-xs text-black/50">
-                    {project.techStack.length > 0 ? project.techStack.join(" · ") : "기술 스택 준비 중"}
+                    {project.techStack.length > 0 ? project.techStack.join(" · ") : "기술 스택 정보 없음"}
                   </p>
                   <Link
                     href={project.publicPath}
@@ -157,11 +172,11 @@ export default async function HomePage() {
         <section className="mt-14">
           <h2 className="text-2xl font-semibold">연락 링크</h2>
           <p className="mt-3 text-sm text-black/60">
-            협업, 기술 논의, 인터뷰 제안은 아래 링크를 통해 연락해주세요.
+            협업, 기술 논의, 인터뷰 제안은 아래 링크로 연락해 주세요.
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
             {viewModel.profile.links.length === 0 ? (
-              <p className="text-sm text-black/60">등록된 링크가 없습니다.</p>
+              <p className="text-sm text-black/60">공개된 연락 링크가 없습니다.</p>
             ) : (
               viewModel.profile.links.map((link) => (
                 <a
@@ -184,6 +199,15 @@ export default async function HomePage() {
             </div>
           ) : null}
         </section>
+
+        <footer className="mt-16 border-t border-black/10 pt-6 text-sm text-black/55">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p>워크스페이스 로그인이 필요한 경우 아래 링크를 사용하세요.</p>
+            <Link href="/login" className="font-semibold text-black/70 hover:text-black">
+              로그인
+            </Link>
+          </div>
+        </footer>
       </main>
     </div>
   );

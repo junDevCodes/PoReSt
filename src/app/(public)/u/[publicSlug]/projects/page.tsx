@@ -1,5 +1,5 @@
+﻿import type { Metadata } from "next";
 import Link from "next/link";
-import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getMetadataBase } from "@/lib/site-url";
@@ -11,7 +11,7 @@ type PublicProjectsPageProps = {
 };
 
 const projectsService = createProjectsService({ prisma });
-const DEFAULT_OG_IMAGE_PATH = "/favicon.ico";
+const DEFAULT_OG_IMAGE_PATH = "/og-default.png";
 
 export async function generateMetadata({ params }: PublicProjectsPageProps): Promise<Metadata> {
   const resolvedParams = await params;
@@ -26,15 +26,15 @@ export async function generateMetadata({ params }: PublicProjectsPageProps): Pro
     },
     openGraph: {
       type: "website",
-      siteName: "Dev OS",
+      siteName: "PoReSt",
       url: canonicalPath,
-      title: "프로젝트 목록 | Dev OS",
+      title: "프로젝트 목록 | PoReSt",
       description: "사용자의 공개 프로젝트 목록",
       images: [{ url: DEFAULT_OG_IMAGE_PATH }],
     },
     twitter: {
-      card: "summary",
-      title: "프로젝트 목록 | Dev OS",
+      card: "summary_large_image",
+      title: "프로젝트 목록 | PoReSt",
       description: "사용자의 공개 프로젝트 목록",
       images: [DEFAULT_OG_IMAGE_PATH],
     },

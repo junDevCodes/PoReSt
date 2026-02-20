@@ -1,5 +1,5 @@
+﻿import type { Metadata } from "next";
 import Link from "next/link";
-import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getMetadataBase } from "@/lib/site-url";
@@ -11,7 +11,7 @@ type PublicProjectDetailByUserProps = {
 };
 
 const projectsService = createProjectsService({ prisma });
-const DEFAULT_OG_IMAGE_PATH = "/favicon.ico";
+const DEFAULT_OG_IMAGE_PATH = "/og-default.png";
 
 export async function generateMetadata({
   params,
@@ -24,7 +24,7 @@ export async function generateMetadata({
       resolvedParams.publicSlug,
       resolvedParams.slug,
     );
-    const socialTitle = `${project.title} | Dev OS`;
+    const socialTitle = `${project.title} | PoReSt`;
     const description = project.subtitle || "프로젝트 상세 페이지";
 
     return {
@@ -36,14 +36,14 @@ export async function generateMetadata({
       },
       openGraph: {
         type: "article",
-        siteName: "Dev OS",
+        siteName: "PoReSt",
         url: canonicalPath,
         title: socialTitle,
         description,
         images: [{ url: DEFAULT_OG_IMAGE_PATH }],
       },
       twitter: {
-        card: "summary",
+        card: "summary_large_image",
         title: socialTitle,
         description,
         images: [DEFAULT_OG_IMAGE_PATH],

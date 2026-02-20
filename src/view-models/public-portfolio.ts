@@ -1,4 +1,4 @@
-const MAX_FEATURED_PROJECTS = 3;
+﻿const MAX_FEATURED_PROJECTS = 3;
 const SECTION_KEYS = ["problem", "approach", "architecture", "results", "links"] as const;
 
 type SectionKey = (typeof SECTION_KEYS)[number];
@@ -95,9 +95,9 @@ function extractSections(contentMd: string): Record<SectionKey, string> {
 export type PublicHomeViewModel = {
   publicSlug: string | null;
   profile: {
-    displayName: string;
-    headline: string;
-    bio: string;
+    displayName: string | null;
+    headline: string | null;
+    bio: string | null;
     avatarUrl: string | null;
     links: Array<{
       label: string;
@@ -163,9 +163,9 @@ export function toPublicHomeViewModel(input: unknown): PublicHomeViewModel {
   return {
     publicSlug: rootPublicSlug,
     profile: {
-      displayName: toNullableString(profileRaw.displayName) ?? "이름을 준비 중입니다.",
-      headline: toNullableString(profileRaw.headline) ?? "헤드라인을 준비 중입니다.",
-      bio: toNullableString(profileRaw.bio) ?? "소개 문구를 준비 중입니다.",
+      displayName: toNullableString(profileRaw.displayName),
+      headline: toNullableString(profileRaw.headline),
+      bio: toNullableString(profileRaw.bio),
       avatarUrl: sanitizeExternalUrl(profileRaw.avatarUrl),
       links: profileLinks
         .map((link) => {

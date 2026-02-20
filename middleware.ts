@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from "next/server";
+﻿import { type NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import {
   buildForwardedHeaders,
@@ -85,4 +85,3 @@ export default async function middleware(request: NextRequest) {
 export const config = {
   matcher: ["/app/:path*", "/api/app/:path*"],
 };
-

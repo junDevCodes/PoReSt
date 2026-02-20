@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getMetadataBase } from "@/lib/site-url";
@@ -8,27 +8,27 @@ import {
   parsePublicUsersSearchParams,
 } from "@/app/(public)/users/_lib/directory";
 
-const DEFAULT_OG_IMAGE_PATH = "/favicon.ico";
+const DEFAULT_OG_IMAGE_PATH = "/og-default.png";
 
 export const metadata: Metadata = {
   metadataBase: getMetadataBase(),
   title: "공개 사용자",
-  description: "publicSlug 기반으로 공개 사용자와 프로젝트 활동을 탐색할 수 있습니다.",
+  description: "publicSlug 기반으로 공개 사용자와 프로젝트를 탐색할 수 있습니다.",
   alternates: {
     canonical: "/users",
   },
   openGraph: {
     type: "website",
-    siteName: "Dev OS",
+    siteName: "PoReSt",
     url: "/users",
-    title: "공개 사용자 | Dev OS",
-    description: "공개 사용자 디렉토리에서 프로필과 프로젝트를 탐색하세요.",
+    title: "공개 사용자 | PoReSt",
+    description: "공개 사용자 디렉토리에서 프로필과 프로젝트를 탐색해 보세요.",
     images: [{ url: DEFAULT_OG_IMAGE_PATH }],
   },
   twitter: {
-    card: "summary",
-    title: "공개 사용자 | Dev OS",
-    description: "공개 사용자 디렉토리에서 프로필과 프로젝트를 탐색하세요.",
+    card: "summary_large_image",
+    title: "공개 사용자 | PoReSt",
+    description: "공개 사용자 디렉토리에서 프로필과 프로젝트를 탐색해 보세요.",
     images: [DEFAULT_OG_IMAGE_PATH],
   },
 };
@@ -71,7 +71,7 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
     <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-6 py-16">
       <h1 className="text-3xl font-semibold">공개 사용자 디렉토리</h1>
       <p className="mt-3 max-w-2xl text-sm text-black/60">
-        publicSlug 기준으로 공개 프로필을 탐색하고, 프로젝트 목록으로 바로 이동할 수 있습니다.
+        publicSlug를 기준으로 공개 프로필을 탐색하고 프로젝트 목록으로 바로 이동할 수 있습니다.
       </p>
 
       <section className="mt-6 rounded-2xl border border-black/10 bg-white p-4">
@@ -125,8 +125,7 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
                   {item.headline ?? "소개 문구가 아직 등록되지 않았습니다."}
                 </p>
                 <p className="mt-3 text-xs text-black/50">
-                  공개 프로젝트 {item.projectCount}개 · 업데이트{" "}
-                  {new Date(item.updatedAt).toISOString().slice(0, 10)}
+                  공개 프로젝트 {item.projectCount}개 · 업데이트 {new Date(item.updatedAt).toISOString().slice(0, 10)}
                 </p>
                 <div className="mt-4 flex gap-2">
                   <Link

@@ -1,31 +1,31 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getMetadataBase } from "@/lib/site-url";
 import { createProjectsService } from "@/modules/projects";
 import { toPublicProjectsListViewModel } from "@/view-models/public-portfolio";
 
-const DEFAULT_OG_IMAGE_PATH = "/favicon.ico";
+const DEFAULT_OG_IMAGE_PATH = "/og-default.png";
 
 export const metadata: Metadata = {
   metadataBase: getMetadataBase(),
   title: "프로젝트 목록",
-  description: "공개된 프로젝트 목록과 핵심 기술 스택을 확인할 수 있습니다.",
+  description: "공개된 프로젝트 목록과 기술 스택을 확인할 수 있습니다.",
   alternates: {
     canonical: "/projects",
   },
   openGraph: {
     type: "website",
-    siteName: "Dev OS",
+    siteName: "PoReSt",
     url: "/projects",
-    title: "프로젝트 목록 | Dev OS",
-    description: "공개된 프로젝트 목록과 핵심 기술 스택을 확인할 수 있습니다.",
+    title: "프로젝트 목록 | PoReSt",
+    description: "공개된 프로젝트 목록과 기술 스택을 확인할 수 있습니다.",
     images: [{ url: DEFAULT_OG_IMAGE_PATH }],
   },
   twitter: {
-    card: "summary",
-    title: "프로젝트 목록 | Dev OS",
-    description: "공개된 프로젝트 목록과 핵심 기술 스택을 확인할 수 있습니다.",
+    card: "summary_large_image",
+    title: "프로젝트 목록 | PoReSt",
+    description: "공개된 프로젝트 목록과 기술 스택을 확인할 수 있습니다.",
     images: [DEFAULT_OG_IMAGE_PATH],
   },
 };
@@ -112,7 +112,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
     <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-6 py-16">
       <h1 className="text-3xl font-semibold">프로젝트</h1>
       <p className="mt-3 max-w-2xl text-sm text-black/60">
-        공개 프로젝트를 문제 정의, 접근 방식, 결과 관점으로 정리했습니다.
+        공개 프로젝트를 문제 정의, 접근 방식, 결과 중심으로 정리했습니다.
       </p>
 
       <section className="mt-6 rounded-2xl border border-black/10 bg-white p-4">
@@ -165,7 +165,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
             >
               <h2 className="text-xl font-semibold">{project.title}</h2>
               <p className="mt-2 line-clamp-3 text-sm text-black/60">
-                {project.description ?? "설명이 아직 없습니다."}
+                {project.description ?? "설명이 아직 등록되지 않았습니다."}
               </p>
               <p className="mt-3 text-xs text-black/45">
                 업데이트: {project.updatedAtLabel || "날짜 정보 없음"}
