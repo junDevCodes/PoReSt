@@ -88,3 +88,17 @@
 - [x] G12 테스트 통과
 - [x] G12 문서 반영
 - [x] G12 배포 확인
+
+## Wave2 server-first 완료
+- [x] `/app/projects` Server-first 전환
+- [x] `/app/experiences` Server-first 전환
+- [x] `/app/resumes` Server-first 전환
+- [x] `/app/notes` Server-first 전환
+- [x] `/app/blog` Server-first 전환
+- [x] 페이지 로컬 DTO 중복 제거
+- [x] 서버 직렬화 유틸(`server-serializers`) 적용
+- [x] 공통 상태 UI(`LoadingBlock`, `EmptyBlock`, `ErrorBanner`) 적용
+- [x] `npm run lint` 통과
+- [x] `npm run build` 통과
+- [x] `npx jest --runInBand` 통과
+- [x] `npm run vercel-build` 통과

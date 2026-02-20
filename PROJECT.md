@@ -1,7 +1,7 @@
 # PoReSt 프로젝트 정의서 (PROJECT.md)
 
 버전: v1.0  
-최종 갱신일: 2026-02-18  
+최종 갱신일: 2026-02-20  
 목표: “공개 포트폴리오(전용 URL)” + “개인 작업공간(/app)”을 하나의 앱에서 안전하게 운영한다.
 
 ---
@@ -139,7 +139,7 @@ Private은 개인 데이터 관리 공간이다.
 핵심 엔티티(요약):
 - Auth: `User`, `Account`, `Session`, `VerificationToken`
 - Portfolio: `PortfolioSettings`, `PortfolioLink`, `Project`, `ProjectLink`, `Experience` 등
-- Private: `ExperienceStory`(STAR ???), `CompanyTarget`(?? ?? ??)
+- Private: `ExperienceStory`(STAR 스토리), `CompanyTarget`(회사+직무 분석 카드)
 - Resume: `Resume`, `ResumeItem`, `ResumeShareLink`
 - Notes: `Notebook`, `Note`, `NoteEdge`, `NoteEmbedding`
 - Blog: `BlogPost`, `BlogExportArtifact`, `BlogIntegration` 등
@@ -278,4 +278,33 @@ Windows에서 `prisma schema-engine` 실행 시 `spawn EPERM`이 발생할 수 �
 - 신규 사용자가 5분 내에 `/u/[publicSlug]` 공유 링크를 얻는다.
 - `publicSlug` 변경 시 경고 문구가 명확히 표시된다(리다이렉트 없음 명시).
 - `/users` 디렉토리에는 공개 프로젝트가 1개 이상인 사용자만 노출된다.
+
+---
+
+## 13) Wave 2 적용 상태 (2026-02-20)
+### 13.1 대상 범위(핵심 5페이지)
+- `/app/projects`
+- `/app/experiences`
+- `/app/resumes`
+- `/app/notes`
+- `/app/blog`
+
+### 13.2 렌더링 패턴(고정)
+- `page.tsx`는 Server Component 로더 역할로 동작한다.
+- 서버에서 세션/ownerId를 확보하고 서비스 계층을 직접 호출한다.
+- 초기 데이터는 직렬화 후 `*PageClient.tsx`의 `initial*` props로 전달한다.
+- 클라이언트 컴포넌트는 생성/수정/삭제 등 상호작용과 재동기화만 담당한다.
+
+### 13.3 공통 기반
+- `src/app/(private)/app/_lib/server-auth.ts`
+  - `getRequiredOwnerSession(nextPath)`로 인증 세션 강제 및 로그인 리다이렉트 통일
+- `src/app/(private)/app/_lib/server-serializers.ts`
+  - Date 포함 DTO를 클라이언트 안전 타입으로 변환
+- `src/components/ui/AsyncState.tsx`
+  - `LoadingBlock`, `EmptyBlock`, `ErrorBanner` 공통 상태 UI 제공
+
+### 13.4 기대 효과
+- 첫 진입 시 `useEffect + fetch` 초기 로딩 플리커 감소
+- 페이지 로컬 DTO 중복 정의 제거로 타입 정합성 향상
+- 로딩/빈 상태/인라인 오류 표현 방식 표준화
 

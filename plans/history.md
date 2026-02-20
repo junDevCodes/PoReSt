@@ -345,3 +345,23 @@
 - 리스크/후속 항목:
   - 신규 기능 리스크 없음
   - UI/UX 고도화 라운드에서 디자인/인터랙션 개선 작업만 후속 진행
+
+### 완료일: 2026-02-20
+- 기능 ID(Gx): Wave2 (Server-first 전환 + 타입 중복 제거)
+- 핵심 변경:
+  - Private 핵심 5페이지(`/app/projects`, `/app/experiences`, `/app/resumes`, `/app/notes`, `/app/blog`)를 Server-first 구조로 전환
+  - `page.tsx` 서버 로더 + `*PageClient.tsx` 상호작용 컴포넌트 분리
+  - 공통 인증/직렬화 유틸 추가
+    - `src/app/(private)/app/_lib/server-auth.ts`
+    - `src/app/(private)/app/_lib/server-serializers.ts`
+  - 공통 상태 UI 컴포넌트 추가
+    - `src/components/ui/AsyncState.tsx`
+  - 페이지 로컬 DTO 선언 제거 및 도메인 타입 import로 통일
+- 테스트/배포 결과:
+  - `npm run lint` 통과
+  - `npm run build` 통과
+  - `npx jest --runInBand` 통과
+  - `npm run vercel-build` 통과
+- 리스크/후속 항목:
+  - 리스트/상세 편집 페이지 전 범위 확장 전환은 후속 Wave에서 진행
+  - 전역 Toast/Confirm 패턴의 상세 페이지 일괄 적용 여부는 UX 고도화 라운드에서 마무리

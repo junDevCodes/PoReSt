@@ -279,3 +279,33 @@ v1 선택지 2개 중 하나로 고정(초기에 흔들리지 않게)
 - 임베딩 유사도 조회 API(`GET /api/app/notes/[id]/similar`)로 Top-N 후보 탐색 지원
 - `note_embeddings` ivfflat 코사인 인덱스로 유사도 검색 비용 최적화
 - 공개 사용자 디렉토리 API(`GET /api/public/users`)로 publicSlug 탐색 진입점 제공
+
+---
+
+## Wave 2 아키텍처 패턴 (2026-02-20)
+
+### 목적
+- Private 핵심 5페이지의 초기 로딩 플리커를 줄이고 서버/클라이언트 책임을 분리한다.
+
+### 패턴
+- **Server Loader + Client Interaction**
+1. Server Component `page.tsx`가 인증 세션 확보와 초기 데이터 조회를 담당한다.
+2. 초기 데이터는 직렬화 계층(`server-serializers`)을 통해 안전한 클라이언트 타입으로 전달한다.
+3. Client Component(`*PageClient.tsx`)는 사용자 액션 처리와 재조회만 담당한다.
+
+### 적용 범위
+- `/app/projects`
+- `/app/experiences`
+- `/app/resumes`
+- `/app/notes`
+- `/app/blog`
+
+### 공통 기반 컴포넌트
+- 인증 유틸: `src/app/(private)/app/_lib/server-auth.ts`
+- 직렬화 유틸: `src/app/(private)/app/_lib/server-serializers.ts`
+- 상태 UI: `src/components/ui/AsyncState.tsx`
+
+### 기대 효과
+- 초기 화면에서 빈 로딩 상태를 최소화한다.
+- 페이지별 DTO 중복 정의를 제거해 타입 drift를 줄인다.
+- 로딩/빈 상태/에러 표현을 공통 컴포넌트로 표준화한다.

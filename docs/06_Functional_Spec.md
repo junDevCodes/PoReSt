@@ -326,3 +326,32 @@
 
 ### G5 Blog Lint Rule10
 - 헤딩 레벨 점프 감지(`HEADING_LEVEL_JUMP`)를 추가하여 문서 구조 품질 점검
+
+---
+
+## Wave 2 Server-First 전환 (2026-02-20)
+
+### 대상 페이지
+- `/app/projects`
+- `/app/experiences`
+- `/app/resumes`
+- `/app/notes`
+- `/app/blog`
+
+### 렌더링 흐름
+1. `page.tsx`(Server Component)에서 세션/ownerId를 확보한다.
+2. 도메인 서비스(`create*Service`)를 직접 호출해 초기 목록 데이터를 조회한다.
+3. 서버에서 DTO 직렬화를 수행한 뒤 `*PageClient.tsx`에 `initial*` props로 전달한다.
+4. `*PageClient.tsx`는 사용자 액션(CRUD/Lint)과 액션 이후 재조회만 담당한다.
+
+### UX/상태 표준
+- 초기 로딩: 서버 초기 props를 사용해 첫 렌더에서 즉시 목록을 표시한다.
+- 인라인 오류: `ErrorBanner`를 사용한다.
+- 빈 상태: `EmptyBlock`을 사용한다.
+- 로딩 블록: `LoadingBlock`을 사용한다.
+- 작업 결과 피드백: `useToast()`를 사용한다.
+
+### 타입 정책
+- 페이지 로컬 DTO 선언을 제거한다.
+- 타입은 각 도메인 모듈(`@/modules/*`)에서 import한다.
+- Date 필드는 서버 직렬화 유틸에서 ISO string으로 변환해 전달한다.
