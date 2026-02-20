@@ -1,12 +1,14 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import type { FormEvent } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { parseApiResponse } from "@/app/(private)/app/_lib/admin-api";
 import {
   buildNotebookSections,
   type OwnerNoteListItemDto,
 } from "@/app/(private)/app/notes/_lib/list";
+import { useToast } from "@/components/ui/useToast";
 
 type OwnerNotebookDto = {
   id: string;
@@ -56,6 +58,7 @@ export default function NotesPage() {
     summary: "",
     tags: "",
   });
+  const toast = useToast();
 
   async function loadData() {
     setIsLoading(true);
@@ -111,12 +114,14 @@ export default function NotesPage() {
     const parsed = await parseApiResponse<OwnerNotebookDto>(response);
     if (parsed.error) {
       setError(parsed.error);
+      toast.error(parsed.error);
       setIsCreatingNotebook(false);
       return;
     }
 
     setNewNotebookName("");
     setNewNotebookDescription("");
+    toast.success("노트북을 생성했습니다.");
     await loadData();
     setIsCreatingNotebook(false);
   }
@@ -130,10 +135,12 @@ export default function NotesPage() {
 
     if (parsed.error) {
       setError(parsed.error);
+      toast.error(parsed.error);
       setDeletingNotebookId(null);
       return;
     }
 
+    toast.success("노트북을 삭제했습니다.");
     await loadData();
     setDeletingNotebookId(null);
   }
@@ -158,6 +165,7 @@ export default function NotesPage() {
     const parsed = await parseApiResponse<OwnerNoteListItemDto>(response);
     if (parsed.error) {
       setError(parsed.error);
+      toast.error(parsed.error);
       setIsCreatingNote(false);
       return;
     }
@@ -169,48 +177,49 @@ export default function NotesPage() {
       summary: "",
       tags: "",
     }));
+    toast.success("노트를 생성했습니다.");
     await loadData();
     setIsCreatingNote(false);
   }
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6 py-12">
+    <div className="mx-auto flex w-full max-w-6xl flex-col">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-white/50">관리</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-black/45">관리</p>
           <h1 className="mt-2 text-3xl font-semibold">노트 관리</h1>
-          <p className="mt-3 text-sm text-white/65">
-            노트북을 만들고 노트를 작성한 뒤 상세 페이지에서 연관 후보를 관리할 수 있습니다.
+          <p className="mt-3 text-sm text-black/65">
+            노트북을 만들고 노트를 작성한 뒤, 상세 페이지에서 연관 후보를 관리할 수 있습니다.
           </p>
         </div>
       </header>
 
       {error ? (
-        <p className="mt-6 rounded-xl border border-rose-400/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+        <p className="mt-6 rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-800">
           {error}
         </p>
       ) : null}
 
       <section className="mt-8 grid gap-6 lg:grid-cols-2">
-        <article className="rounded-2xl border border-white/10 bg-white/5 p-6">
+        <article className="rounded-2xl border border-black/10 bg-white p-6">
           <h2 className="text-lg font-semibold">노트북 생성</h2>
           <form onSubmit={handleCreateNotebook} className="mt-4 grid gap-3">
             <input
               value={newNotebookName}
               onChange={(event) => setNewNotebookName(event.target.value)}
-              className="rounded-lg border border-white/20 bg-black/20 px-3 py-2 text-sm"
-              placeholder="예: 백엔드, 자료구조"
+              className="rounded-lg border border-black/15 bg-white px-3 py-2 text-sm"
+              placeholder="예: 백엔드 자료구조"
             />
             <textarea
               value={newNotebookDescription}
               onChange={(event) => setNewNotebookDescription(event.target.value)}
-              className="min-h-24 rounded-lg border border-white/20 bg-black/20 px-3 py-2 text-sm"
+              className="min-h-24 rounded-lg border border-black/15 bg-white px-3 py-2 text-sm"
               placeholder="노트북 설명 (선택)"
             />
             <button
               type="submit"
               disabled={isCreatingNotebook || newNotebookName.trim().length === 0}
-              className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-black disabled:opacity-50"
+              className="rounded-full bg-black px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
             >
               {isCreatingNotebook ? "생성 중..." : "노트북 생성"}
             </button>
@@ -220,11 +229,11 @@ export default function NotesPage() {
             {notebooks.map((notebook) => (
               <li
                 key={notebook.id}
-                className="flex items-center justify-between rounded-lg border border-white/10 bg-black/20 px-3 py-2"
+                className="flex items-center justify-between rounded-lg border border-black/10 bg-[#faf9f6] px-3 py-2"
               >
                 <div>
                   <p className="text-sm font-medium">{notebook.name}</p>
-                  <p className="mt-1 text-xs text-white/55">
+                  <p className="mt-1 text-xs text-black/55">
                     노트 {notebook.noteCount}개 · 수정일 {formatUpdatedAtLabel(notebook.updatedAt)}
                   </p>
                 </div>
@@ -232,7 +241,7 @@ export default function NotesPage() {
                   type="button"
                   onClick={() => void handleDeleteNotebook(notebook.id)}
                   disabled={deletingNotebookId === notebook.id || notebook.noteCount > 0}
-                  className="rounded-lg border border-rose-400/50 px-3 py-1 text-xs text-rose-200 disabled:opacity-50"
+                  className="rounded-lg border border-rose-300 px-3 py-1 text-xs text-rose-800 disabled:opacity-50"
                   title={
                     notebook.noteCount > 0
                       ? "노트가 남아 있는 노트북은 삭제할 수 없습니다."
@@ -246,7 +255,7 @@ export default function NotesPage() {
           </ul>
         </article>
 
-        <article className="rounded-2xl border border-white/10 bg-white/5 p-6">
+        <article className="rounded-2xl border border-black/10 bg-white p-6">
           <h2 className="text-lg font-semibold">노트 작성</h2>
           <form onSubmit={handleCreateNote} className="mt-4 grid gap-3">
             <select
@@ -257,7 +266,7 @@ export default function NotesPage() {
                   notebookId: event.target.value,
                 }))
               }
-              className="rounded-lg border border-white/20 bg-black/20 px-3 py-2 text-sm"
+              className="rounded-lg border border-black/15 bg-white px-3 py-2 text-sm"
             >
               <option value="">노트북 선택</option>
               {notebooks.map((notebook) => (
@@ -270,25 +279,25 @@ export default function NotesPage() {
             <input
               value={noteForm.title}
               onChange={(event) => setNoteForm((prev) => ({ ...prev, title: event.target.value }))}
-              className="rounded-lg border border-white/20 bg-black/20 px-3 py-2 text-sm"
+              className="rounded-lg border border-black/15 bg-white px-3 py-2 text-sm"
               placeholder="노트 제목"
             />
             <textarea
               value={noteForm.summary}
               onChange={(event) => setNoteForm((prev) => ({ ...prev, summary: event.target.value }))}
-              className="min-h-20 rounded-lg border border-white/20 bg-black/20 px-3 py-2 text-sm"
+              className="min-h-20 rounded-lg border border-black/15 bg-white px-3 py-2 text-sm"
               placeholder="요약 (선택)"
             />
             <textarea
               value={noteForm.contentMd}
               onChange={(event) => setNoteForm((prev) => ({ ...prev, contentMd: event.target.value }))}
-              className="min-h-32 rounded-lg border border-white/20 bg-black/20 px-3 py-2 text-sm"
+              className="min-h-32 rounded-lg border border-black/15 bg-white px-3 py-2 text-sm"
               placeholder="노트 본문 (Markdown)"
             />
             <input
               value={noteForm.tags}
               onChange={(event) => setNoteForm((prev) => ({ ...prev, tags: event.target.value }))}
-              className="rounded-lg border border-white/20 bg-black/20 px-3 py-2 text-sm"
+              className="rounded-lg border border-black/15 bg-white px-3 py-2 text-sm"
               placeholder="태그 (쉼표로 구분)"
             />
             <button
@@ -299,7 +308,7 @@ export default function NotesPage() {
                 noteForm.title.trim().length === 0 ||
                 noteForm.contentMd.trim().length === 0
               }
-              className="rounded-full bg-emerald-300 px-4 py-2 text-sm font-semibold text-black disabled:opacity-50"
+              className="rounded-full bg-black px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
             >
               {isCreatingNote ? "저장 중..." : "노트 저장"}
             </button>
@@ -307,33 +316,33 @@ export default function NotesPage() {
         </article>
       </section>
 
-      <section className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-6">
-        <h2 className="text-lg font-semibold">노트북/노트 목록</h2>
+      <section className="mt-8 rounded-2xl border border-black/10 bg-white p-6">
+        <h2 className="text-lg font-semibold">노트북별 노트 목록</h2>
         {isLoading ? (
-          <p className="mt-4 text-sm text-white/60">노트 목록을 불러오는 중입니다.</p>
+          <p className="mt-4 text-sm text-black/60">노트 목록을 불러오는 중입니다.</p>
         ) : sections.length === 0 ? (
-          <p className="mt-4 text-sm text-white/60">등록된 노트가 없습니다.</p>
+          <p className="mt-4 text-sm text-black/60">등록된 노트가 없습니다.</p>
         ) : (
           <div className="mt-5 space-y-5">
             {sections.map((section) => (
-              <article key={section.notebook.id} className="rounded-xl border border-white/10 bg-black/20 p-4">
+              <article key={section.notebook.id} className="rounded-xl border border-black/10 bg-[#faf9f6] p-4">
                 <header className="flex items-center justify-between gap-2">
                   <h3 className="text-lg font-semibold">{section.notebook.name}</h3>
-                  <span className="text-xs text-white/50">{section.notes.length}개 노트</span>
+                  <span className="text-xs text-black/50">{section.notes.length}개 노트</span>
                 </header>
                 <ul className="mt-3 space-y-2">
                   {section.notes.map((note) => (
-                    <li key={note.id} className="rounded-lg border border-white/10 bg-black/30 px-3 py-2">
+                    <li key={note.id} className="rounded-lg border border-black/10 bg-white px-3 py-2">
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <div>
                           <p className="text-sm font-medium">{note.title}</p>
-                          <p className="mt-1 text-xs text-white/55">
-                            수정일: {formatUpdatedAtLabel(note.updatedAt)} · 공개상태: {note.visibility}
+                          <p className="mt-1 text-xs text-black/55">
+                            수정일 {formatUpdatedAtLabel(String(note.updatedAt))} · 공개상태: {note.visibility}
                           </p>
                         </div>
                         <Link
                           href={`/app/notes/${note.id}`}
-                          className="rounded-lg border border-emerald-400/50 px-3 py-2 text-xs text-emerald-200"
+                          className="rounded-lg border border-emerald-300 px-3 py-2 text-xs text-emerald-800"
                         >
                           상세 보기
                         </Link>
@@ -346,6 +355,6 @@ export default function NotesPage() {
           </div>
         )}
       </section>
-    </main>
+    </div>
   );
 }

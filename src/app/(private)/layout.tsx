@@ -1,9 +1,9 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import "../(public)/globals.css";
 
 export const metadata: Metadata = {
-  title: "Dev OS — Workspace",
-  description: "Dev OS 사용자 워크스페이스입니다.",
+  title: "PoReSt Workspace",
+  description: "PoReSt 사용자 작업공간입니다.",
   robots: {
     index: false,
     follow: false,
@@ -18,9 +18,7 @@ export default function PrivateLayout({
 }>) {
   return (
     <html lang="ko">
-      <body className="min-h-screen bg-[#0c0f14] text-white antialiased">
-        {children}
-      </body>
+      <body className="min-h-screen bg-[#f6f5f2] text-[#1a1a1a] antialiased">{children}</body>
     </html>
   );
 }

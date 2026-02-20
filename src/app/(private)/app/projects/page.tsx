@@ -1,8 +1,10 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { parseApiResponse } from "@/app/(private)/app/_lib/admin-api";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { useToast } from "@/components/ui/useToast";
 
 type Visibility = "PUBLIC" | "UNLISTED" | "PRIVATE";
 type VisibilityFilter = "ALL" | Visibility;
@@ -36,8 +38,9 @@ export default function ProjectsAdminPage() {
   const [featuredFilter, setFeaturedFilter] = useState<FeaturedFilter>("ALL");
   const [sortOption, setSortOption] = useState<SortOption>("UPDATED_DESC");
   const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [pendingDeleteProject, setPendingDeleteProject] = useState<OwnerProjectDto | null>(null);
+  const toast = useToast();
 
   async function requestProjects() {
     const response = await fetch("/api/app/projects", { method: "GET" });
@@ -83,28 +86,28 @@ export default function ProjectsAdminPage() {
     };
   }, []);
 
-  async function handleDelete(project: OwnerProjectDto) {
-    const shouldDelete = confirm(`"${project.title}" 프로젝트를 삭제하시겠습니까?`);
-    if (!shouldDelete) {
+  async function handleDeleteConfirmed() {
+    if (!pendingDeleteProject) {
       return;
     }
 
-    setDeletingId(project.id);
+    setDeletingId(pendingDeleteProject.id);
     setError(null);
-    setMessage(null);
 
-    const response = await fetch(`/api/app/projects/${project.id}`, {
+    const response = await fetch(`/api/app/projects/${pendingDeleteProject.id}`, {
       method: "DELETE",
     });
     const parsed = await parseApiResponse<{ id: string }>(response);
     if (parsed.error) {
       setError(parsed.error);
+      toast.error(parsed.error);
       setDeletingId(null);
       return;
     }
 
-    setMessage("프로젝트가 삭제되었습니다.");
+    toast.success("프로젝트를 삭제했습니다.");
     setDeletingId(null);
+    setPendingDeleteProject(null);
     await reloadProjects();
   }
 
@@ -141,21 +144,24 @@ export default function ProjectsAdminPage() {
   }, [featuredFilter, projects, sortOption, visibilityFilter]);
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6 py-12">
+    <div className="mx-auto flex w-full max-w-6xl flex-col">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-white/50">관리</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-black/45">관리</p>
           <h1 className="mt-2 text-3xl font-semibold">프로젝트 관리</h1>
-          <p className="mt-3 text-sm text-white/65">
+          <p className="mt-3 text-sm text-black/65">
             목록에서 검색 조건을 조정하고, 생성/편집 페이지로 이동해 작업합니다.
           </p>
         </div>
-        <Link href="/app/projects/new" className="rounded-full bg-white px-5 py-2 text-sm font-semibold text-black">
+        <Link
+          href="/app/projects/new"
+          className="rounded-full bg-black px-5 py-2 text-sm font-semibold text-white"
+        >
           새 프로젝트
         </Link>
       </header>
 
-      <section className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-6">
+      <section className="mt-8 rounded-2xl border border-black/10 bg-white p-6">
         <h2 className="text-lg font-semibold">정렬/필터</h2>
         <div className="mt-4 grid gap-3 md:grid-cols-3">
           <label className="flex flex-col gap-2 text-sm">
@@ -163,7 +169,7 @@ export default function ProjectsAdminPage() {
             <select
               value={visibilityFilter}
               onChange={(event) => setVisibilityFilter(event.target.value as VisibilityFilter)}
-              className="rounded-lg border border-white/20 bg-black/20 px-3 py-2"
+              className="rounded-lg border border-black/15 bg-white px-3 py-2"
             >
               <option value="ALL">전체</option>
               <option value="PUBLIC">PUBLIC</option>
@@ -177,7 +183,7 @@ export default function ProjectsAdminPage() {
             <select
               value={featuredFilter}
               onChange={(event) => setFeaturedFilter(event.target.value as FeaturedFilter)}
-              className="rounded-lg border border-white/20 bg-black/20 px-3 py-2"
+              className="rounded-lg border border-black/15 bg-white px-3 py-2"
             >
               <option value="ALL">전체</option>
               <option value="FEATURED">대표만</option>
@@ -190,10 +196,10 @@ export default function ProjectsAdminPage() {
             <select
               value={sortOption}
               onChange={(event) => setSortOption(event.target.value as SortOption)}
-              className="rounded-lg border border-white/20 bg-black/20 px-3 py-2"
+              className="rounded-lg border border-black/15 bg-white px-3 py-2"
             >
-              <option value="UPDATED_DESC">최근 수정순</option>
-              <option value="UPDATED_ASC">오래된 수정순</option>
+              <option value="UPDATED_DESC">최근 수정 순</option>
+              <option value="UPDATED_ASC">오래된 수정 순</option>
               <option value="TITLE_ASC">제목 오름차순</option>
               <option value="TITLE_DESC">제목 내림차순</option>
             </select>
@@ -202,33 +208,28 @@ export default function ProjectsAdminPage() {
       </section>
 
       {error ? (
-        <p className="mt-6 rounded-xl border border-rose-400/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+        <p className="mt-6 rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-800">
           {error}
         </p>
       ) : null}
-      {message ? (
-        <p className="mt-6 rounded-xl border border-emerald-400/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
-          {message}
-        </p>
-      ) : null}
 
-      <section className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-6">
+      <section className="mt-8 rounded-2xl border border-black/10 bg-white p-6">
         <h2 className="text-lg font-semibold">프로젝트 목록</h2>
 
         {isLoading ? (
-          <p className="mt-4 text-sm text-white/65">프로젝트 목록을 불러오는 중입니다.</p>
+          <p className="mt-4 text-sm text-black/65">프로젝트 목록을 불러오는 중입니다.</p>
         ) : filteredProjects.length === 0 ? (
-          <p className="mt-4 text-sm text-white/65">조건에 맞는 프로젝트가 없습니다.</p>
+          <p className="mt-4 text-sm text-black/65">조건에 맞는 프로젝트가 없습니다.</p>
         ) : (
           <div className="mt-4 space-y-3">
             {filteredProjects.map((project) => (
-              <article key={project.id} className="rounded-xl border border-white/10 bg-black/20 p-4">
+              <article key={project.id} className="rounded-xl border border-black/10 bg-[#faf9f6] p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <p className="text-xs text-white/50">slug: {project.slug}</p>
+                    <p className="text-xs text-black/50">slug: {project.slug}</p>
                     <h3 className="mt-1 text-lg font-semibold">{project.title}</h3>
-                    <p className="mt-2 text-xs text-white/60">
-                      수정일: {formatUpdatedAtLabel(project.updatedAt)} · 공개상태: {project.visibility} ·
+                    <p className="mt-2 text-xs text-black/60">
+                      수정일 {formatUpdatedAtLabel(project.updatedAt)} · 공개상태: {project.visibility} ·
                       {project.isFeatured ? " 대표 프로젝트" : " 일반 프로젝트"}
                     </p>
                   </div>
@@ -236,21 +237,21 @@ export default function ProjectsAdminPage() {
                   <div className="flex flex-wrap gap-2">
                     <Link
                       href={`/projects/${project.slug}`}
-                      className="rounded-lg border border-white/20 px-3 py-2 text-sm text-white/90"
+                      className="rounded-lg border border-black/20 px-3 py-2 text-sm text-black/85"
                     >
                       공개 보기
                     </Link>
                     <Link
                       href={`/app/projects/${project.id}/edit`}
-                      className="rounded-lg border border-emerald-400/50 px-3 py-2 text-sm text-emerald-200"
+                      className="rounded-lg border border-emerald-300 px-3 py-2 text-sm text-emerald-800"
                     >
                       편집
                     </Link>
                     <button
                       type="button"
-                      onClick={() => void handleDelete(project)}
+                      onClick={() => setPendingDeleteProject(project)}
                       disabled={deletingId === project.id}
-                      className="rounded-lg border border-rose-400/50 px-3 py-2 text-sm text-rose-200 disabled:opacity-60"
+                      className="rounded-lg border border-rose-300 px-3 py-2 text-sm text-rose-800 disabled:opacity-60"
                     >
                       {deletingId === project.id ? "삭제 중..." : "삭제"}
                     </button>
@@ -261,6 +262,28 @@ export default function ProjectsAdminPage() {
           </div>
         )}
       </section>
-    </main>
+
+      <ConfirmDialog
+        open={Boolean(pendingDeleteProject)}
+        title="프로젝트를 삭제할까요?"
+        description={
+          pendingDeleteProject
+            ? `"${pendingDeleteProject.title}" 프로젝트를 삭제하면 복구할 수 없습니다.`
+            : "프로젝트를 삭제합니다."
+        }
+        confirmText="삭제"
+        cancelText="취소"
+        isDanger
+        isLoading={Boolean(deletingId)}
+        onCancel={() => {
+          if (!deletingId) {
+            setPendingDeleteProject(null);
+          }
+        }}
+        onConfirm={() => {
+          void handleDeleteConfirmed();
+        }}
+      />
+    </div>
   );
 }

@@ -1,7 +1,9 @@
-"use client";
+﻿"use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import type { FormEvent } from "react";
+import { useEffect, useState } from "react";
 import { parseApiResponse } from "@/app/(private)/app/_lib/admin-api";
+import { useToast } from "@/components/ui/useToast";
 
 type Visibility = "PUBLIC" | "UNLISTED" | "PRIVATE";
 
@@ -41,7 +43,7 @@ export default function ExperiencesAdminPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
+  const toast = useToast();
 
   async function requestExperiences() {
     const response = await fetch("/api/app/experiences", { method: "GET" });
@@ -109,7 +111,6 @@ export default function ExperiencesAdminPage() {
     event.preventDefault();
     setIsCreating(true);
     setError(null);
-    setMessage(null);
 
     const payload = {
       company: createForm.company,
@@ -131,12 +132,13 @@ export default function ExperiencesAdminPage() {
 
     if (parsed.error) {
       setError(parsed.error);
+      toast.error(parsed.error);
       setIsCreating(false);
       return;
     }
 
     setCreateForm(DEFAULT_CREATE_FORM);
-    setMessage("경력이 생성되었습니다.");
+    toast.success("경력을 생성했습니다.");
     setIsCreating(false);
     await reloadExperiences();
   }
@@ -148,7 +150,6 @@ export default function ExperiencesAdminPage() {
     }
 
     setError(null);
-    setMessage(null);
 
     const response = await fetch(`/api/app/experiences/${experienceId}`, {
       method: "PUT",
@@ -159,16 +160,16 @@ export default function ExperiencesAdminPage() {
 
     if (parsed.error) {
       setError(parsed.error);
+      toast.error(parsed.error);
       return;
     }
 
-    setMessage("경력이 수정되었습니다.");
+    toast.success("경력을 수정했습니다.");
     await reloadExperiences();
   }
 
   async function handleDelete(experienceId: string) {
     setError(null);
-    setMessage(null);
 
     const response = await fetch(`/api/app/experiences/${experienceId}`, {
       method: "DELETE",
@@ -177,21 +178,22 @@ export default function ExperiencesAdminPage() {
 
     if (parsed.error) {
       setError(parsed.error);
+      toast.error(parsed.error);
       return;
     }
 
-    setMessage("경력이 삭제되었습니다.");
+    toast.success("경력을 삭제했습니다.");
     await reloadExperiences();
   }
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6 py-12">
+    <div className="mx-auto flex w-full max-w-6xl flex-col">
       <header>
-        <p className="text-xs uppercase tracking-[0.3em] text-white/50">관리</p>
+        <p className="text-xs uppercase tracking-[0.3em] text-black/45">관리</p>
         <h1 className="mt-2 text-3xl font-semibold">경력 관리</h1>
       </header>
 
-      <section className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-6">
+      <section className="mt-8 rounded-2xl border border-black/10 bg-white p-6">
         <h2 className="text-lg font-semibold">새 경력 생성</h2>
         <form onSubmit={handleCreate} className="mt-4 grid gap-3 md:grid-cols-2">
           <input
@@ -200,13 +202,13 @@ export default function ExperiencesAdminPage() {
               setCreateForm((prev) => ({ ...prev, company: event.target.value }))
             }
             placeholder="회사명"
-            className="rounded-lg border border-white/20 bg-black/20 px-3 py-2 text-sm"
+            className="rounded-lg border border-black/15 bg-white px-3 py-2 text-sm"
           />
           <input
             value={createForm.role}
             onChange={(event) => setCreateForm((prev) => ({ ...prev, role: event.target.value }))}
             placeholder="역할"
-            className="rounded-lg border border-white/20 bg-black/20 px-3 py-2 text-sm"
+            className="rounded-lg border border-black/15 bg-white px-3 py-2 text-sm"
           />
           <input
             type="date"
@@ -214,14 +216,14 @@ export default function ExperiencesAdminPage() {
             onChange={(event) =>
               setCreateForm((prev) => ({ ...prev, startDate: event.target.value }))
             }
-            className="rounded-lg border border-white/20 bg-black/20 px-3 py-2 text-sm"
+            className="rounded-lg border border-black/15 bg-white px-3 py-2 text-sm"
           />
           <select
             value={createForm.visibility}
             onChange={(event) =>
               setCreateForm((prev) => ({ ...prev, visibility: event.target.value as Visibility }))
             }
-            className="rounded-lg border border-white/20 bg-black/20 px-3 py-2 text-sm"
+            className="rounded-lg border border-black/15 bg-white px-3 py-2 text-sm"
           >
             <option value="PUBLIC">PUBLIC</option>
             <option value="UNLISTED">UNLISTED</option>
@@ -250,7 +252,7 @@ export default function ExperiencesAdminPage() {
           <button
             type="submit"
             disabled={isCreating}
-            className="rounded-full bg-white px-5 py-2 text-sm font-semibold text-black disabled:opacity-60 md:col-span-2 md:justify-self-start"
+            className="rounded-full bg-black px-5 py-2 text-sm font-semibold text-white disabled:opacity-60 md:col-span-2 md:justify-self-start"
           >
             {isCreating ? "생성 중..." : "경력 생성"}
           </button>
@@ -258,23 +260,18 @@ export default function ExperiencesAdminPage() {
       </section>
 
       {error ? (
-        <p className="mt-6 rounded-xl border border-rose-400/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+        <p className="mt-6 rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-800">
           {error}
         </p>
       ) : null}
-      {message ? (
-        <p className="mt-6 rounded-xl border border-emerald-400/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
-          {message}
-        </p>
-      ) : null}
 
-      <section className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-6">
+      <section className="mt-8 rounded-2xl border border-black/10 bg-white p-6">
         <h2 className="text-lg font-semibold">경력 목록</h2>
 
         {isLoading ? (
-          <p className="mt-4 text-sm text-white/65">경력 목록을 불러오는 중입니다.</p>
+          <p className="mt-4 text-sm text-black/65">경력 목록을 불러오는 중입니다.</p>
         ) : experiences.length === 0 ? (
-          <p className="mt-4 text-sm text-white/65">등록된 경력이 없습니다.</p>
+          <p className="mt-4 text-sm text-black/65">등록된 경력이 없습니다.</p>
         ) : (
           <div className="mt-4 space-y-3">
             {experiences.map((experience) => {
@@ -286,7 +283,7 @@ export default function ExperiencesAdminPage() {
               };
 
               return (
-                <article key={experience.id} className="rounded-xl border border-white/10 bg-black/20 p-4">
+                <article key={experience.id} className="rounded-xl border border-black/10 bg-[#faf9f6] p-4">
                   <p className="text-sm font-medium">{experience.company}</p>
                   <div className="mt-2 grid gap-2 md:grid-cols-[1.2fr_160px_96px_96px_80px_80px]">
                     <input
@@ -297,7 +294,7 @@ export default function ExperiencesAdminPage() {
                           [experience.id]: { ...editor, role: event.target.value },
                         }))
                       }
-                      className="rounded-lg border border-white/20 bg-black/30 px-3 py-2 text-sm"
+                      className="rounded-lg border border-black/15 bg-white px-3 py-2 text-sm"
                     />
                     <select
                       value={editor.visibility}
@@ -310,13 +307,13 @@ export default function ExperiencesAdminPage() {
                           },
                         }))
                       }
-                      className="rounded-lg border border-white/20 bg-black/30 px-3 py-2 text-sm"
+                      className="rounded-lg border border-black/15 bg-white px-3 py-2 text-sm"
                     >
                       <option value="PUBLIC">PUBLIC</option>
                       <option value="UNLISTED">UNLISTED</option>
                       <option value="PRIVATE">PRIVATE</option>
                     </select>
-                    <label className="flex items-center gap-2 rounded-lg border border-white/20 bg-black/30 px-3 py-2 text-sm">
+                    <label className="flex items-center gap-2 rounded-lg border border-black/15 bg-white px-3 py-2 text-sm">
                       <input
                         type="checkbox"
                         checked={editor.isFeatured}
@@ -332,7 +329,7 @@ export default function ExperiencesAdminPage() {
                       />
                       대표
                     </label>
-                    <label className="flex items-center gap-2 rounded-lg border border-white/20 bg-black/30 px-3 py-2 text-sm">
+                    <label className="flex items-center gap-2 rounded-lg border border-black/15 bg-white px-3 py-2 text-sm">
                       <input
                         type="checkbox"
                         checked={editor.isCurrent}
@@ -351,14 +348,14 @@ export default function ExperiencesAdminPage() {
                     <button
                       type="button"
                       onClick={() => void handleUpdate(experience.id)}
-                      className="rounded-lg border border-emerald-400/50 px-3 py-2 text-sm text-emerald-200"
+                      className="rounded-lg border border-emerald-300 px-3 py-2 text-sm text-emerald-800"
                     >
                       저장
                     </button>
                     <button
                       type="button"
                       onClick={() => void handleDelete(experience.id)}
-                      className="rounded-lg border border-rose-400/50 px-3 py-2 text-sm text-rose-200"
+                      className="rounded-lg border border-rose-300 px-3 py-2 text-sm text-rose-800"
                     >
                       삭제
                     </button>
@@ -369,6 +366,6 @@ export default function ExperiencesAdminPage() {
           </div>
         )}
       </section>
-    </main>
+    </div>
   );
 }
