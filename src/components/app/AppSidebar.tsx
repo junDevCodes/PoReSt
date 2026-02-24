@@ -9,6 +9,7 @@ type NavItem = {
 };
 
 const NAV_ITEMS: NavItem[] = [
+  { href: "/", label: "서비스 홈" },
   { href: "/app", label: "대시보드" },
   { href: "/app/projects", label: "프로젝트" },
   { href: "/app/experiences", label: "경력" },
@@ -24,6 +25,10 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 function isActivePath(pathname: string, href: string) {
+  if (href === "/") {
+    return pathname === "/";
+  }
+
   if (href === "/app") {
     return pathname === "/app";
   }

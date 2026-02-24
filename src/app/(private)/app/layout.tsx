@@ -1,4 +1,5 @@
-﻿import { getServerSession } from "next-auth";
+import { getServerSession } from "next-auth";
+import Link from "next/link";
 import { authOptions } from "@/auth";
 import { SignOutButton } from "@/components/auth/SignOutButton";
 import { AppSidebar } from "@/components/app/AppSidebar";
@@ -31,7 +32,15 @@ export default async function AppWorkspaceLayout({
                 <p className="text-sm font-semibold text-black/85">{user?.name ?? user?.email ?? "사용자"}</p>
                 <p className="text-xs text-black/55">로그인된 작업공간</p>
               </div>
-              <SignOutButton className="inline-flex items-center justify-center rounded-full border border-black/20 px-4 py-2 text-sm font-semibold text-black transition hover:border-black/40 hover:bg-black/5" />
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/"
+                  className="inline-flex items-center justify-center rounded-full border border-black/20 px-4 py-2 text-sm font-semibold text-black transition hover:border-black/40 hover:bg-black/5"
+                >
+                  서비스 홈
+                </Link>
+                <SignOutButton className="inline-flex items-center justify-center rounded-full border border-black/20 px-4 py-2 text-sm font-semibold text-black transition hover:border-black/40 hover:bg-black/5" />
+              </div>
             </header>
             <main className="flex-1 px-6 py-8">{children}</main>
           </div>
