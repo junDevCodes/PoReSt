@@ -135,6 +135,21 @@ export type PublicPortfolioDto = {
   }>;
 };
 
+export type HomePortfolioCardDto = {
+  publicSlug: string;
+  displayName: string | null;
+  headline: string | null;
+  avatarUrl: string | null;
+  updatedAt: Date;
+  publicProjectCount: number;
+  featuredPublicProjectCount: number;
+};
+
+export type HomeShowcaseDto = {
+  recommended: HomePortfolioCardDto[];
+  latest: HomePortfolioCardDto[];
+};
+
 export type ProjectServiceErrorCode = "VALIDATION_ERROR" | "CONFLICT" | "NOT_FOUND" | "FORBIDDEN";
 
 export class ProjectServiceError extends Error {
@@ -174,4 +189,5 @@ export interface ProjectsService {
   resolvePublicProjectPathBySlug(slug: string): Promise<{ publicSlug: string; slug: string }>;
   getPublicPortfolioBySlug(publicSlug: string): Promise<PublicPortfolioDto>;
   getPublicPortfolio(slug?: string): Promise<PublicPortfolioDto>;
+  getHomeShowcase(): Promise<HomeShowcaseDto>;
 }

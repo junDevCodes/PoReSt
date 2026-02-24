@@ -24,6 +24,8 @@ const DEFAULT_PUBLIC_PROJECT_LIMIT = 20;
 const MAX_PUBLIC_PROJECT_LIMIT = 50;
 const DEFAULT_PUBLIC_USER_LIMIT = 20;
 const MAX_PUBLIC_USER_LIMIT = 50;
+const HOME_SHOWCASE_LIMIT = 5;
+const HOME_SHOWCASE_RECENCY_WINDOW_DAYS = 30;
 
 type PublicProjectsCursorPayload = {
   updatedAt: string;
@@ -49,6 +51,19 @@ type NormalizedProjectUpdateInput = {
   isFeatured?: boolean;
   order?: number;
   highlightsJson?: Prisma.InputJsonValue | Prisma.NullTypes.DbNull;
+};
+
+type HomePortfolioScoreItem = {
+  item: {
+    publicSlug: string;
+    displayName: string | null;
+    headline: string | null;
+    avatarUrl: string | null;
+    updatedAt: Date;
+    publicProjectCount: number;
+    featuredPublicProjectCount: number;
+  };
+  score: number;
 };
 
 const createProjectSchema = z.object({
@@ -318,6 +333,12 @@ function parsePublicUsersDirectoryQuery(input: PublicUsersDirectoryQuery) {
     }
     throw error;
   }
+}
+
+function calculateRecencyBoost(updatedAt: Date, now: Date): number {
+  const diffMs = now.getTime() - updatedAt.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  return Math.max(0, HOME_SHOWCASE_RECENCY_WINDOW_DAYS - diffDays);
 }
 
 function mapPublicProjectListItem(
@@ -1104,6 +1125,128 @@ export function createProjectsService(deps: { prisma: ProjectServicePrismaClient
       }
 
       return buildPublicPortfolioBySettings(settings);
+    },
+
+    async getHomeShowcase() {
+      const settings = await prisma.portfolioSettings.findMany({
+        where: {
+          isPublic: true,
+          owner: {
+            projects: {
+              some: {
+                visibility: Visibility.PUBLIC,
+              },
+            },
+          },
+        },
+        orderBy: [{ updatedAt: "desc" }, { id: "desc" }],
+        take: 200,
+        select: {
+          id: true,
+          ownerId: true,
+          publicSlug: true,
+          displayName: true,
+          headline: true,
+          avatarUrl: true,
+          updatedAt: true,
+        },
+      });
+
+      if (settings.length === 0) {
+        return {
+          recommended: [],
+          latest: [],
+        };
+      }
+
+      const ownerIds = settings.map((setting) => setting.ownerId);
+      const [publicProjectCounts, featuredProjectCounts] = await Promise.all([
+        prisma.project.groupBy({
+          by: ["ownerId"],
+          where: {
+            ownerId: { in: ownerIds },
+            visibility: Visibility.PUBLIC,
+          },
+          _count: {
+            _all: true,
+          },
+        }),
+        prisma.project.groupBy({
+          by: ["ownerId"],
+          where: {
+            ownerId: { in: ownerIds },
+            visibility: Visibility.PUBLIC,
+            isFeatured: true,
+          },
+          _count: {
+            _all: true,
+          },
+        }),
+      ]);
+
+      const publicCountByOwner = new Map(
+        publicProjectCounts.map((row) => [row.ownerId, row._count._all]),
+      );
+      const featuredCountByOwner = new Map(
+        featuredProjectCounts.map((row) => [row.ownerId, row._count._all]),
+      );
+      const now = new Date();
+
+      const scoreItems: HomePortfolioScoreItem[] = settings.map((setting) => {
+        const publicProjectCount = publicCountByOwner.get(setting.ownerId) ?? 0;
+        const featuredPublicProjectCount = featuredCountByOwner.get(setting.ownerId) ?? 0;
+        const recencyBoost = calculateRecencyBoost(setting.updatedAt, now);
+        const score =
+          featuredPublicProjectCount * 5 +
+          publicProjectCount * 2 +
+          recencyBoost;
+
+        return {
+          item: {
+            publicSlug: setting.publicSlug,
+            displayName: setting.displayName,
+            headline: setting.headline,
+            avatarUrl: setting.avatarUrl,
+            updatedAt: setting.updatedAt,
+            publicProjectCount,
+            featuredPublicProjectCount,
+          },
+          score,
+        };
+      });
+
+      const latest = scoreItems
+        .map((row) => row.item)
+        .sort((a, b) => {
+          const diff = b.updatedAt.getTime() - a.updatedAt.getTime();
+          if (diff !== 0) {
+            return diff;
+          }
+          return a.publicSlug.localeCompare(b.publicSlug, "ko");
+        })
+        .slice(0, HOME_SHOWCASE_LIMIT);
+
+      const recommended = scoreItems
+        .sort((a, b) => {
+          if (a.score !== b.score) {
+            return b.score - a.score;
+          }
+
+          const updatedAtDiff =
+            b.item.updatedAt.getTime() - a.item.updatedAt.getTime();
+          if (updatedAtDiff !== 0) {
+            return updatedAtDiff;
+          }
+
+          return a.item.publicSlug.localeCompare(b.item.publicSlug, "ko");
+        })
+        .slice(0, HOME_SHOWCASE_LIMIT)
+        .map((row) => row.item);
+
+      return {
+        recommended,
+        latest,
+      };
     },
   };
 }
