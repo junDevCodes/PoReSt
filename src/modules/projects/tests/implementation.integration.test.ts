@@ -262,4 +262,111 @@ describeWithDatabase("projects service integration", () => {
       });
     });
   });
+  it("홈 쇼케이스는 추천과 최신 목록을 5개 제한으로 반환해야 한다", async () => {
+    await runWithRollback(async (service, tx) => {
+      const unique = `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+      const ownerA = await createOwner(tx, `home-a-${unique}`);
+      const ownerB = await createOwner(tx, `home-b-${unique}`);
+      const ownerC = await createOwner(tx, `home-c-${unique}`);
+      const ownerD = await createOwner(tx, `home-d-${unique}`);
+      const ownerE = await createOwner(tx, `home-e-${unique}`);
+      const ownerF = await createOwner(tx, `home-f-${unique}`);
+      const excludedNoPublic = await createOwner(tx, `home-excluded-no-public-${unique}`);
+      const excludedPrivate = await createOwner(tx, `home-excluded-private-${unique}`);
+
+      await tx.portfolioSettings.update({
+        where: { ownerId: excludedPrivate.id },
+        data: { isPublic: false },
+      });
+
+      await service.createProject(ownerA.id, {
+        title: `A Public 1 ${unique}`,
+        slug: `home-a-public-1-${unique}`,
+        contentMd: "본문",
+        visibility: Visibility.PUBLIC,
+        isFeatured: true,
+      });
+      await service.createProject(ownerA.id, {
+        title: `A Public 2 ${unique}`,
+        slug: `home-a-public-2-${unique}`,
+        contentMd: "본문",
+        visibility: Visibility.PUBLIC,
+        isFeatured: true,
+      });
+
+      await service.createProject(ownerB.id, {
+        title: `B Public 1 ${unique}`,
+        slug: `home-b-public-1-${unique}`,
+        contentMd: "본문",
+        visibility: Visibility.PUBLIC,
+      });
+      await service.createProject(ownerB.id, {
+        title: `B Public 2 ${unique}`,
+        slug: `home-b-public-2-${unique}`,
+        contentMd: "본문",
+        visibility: Visibility.PUBLIC,
+      });
+      await service.createProject(ownerB.id, {
+        title: `B Public 3 ${unique}`,
+        slug: `home-b-public-3-${unique}`,
+        contentMd: "본문",
+        visibility: Visibility.PUBLIC,
+      });
+
+      await service.createProject(ownerC.id, {
+        title: `C Public 1 ${unique}`,
+        slug: `home-c-public-1-${unique}`,
+        contentMd: "본문",
+        visibility: Visibility.PUBLIC,
+      });
+      await service.createProject(ownerD.id, {
+        title: `D Public 1 ${unique}`,
+        slug: `home-d-public-1-${unique}`,
+        contentMd: "본문",
+        visibility: Visibility.PUBLIC,
+      });
+      await service.createProject(ownerE.id, {
+        title: `E Public 1 ${unique}`,
+        slug: `home-e-public-1-${unique}`,
+        contentMd: "본문",
+        visibility: Visibility.PUBLIC,
+      });
+      await service.createProject(ownerF.id, {
+        title: `F Public 1 ${unique}`,
+        slug: `home-f-public-1-${unique}`,
+        contentMd: "본문",
+        visibility: Visibility.PUBLIC,
+      });
+
+      await service.createProject(excludedNoPublic.id, {
+        title: `Excluded private ${unique}`,
+        slug: `home-excluded-private-project-${unique}`,
+        contentMd: "본문",
+        visibility: Visibility.PRIVATE,
+      });
+      await service.createProject(excludedPrivate.id, {
+        title: `Excluded public ${unique}`,
+        slug: `home-excluded-public-project-${unique}`,
+        contentMd: "본문",
+        visibility: Visibility.PUBLIC,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 5));
+      await tx.portfolioSettings.update({
+        where: { ownerId: ownerB.id },
+        data: { headline: "latest-owner-b" },
+      });
+
+      const showcase = await service.getHomeShowcase();
+
+      expect(showcase.recommended).toHaveLength(5);
+      expect(showcase.latest).toHaveLength(5);
+      expect(showcase.recommended[0]?.publicSlug).toBe(`owner-home-a-${unique}`);
+      expect(showcase.latest[0]?.publicSlug).toBe(`owner-home-b-${unique}`);
+
+      const allSlugs = [...showcase.recommended, ...showcase.latest].map((item) => item.publicSlug);
+      expect(allSlugs).not.toContain(`owner-home-excluded-no-public-${unique}`);
+      expect(allSlugs).not.toContain(`owner-home-excluded-private-${unique}`);
+    });
+  });
 });
