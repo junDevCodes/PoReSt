@@ -102,3 +102,10 @@
 - [x] `npm run build` 통과
 - [x] `npx jest --runInBand` 통과
 - [x] `npm run vercel-build` 통과
+
+## Wave3 게이트 (랜딩/온보딩 UX)
+- [ ] Wave3 API 완료 (`getHomeShowcase`, 인증 진입 흐름 영향 점검)
+- [ ] Wave3 UI 완료 (루트 랜딩, 로그인/회원가입, 설정 미리보기, 홈 이동 링크)
+- [ ] Wave3 테스트 통과 (통합/컴포넌트/페이지 테스트)
+- [ ] Wave3 문서 반영 (`plans/*`, 관련 `docs/*`)
+- [ ] Wave3 배포 확인 (Preview/Production)
