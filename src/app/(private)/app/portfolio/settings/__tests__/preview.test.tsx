@@ -32,6 +32,23 @@ describe("PortfolioSettingsPage preview", () => {
     global.fetch = fetchMock as unknown as typeof fetch;
   });
 
+  it("API 호출 실패 시 로딩을 해제하고 오류 배너를 표시해야 한다", async () => {
+    const fetchMock = jest.fn().mockRejectedValue(new TypeError("fetch failed"));
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    render(<PortfolioSettingsPage />);
+
+    expect(screen.getByText("설정 정보를 불러오는 중입니다.")).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("네트워크 연결을 확인해주세요. 잠시 후 다시 시도해주세요."),
+      ).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText("설정 정보를 불러오는 중입니다.")).not.toBeInTheDocument();
+  });
+
   it("입력값이 바뀌면 미리보기가 즉시 갱신되어야 한다", async () => {
     render(<PortfolioSettingsPage />);
 

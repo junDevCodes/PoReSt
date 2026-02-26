@@ -85,10 +85,16 @@ export default function PortfolioSettingsPage() {
       setError(null);
       setMessage(null);
 
-      const response = await fetch("/api/app/portfolio/settings", {
-        method: "GET",
-      });
-      const parsed = await parseApiResponse<PortfolioSettingsDto | null>(response);
+      const parsed = await (async () => {
+        try {
+          const response = await fetch("/api/app/portfolio/settings", {
+            method: "GET",
+          });
+          return await parseApiResponse<PortfolioSettingsDto | null>(response);
+        } catch (error) {
+          return parseApiResponse<PortfolioSettingsDto | null>(error);
+        }
+      })();
 
       if (!isMounted) {
         return;
@@ -180,14 +186,20 @@ export default function PortfolioSettingsPage() {
       })),
     };
 
-    const response = await fetch("/api/app/portfolio/settings", {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
-    const parsed = await parseApiResponse<PortfolioSettingsDto>(response);
+    const parsed = await (async () => {
+      try {
+        const response = await fetch("/api/app/portfolio/settings", {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+        return await parseApiResponse<PortfolioSettingsDto>(response);
+      } catch (error) {
+        return parseApiResponse<PortfolioSettingsDto>(error);
+      }
+    })();
 
     if (parsed.error) {
       setError(parsed.error);
@@ -208,7 +220,8 @@ export default function PortfolioSettingsPage() {
         <p className="text-xs uppercase tracking-[0.3em] text-black/45">관리</p>
         <h1 className="mt-2 text-3xl font-semibold">포트폴리오 설정</h1>
         <p className="mt-3 text-sm text-black/65">
-          공개 포트폴리오의 기본 정보, 공개 여부, 링크를 관리하고 실시간 미리보기를 확인할 수 있습니다.
+          공개 포트폴리오의 기본 정보, 공개 여부, 링크를 관리하고 실시간 미리보기를 확인할 수
+          있습니다.
         </p>
       </header>
 
@@ -219,8 +232,8 @@ export default function PortfolioSettingsPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             {hasSlugChanged ? (
               <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                publicSlug 변경이 감지되었습니다. 저장하면 기존 공유 링크가 깨질 수 있으며 리다이렉트는
-                제공되지 않습니다.
+                publicSlug 변경이 감지되었습니다. 저장하면 기존 공유 링크가 깨질 수 있으며
+                리다이렉트는 제공되지 않습니다.
               </div>
             ) : null}
 
