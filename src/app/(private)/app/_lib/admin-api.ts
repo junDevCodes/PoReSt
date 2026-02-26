@@ -14,7 +14,25 @@ export type ApiResult<T> = {
   fields: Record<string, string> | null;
 };
 
-function normalizeApiError(payload: ApiErrorPayload, status: number): {
+const NETWORK_ERROR_MESSAGE = "네트워크 연결을 확인해주세요. 잠시 후 다시 시도해주세요.";
+
+function isResponseLike(response: unknown): response is Response {
+  if (!response || typeof response !== "object") {
+    return false;
+  }
+
+  const candidate = response as { json?: unknown; ok?: unknown; status?: unknown };
+  return (
+    typeof candidate.json === "function" &&
+    typeof candidate.ok === "boolean" &&
+    typeof candidate.status === "number"
+  );
+}
+
+function normalizeApiError(
+  payload: ApiErrorPayload,
+  status: number,
+): {
   message: string;
   fields: Record<string, string> | null;
 } {
@@ -35,7 +53,15 @@ function normalizeApiError(payload: ApiErrorPayload, status: number): {
   };
 }
 
-export async function parseApiResponse<T>(response: Response): Promise<ApiResult<T>> {
+export async function parseApiResponse<T>(response: Response | unknown): Promise<ApiResult<T>> {
+  if (!isResponseLike(response)) {
+    return {
+      data: null,
+      error: NETWORK_ERROR_MESSAGE,
+      fields: null,
+    };
+  }
+
   let payload: unknown = null;
   try {
     payload = await response.json();
@@ -56,7 +82,10 @@ export async function parseApiResponse<T>(response: Response): Promise<ApiResult
     };
   }
 
-  const { message, fields } = normalizeApiError((payload ?? {}) as ApiErrorPayload, response.status);
+  const { message, fields } = normalizeApiError(
+    (payload ?? {}) as ApiErrorPayload,
+    response.status,
+  );
   return {
     data: null,
     error: message,

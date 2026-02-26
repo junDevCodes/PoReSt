@@ -1,381 +1,115 @@
-﻿# PoReSt 완료 이력
+# PoReSt 작업 이력 및 진행 맥락 (시방서)
 
-기준일: 2026-02-16
+기준일: 2026-02-26
+문서 목적: 완료 이력과 앞으로의 진행 계획을 한 문서에서 추적한다.
 
-## 기록 규칙
-완료 시점마다 아래 포맷으로 누적한다.
-1. 완료일
-2. 기능 ID(Gx)
-3. 핵심 변경
-4. 테스트/배포 결과
-5. 리스크/후속 항목
+## 1) 기록 원칙
 
-## 누적 이력
+1. 완료 기록은 "완료일 / 범위 / 핵심 변경 / 게이트 결과 / 리스크" 순서로 작성한다.
+2. 앞으로의 작업은 `plans/task.md`의 태스크 ID(Txx)와 연결한다.
+3. 기능 완료는 코드 반영만으로 판단하지 않고 게이트 및 문서 동기화까지 포함한다.
 
-### 완료일: 2026-02-16
-- 기능 ID(Gx): M0~M5 기준선 정리
-- 핵심 변경: M0~M5 기능/배포 완료 상태를 기준선으로 확정
-- 테스트/배포 결과: Preview/Production 배포 완료, 기본 게이트 통과 이력 보유
-- 리스크/후속 항목: Post-M5 갭(G1~G12) 계획 수립 필요
+## 2) 완료 이력 요약
 
-### 완료일: 2026-02-16
-- 기능 ID(Gx): G1~G12 백로그 등록
-- 핵심 변경: `plans/plan.md`, `plans/task.md`, `plans/checklist.md`에 신규 트랙/태스크/게이트 등록
-- 테스트/배포 결과: 문서 등록 단계(코드 게이트 대상 아님)
-- 리스크/후속 항목: P0(G1~G5) 구현 결과를 다음 이력으로 누적 예정
+### 2026-02-16 | 기준선 정리
 
-### 완료일: 2026-02-16
-- 기능 ID(Gx): G1~G5 (P0 1차 구현)
+- 범위: M0~M5 기준선, Post-M5 갭(G1~G12) 백로그 등록
+- 핵심 변경: `plans/plan.md`, `plans/task.md`, `plans/checklist.md`에 실행 트랙 구조 확정
+- 게이트 결과: 문서 작업 중심
+- 리스크: P0~P2 실제 구현 결과를 후속 이력으로 누적 필요
+
+### 2026-02-16 ~ 2026-02-17 | G1~G12 구현 완료
+
+- 범위: P0/P1/P2 핵심 기능 구현 완료
 - 핵심 변경:
-  - G1 `/api/app/me` 추가 및 대시보드 워크스페이스 상태 노출
-  - G2 Notebook CRUD API/서비스/테스트 보강 및 Notes 작성 파이프라인 정리
-  - G3 Public Projects 검색/필터/cursor API + `/projects` 필터 UI 반영
-  - G4 `/api/app/feedback/targets` 추가 및 Feedback 생성 UX 자동화
-  - G5 Blog Lint Rule10(`HEADING_LEVEL_JUMP`) 추가
-- 테스트/배포 결과:
-  - `npm run lint` 통과
-  - `npm run build` 통과
-  - `npx jest --runInBand` 통과 (104 tests)
-  - `npm run vercel-build` 통과
-- 리스크/후속 항목:
-  - 실제 Preview/Production 배포 후 P0 항목별 스모크 체크 필요
-  - P1(G6~G9) 스키마 설계 착수 필요
+  - G1~G5: 워크스페이스 API, Notes/Feedback, Public Projects 개선
+  - G6~G9: Resume 공유, Export 이력, Audit, Observability
+  - G10~G12: DomainLink, Embedding, Users 디렉토리
+- 게이트 결과: `lint/build/jest/vercel-build` 통과 이력 확보
+- 리스크: 일부 통합 테스트는 테스트 DB 미설정 시 skip되는 구조 유지
 
-### 완료일: 2026-02-16
-- 기능 ID(Gx): G6 (Resume 공유 링크 API 1차)
-- 핵심 변경:
-  - `ResumeShareLink` 모델/마이그레이션 추가
-  - `POST|GET|DELETE /api/app/resumes/[id]/share-links` 구현
-  - `GET /api/public/resume/share/[token]` 구현
-  - Resumes 서비스 공유 링크 생성/회수/토큰 조회 로직 및 테스트 보강
-- 테스트/배포 결과:
-  - `npm run lint` 통과
-  - `npm run build` 통과
-  - `npx jest --runInBand` 통과 (108 tests)
-  - `npm run vercel-build` 통과
-- 리스크/후속 항목:
-  - 공유 링크 UI 관리 화면(T21) 추가 필요
-  - 만료 정책 preset(예: 7일/30일) UX는 후속에서 정리
+### 2026-02-18 | Auth 정책/공개 경로 정리
 
-### 완료일: 2026-02-16
-- 기능 ID(Gx): G7 (Blog Export 이력화)
+- 범위: 인증/권한 정책 전환 및 공개 canonical 정리
 - 핵심 변경:
-  - `BlogExportArtifact` 모델/마이그레이션 추가
-  - Blog 서비스에 export 생성/목록/재다운로드 메서드 추가
-  - `GET /api/app/blog/posts/[id]/exports` 목록 API 추가
-  - `GET /api/app/blog/posts/[id]/exports/[exportId]` 재다운로드 API 추가
-  - 기존 `GET /api/app/blog/posts/[id]/export`를 이력 적재 + 다운로드 방식으로 확장
-  - `/app/blog/[id]/edit`에 Export 이력 목록/재다운로드 UI 반영
-- 테스트/배포 결과:
-  - `npm run lint` 통과
-  - `npm run build` 통과
-  - `npx jest --runInBand` 통과 (27 suites 중 19 passed, 8 skipped)
-  - `npm run vercel-build` 통과 (migration `20260216123000_m7_blog_export_history` 적용)
-- 리스크/후속 항목:
-  - Export payload를 DB(bytea)에 저장하므로 저장소 증가량 모니터링 필요
-  - 장기적으로 Object Storage 분리 또는 retention 정책(G8/G9와 연계) 필요
+  - 로그인 사용자 전체 워크스페이스 허용
+  - `/api/app/*`는 `requireAuth`, 운영성 API는 `requireOwner` 유지
+  - 공개 canonical을 `/u/[publicSlug]/*`로 확정
+- 게이트 결과: `lint/build/jest/vercel-build` 통과
+- 리스크: 운영 환경 OAuth 설정/문서 동기화 지속 필요
 
-### 완료일: 2026-02-16
-- 기능 ID(Gx): G6 (공유 조회 UI 마무리)
-- 핵심 변경:
-  - 공개 공유 페이지 `GET /resume/share/[token]` UI 추가
-  - 기존 `GET /api/public/resume/share/[token]` 응답을 화면 렌더링에 연결
-  - 공유 링크 접근 시 이력서 요약/항목 표시 흐름 제공
-- 테스트/배포 결과:
-  - `npm run lint` 통과
-  - `npm run build` 통과
-  - `npx jest --runInBand` 통과 (27 suites 중 19 passed, 8 skipped)
-  - `npm run vercel-build` 통과
-- 리스크/후속 항목:
-  - 대시보드에서 공유 링크 생성/회수 UI는 후속 고도화 대상
+### 2026-02-20 | Wave2 완료
 
-### 완료일: 2026-02-16
-- 기능 ID(Gx): G8 (Audit Log)
-- 핵심 변경:
-  - `AuditLog` 모델/마이그레이션 추가
-  - `writeAuditLog` 유틸 추가 및 Blog 주요 액션(create/update/delete/lint/export) 수집 반영
-  - `GET /api/app/audit` 조회 API 구현(커서 기반 페이징)
-  - `/app/audit` 최소 관리자 UI 구현
-- 테스트/배포 결과:
-  - `npm run lint` 통과
-  - `npm run build` 통과
-  - `npx jest --runInBand` 통과 (27 suites 중 19 passed, 8 skipped)
-  - `npm run vercel-build` 통과 (migration `20260216142000_m8_audit_log` 적용)
-- 리스크/후속 항목:
-  - 수집 범위를 Blog 중심으로 먼저 적용했으므로, 다른 도메인 CRUD까지 확장 필요
-  - 로그 보존 기간/정리 정책은 G9 운영성 작업과 함께 확정 필요
+- 범위: Private 핵심 5페이지 Server-first 전환
+- 핵심 변경: 서버 로더 + 클라이언트 상호작용 분리, DTO 직렬화 유틸/공통 상태 UI 정착
+- 게이트 결과: `lint/build/jest/vercel-build` 통과
+- 리스크: 상세 화면 전반의 UX 일관화는 후속 라운드 대상
 
-### 완료일: 2026-02-17
-- 기능 ID(Gx): G9 (관측성) - T26
-- 핵심 변경:
-  - `x-request-id` 기반 요청 추적 ID 생성/전달을 middleware에 적용
-  - middleware 인증 흐름에 구조화 로그(JSON) 이벤트 표준(`request.received`, `auth.authorized`, `auth.unauthorized`) 적용
-  - 관측성 유틸(`src/lib/observability.ts`) 및 단위 테스트 추가
-- 테스트/배포 결과:
-  - `npm run lint` 통과
-  - `npm run build` 통과
-  - `npx jest --runInBand` 통과
-  - `npm run vercel-build` 통과
-- 리스크/후속 항목:
-  - Sentry 연동과 운영 알림(Webhook) 경로는 T27에서 마무리 예정
+### 2026-02-22 | Wave3 착수
 
-### 완료일: 2026-02-17
-- 기능 ID(Gx): G9 (관측성) - T27
+- 범위: 랜딩/온보딩 UX, 로그인/회원가입 UX, 설정 미리보기
 - 핵심 변경:
-  - `src/lib/monitoring.ts` 추가 (Sentry Envelope 전송 + 운영 알림 Webhook 폴백)
-  - 운영성 라우트 에러 처리 지점에 관측 리포팅 연동
-    - `/api/app/revalidate`
-    - `/api/app/blog/posts/[id]/lint`
-    - `/api/app/feedback/[id]/run`
-    - `/api/app/db-test`
-- 테스트/배포 결과:
-  - `npm run lint` 통과
-  - `npm run build` 통과
-  - `npx jest --runInBand` 통과
-  - `npm run vercel-build` 통과
-- 리스크/후속 항목:
-  - Sentry DSN/운영 알림 Webhook 실환경 값 주입 후 실제 이벤트 수신 확인 필요
+  - 루트 랜딩 + 추천/최근 업데이트 쇼케이스
+  - 로그인/회원가입 모드 분리
+  - 워크스페이스에서 서비스 홈 이동 경로 추가
+  - 설정 페이지 실시간 미리보기/slug 경고 UX 반영
+- 게이트 결과: 기능 반영 중심, 최종 게이트 미확정
+- 리스크: Wave3 최종 게이트(T42) 미완료
 
-### 완료일: 2026-02-17
-- 기능 ID(Gx): G10 (Cross-domain 링크) - T28
-- 핵심 변경:
-  - `DomainLinkEntityType` enum, `DomainLink` 모델 추가
-  - `User.domainLinks` 관계 추가
-  - 마이그레이션 `20260217112000_m10_domain_links` 추가
-  - 중복 링크 방지 unique 인덱스와 source/target 동일 금지 CHECK 제약 추가
-  - 스키마 통합 테스트(`src/modules/domain-links/tests/schema.integration.test.ts`) 추가
-- 테스트/배포 결과:
-  - `npm run lint` 통과
-  - `npm run build` 통과
-  - `npx jest --runInBand` 통과
-  - `npm run vercel-build` 통과
-- 리스크/후속 항목:
-  - 폴리모픽 링크 구조 특성상 실제 엔티티 존재 검증은 T29 API 계층에서 owner scope 기반으로 보강 필요
+## 3) 최신 진단 (2026-02-26)
 
-### 완료일: 2026-02-17
-- 기능 ID(Gx): G10 (Cross-domain 링크) - T29
-- 핵심 변경:
-  - DomainLink 서비스 계층(`src/modules/domain-links`) 구현
-    - 링크 조회(`listLinksForOwner`)
-    - 링크 생성(`createLinkForOwner`)
-    - 링크 삭제(`deleteLinkForOwner`)
-  - owner scope 엔티티 존재 검증(프로젝트/경력/이력서/노트/블로그) 추가
-  - API 라우트 추가
-    - `GET|POST /api/app/domain-links`
-    - `DELETE /api/app/domain-links/[id]`
-  - 검증/통합 테스트 추가
-    - `src/modules/domain-links/tests/validation.test.ts`
-    - `src/modules/domain-links/tests/implementation.integration.test.ts`
-- 테스트/배포 결과:
-  - `npm run lint` 통과
-  - `npm run build` 통과
-  - `npx jest --runInBand` 통과
-  - `npm run vercel-build` 통과
-- 리스크/후속 항목:
-  - 교차 링크 시각화/편집 UI(T30) 미구현
+### 3.1 실행 결과 스냅샷
 
-### 완료일: 2026-02-17
-- 기능 ID(Gx): G10 (Cross-domain 링크) - T30
-- 핵심 변경:
-  - `/app/domain-links` 교차 링크 관리 UI 추가
-    - source/target 타입/엔티티 선택 기반 링크 생성
-    - 기존 링크 목록 조회 및 삭제
-  - 대시보드 빠른 이동에 `/app/domain-links` 경로 추가
-  - 라우팅/API 문서에 Domain Links 페이지/엔드포인트 반영
-- 테스트/배포 결과:
-  - `npm run lint` 통과
-  - `npm run build` 통과
-  - `npx jest --runInBand` 통과
-  - `npm run vercel-build` 통과
-- 리스크/후속 항목:
-  - 현재 UI는 단일 관리 페이지 방식이며, 각 도메인 상세 화면 내 인라인 편집 UX는 추후 고도화 대상
+- `npm run lint`: 통과
+- `npm run build`: DB env 미설정 시 실패, 임시 env 주입 시 통과
+- `npx jest --runInBand`: 통과 (실행 30, skip 14, 실패 0)
+- `npm run vercel-build`: `DATABASE_URL_UNPOOLED` 미설정 시 실패
+- `npm install`: `postinstall(prisma generate)`가 `DATABASE_URL_UNPOOLED` 미설정 환경에서 실패 가능
 
-### 완료일: 2026-02-17
-- 기능 ID(Gx): G11 (pgvector 임베딩) - T31
-- 핵심 변경:
-  - `NoteEmbeddingStatus` enum 및 `NoteEmbedding` 운영 필드(`status`, `lastEmbeddedAt`, `error`, `updatedAt`) 추가
-  - 마이그레이션 `20260217130000_m11_note_embedding_pipeline_fields` 추가
-  - 임베딩 재빌드 준비 파이프라인 모듈(`src/modules/note-embeddings`) 추가
-    - deterministic 벡터 생성 함수
-    - owner scope 기반 재빌드 큐잉(`prepareRebuildForOwner`)
-  - 검증/통합 테스트 추가
-    - `src/modules/note-embeddings/tests/validation.test.ts`
-    - `src/modules/note-embeddings/tests/implementation.integration.test.ts`
-- 테스트/배포 결과:
-  - `npm run lint` 통과
-  - `npm run build` 통과
-  - `npx jest --runInBand` 통과
-  - `npm run vercel-build` 통과
-- 리스크/후속 항목:
-  - 실제 임베딩 벡터 저장/재빌드 실행 API(T32)와 검색 고도화(T33)가 후속 필수
+### 3.2 코드 구현 레벨 이슈
 
-### 완료일: 2026-02-17
-- 기능 ID(Gx): G11 (pgvector 임베딩) - T32
-- 핵심 변경:
-  - 임베딩 재빌드 실행 서비스(`rebuildForOwner`) 추가
-    - PENDING 큐잉 후 deterministic 벡터 생성
-    - pgvector 컬럼 업데이트 + 상태 전환(`SUCCEEDED`/`FAILED`)
-  - 실행 API 추가: `POST /api/app/notes/embeddings/rebuild`
-  - 에러 응답/모니터링 연동(`src/modules/note-embeddings/http.ts`, `reportServerError`) 추가
-  - 통합 테스트 케이스 확장(재빌드 실행 시 status 전환 검증)
-- 테스트/배포 결과:
-  - `npm run lint` 통과
-  - `npm run build` 통과
-  - `npx jest --runInBand` 통과
-  - `npm run vercel-build` 통과
-- 리스크/후속 항목:
-  - 유사도 검색 품질/인덱스 튜닝(T33) 미완료
+- 설치/빌드의 환경변수 의존성으로 진입 장벽 존재
+- Private UI 일부의 라이트/다크 토큰 혼재
+- 클라이언트 `fetch` 예외 처리 불균일
+- 로그인 후처리 실패 시 정합성 리스크(관측/복구 경로 강화 필요)
 
-### 완료일: 2026-02-17
-- 기능 ID(Gx): G11 (pgvector 임베딩) - T33
-- 핵심 변경:
-  - 임베딩 유사도 검색 서비스(`searchSimilarNotesForOwner`) 추가
-    - owner scope 기준 노트 검증
-    - pgvector cosine distance 기반 Top-N 검색
-    - `limit`, `minScore` 필터 지원
-  - 신규 API 추가: `GET /api/app/notes/[id]/similar`
-  - 인덱스 튜닝 마이그레이션 추가
-    - `20260217143000_m11_embedding_similarity_index_tuning`
-    - `note_embeddings_status_chunk_updatedAt_idx`
-    - `note_embeddings_embedding_cosine_idx` (ivfflat, vector_cosine_ops)
-  - 임베딩 검증/통합 테스트 보강
-    - 입력 검증 케이스(`minScore`) 추가
-    - 유사도 검색 정렬/owner 격리 케이스 추가
-- 테스트/배포 결과:
-  - `npx jest src/modules/note-embeddings/tests/validation.test.ts --runInBand` 통과
-  - `npx jest src/modules/note-embeddings/tests/implementation.integration.test.ts --runInBand` 실행(테스트 DB 미설정 환경에서 skip)
-  - `npm run lint` 통과
-  - `npm run build` 통과
-  - `npx jest --runInBand` 통과
-  - `npm run vercel-build` 통과 (신규 마이그레이션 적용 확인)
-- 리스크/후속 항목:
-  - 현재 유사도 API는 조회 전용이며 NoteEdge 후보 생성과의 자동 동기화는 후속 고도화 대상
+### 3.3 당일 조치 결과 (T43/T44/T48)
 
-### 완료일: 2026-02-17
-- 기능 ID(Gx): G12 (공개 사용자 디렉토리) - T34
-- 핵심 변경:
-  - 공개 사용자 디렉토리 조회 서비스(`searchPublicUsersDirectory`) 추가
-    - 검색 조건: `q`, `limit`, `cursor`
-    - 공개 포트폴리오(`isPublic=true`) + 공개 프로젝트 보유 사용자만 노출
-    - 커서 페이지네이션(`updatedAt`, `id`) 지원
-  - 신규 Public API 추가: `GET /api/public/users`
-  - 통합 테스트 추가: `src/modules/projects/tests/public-users-directory.integration.test.ts`
-- 테스트/배포 결과:
-  - `npx jest src/modules/projects/tests/validation.test.ts --runInBand` 통과
-  - `npx jest src/modules/projects/tests/public-users-directory.integration.test.ts --runInBand` 실행(테스트 DB 미설정 환경에서 skip)
-  - `npm run lint` 통과
-  - `npm run build` 통과
-  - `npx jest --runInBand` 통과
-  - `npm run vercel-build` 통과
-- 리스크/후속 항목:
-  - G12 UI(`/users` 목록/상세 탐색 화면)와 운영 체크(T35/T36)는 후속 작업
+- T43 완료: `PortfolioSettingsPage` 미리보기 테스트에서 `Response` 전역 의존성을 제거해 jsdom 런타임 실패를 해소
+- T44 진행 중: `lint`/`jest`는 통과했으나 `build`는 DB env 미설정으로 실패하여 `vercel-build`까지 연쇄 실행 불가
+- T48 착수: `parseApiResponse`가 네트워크 예외 입력에서도 사용자 메시지를 반환하도록 보강하고 단위 테스트(Test-M6-02) 추가
 
-### 완료일: 2026-02-17
-- 기능 ID(Gx): G12 (공개 사용자 디렉토리) - T35
-- 핵심 변경:
-  - 공개 사용자 디렉토리 페이지 추가: `/users`
-    - 검색(`q`), 페이지 크기(`limit`), 커서 페이지네이션(`cursor`) 지원
-    - 프로필/프로젝트 진입 링크(`/u/[publicSlug]`, `/u/[publicSlug]/projects`) 제공
-  - UI 보조 유틸 추가:
-    - `parsePublicUsersSearchParams`
-    - `buildUsersPageHref`
-  - UI 유틸 단위 테스트 추가:
-    - `src/app/(public)/users/_lib/__tests__/directory.test.ts`
-  - sitemap에 `/users` 경로 반영
-- 테스트/배포 결과:
-  - `npx jest directory.test.ts --runInBand` 통과
-  - `npm run lint` 통과
-  - `npm run build` 통과
-  - `npx jest --runInBand` 통과
-  - `npm run vercel-build` 통과
-- 리스크/후속 항목:
-  - 디렉토리 카드 디자인 고도화 및 추천/정렬 전략은 UI/UX 개선 라운드에서 추가 검토
+### 3.4 협업 운영 합의 (2026-02-26)
 
-### 완료일: 2026-02-17
-- 기능 ID(Gx): P2 운영 마감 - T36
-- 핵심 변경:
-  - P2 성능/비용 가드레일을 운영 문서에 반영
-    - `docs/DEPLOYMENT_GUIDE.md`
-    - `docs/12_QA_Technical_Details.md`
-  - 임베딩/디렉토리 API 운영 체크 포인트 문서화
-    - 유사도 API limit/minScore 제약
-    - 공개 사용자 디렉토리 cursor 기반 조회 제약
-  - P2 태스크 완료 상태 반영(`plans/task.md`)
-- 테스트/배포 결과:
-  - `npm run lint` 통과
-  - `npm run build` 통과
-  - `npx jest --runInBand` 통과
-  - `npm run vercel-build` 통과
-- 리스크/후속 항목:
-  - P2 기능은 완료되었으며, 이후 단계는 UI/UX 고도화 및 추가 추천 전략 개선 중심으로 진행
+- 기능 단위 커밋 기준으로 작업/검증을 분리한다.
+- 배포 검증은 커밋 push 이후 사용자(요청자)가 Preview/Production에서 수행한다.
+- 에이전트는 배포 검증 요청 시점과 확인 항목을 명시하고, 사용자는 결과를 공유한다.
 
-### 완료일: 2026-02-18
-- 기능 ID(Gx): Auth 정책 전환 + 공개 canonical 경로 정리
-- 핵심 변경:
-  - Auth.js GitHub 로그인 정책을 기존 제한 방식에서 로그인 사용자 전체 허용으로 전환
-  - 로그인 시 사용자 레코드 upsert 및 `PortfolioSettings(publicSlug)` 자동 보장
-  - `/api/app/*` 도메인 CRUD를 `requireAuth` 기준으로 전환(운영성 API는 `requireOwner` 유지)
-  - 공개 경로 canonical을 `/u/[publicSlug]/*`로 확정하고 `/projects/[slug]`는 레거시 리다이렉트로 유지
-  - 공개 API 확장: `/api/public/portfolio/[publicSlug]`, `/api/public/users/[publicSlug]/projects*`
-- 테스트/배포 결과:
-  - `npm run lint` 통과
-  - `npm run build` 통과
-  - `npx jest --runInBand` 통과 (25 passed, 12 skipped)
-  - `npm run vercel-build` 통과
-- 리스크/후속 항목:
-  - 문서 전반의 legacy 권한 표현 추가 정리가 필요
-  - 운영 환경에서 GitHub OAuth callback 도메인/환경변수 최종 검증 필요
+## 4) 앞으로 진행할 작업 (연결 태스크)
 
-### 완료일: 2026-02-18
-- 기능 ID(Gx): 최종 안정화 마감(인코딩 복구 + 문서/배포 체크 동기화)
-- 핵심 변경:
-  - 프로젝트/블로그 도메인 한글 깨짐 문구 3개 파일 전수 복구
-  - 인증/권한 문서를 로그인 사용자 워크스페이스 정책으로 일괄 동기화
-  - canonical 공개 경로(`/u/[publicSlug]/*`)와 레거시 리다이렉트(`/projects/[slug]`) 정책 정리
-  - `plans/checklist.md` P0 배포 확인(G1~G5) 완료 처리
-  - M5 Preview/Production 체크리스트에 Auth 전환 회귀 검증 결과 반영
-- 테스트/배포 결과:
-  - `npx jest src/modules/projects/tests/validation.test.ts --runInBand` 통과
-  - `npx jest src/modules/projects/tests/implementation.integration.test.ts --runInBand` 통과
-  - `npx jest src/modules/blog/tests/validation.test.ts --runInBand` 통과
-  - `npm run lint` 통과
-  - `npm run build` 통과
-  - `npx jest --runInBand` 통과
-  - `npm run vercel-build` 통과
-- 리스크/후속 항목:
-  - 신규 기능 리스크 없음
-  - UI/UX 고도화 라운드에서 디자인/인터랙션 개선 작업만 후속 진행
+### 단기 (M6-1)
 
-### 완료일: 2026-02-20
-- 기능 ID(Gx): Wave2 (Server-first 전환 + 타입 중복 제거)
-- 핵심 변경:
-  - Private 핵심 5페이지(`/app/projects`, `/app/experiences`, `/app/resumes`, `/app/notes`, `/app/blog`)를 Server-first 구조로 전환
-  - `page.tsx` 서버 로더 + `*PageClient.tsx` 상호작용 컴포넌트 분리
-  - 공통 인증/직렬화 유틸 추가
-    - `src/app/(private)/app/_lib/server-auth.ts`
-    - `src/app/(private)/app/_lib/server-serializers.ts`
-  - 공통 상태 UI 컴포넌트 추가
-    - `src/components/ui/AsyncState.tsx`
-  - 페이지 로컬 DTO 선언 제거 및 도메인 타입 import로 통일
-- 테스트/배포 결과:
-  - `npm run lint` 통과
-  - `npm run build` 통과
-  - `npx jest --runInBand` 통과
-  - `npm run vercel-build` 통과
-- 리스크/후속 항목:
-  - 리스트/상세 편집 페이지 전 범위 확장 전환은 후속 Wave에서 진행
-  - 전역 Toast/Confirm 패턴의 상세 페이지 일괄 적용 여부는 UX 고도화 라운드에서 마무리
+- T43: Wave3 테스트 런타임 문제 고정 (완료)
+- T44: 게이트 4종 재실행 및 실패 제거 (진행 중)
+- T45: 설치/환경 진입 안정화
+- T46: Private UI 톤 일관화
+- T47: Wave3 문서/배포 확정
 
-### 완료일: 2026-02-22
-- 기능 ID(Gx): Wave3 착수 (랜딩/온보딩 UX + 미리보기)
-- 핵심 변경:
-  - 루트(`/`)를 서비스 랜딩 + 추천 Top5/최근 업데이트 쇼케이스로 재구성
-  - `getHomeShowcase` 휴리스틱 점수 로직 추가(대표 프로젝트/공개 프로젝트 수/최신성)
-  - 로그인/회원가입 화면 모드 분리 및 GitHub 버튼 클릭 체감 개선
-  - 워크스페이스 헤더/사이드바에 서비스 홈 이동 경로 추가
-  - 포트폴리오 설정 화면 인코딩 복구 및 실시간 미리보기/slug 경고 UX 추가
-- 테스트/배포 결과:
-  - 로컬 게이트 실행은 환경 제약으로 미실행(`npm` 명령 확인 필요)
-- 리스크/후속 항목:
-  - 추천 점수는 휴리스틱 기반이므로 실제 사용자 반응 데이터 기반 튜닝이 필요
-  - Wave3 게이트(T42)에서 lint/build/jest/vercel-build 재검증이 필요
+### 즉시 실행 플랜 (기능 단위 커밋 2회)
+
+- Commit #1 (T44): env 정렬 후 `lint/build/jest/vercel-build` 재실행 결과를 고정하고 배포 검증 요청
+- Commit #2 (T48): Test-M6-03(로딩 해제/오류 배너) 반영 후 CRUD 화면 예외 처리 패턴을 1차 표준화
+
+### 중기 (M6-2)
+
+- T48~T52: 예외 처리 표준화, Auth/권한 정합성, 메모리 안정성, Audit 확장
+
+### 장기 (M7~M8)
+
+- T53~T61: 퍼널 계측, 공유/내보내기 UX 고도화, 추천/임베딩 품질 강화, 운영 자동화
+
+## 5) 의사결정 메모
+
+- 제품 기준선은 "기능 구현 완료"가 아니라 "게이트 + 문서 + 배포 확인"까지 포함한다.
+- Wave3는 기능 착수 상태에서 마감 상태로 전환해야 하며, T42를 단독 체크가 아닌 M6-1 묶음으로 관리한다.
+- 향후 대규모 기능 추가보다 품질/운영 정합성 복구를 선행한다.

@@ -18,14 +18,17 @@ function buildSettingsResponse() {
   };
 }
 
+function buildMockFetchResponse(payload: unknown): Response {
+  return {
+    ok: true,
+    status: 200,
+    json: async () => payload,
+  } as Response;
+}
+
 describe("PortfolioSettingsPage preview", () => {
   beforeEach(() => {
-    const fetchMock = jest.fn().mockResolvedValue(
-      new Response(JSON.stringify(buildSettingsResponse()), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      }),
-    );
+    const fetchMock = jest.fn().mockResolvedValue(buildMockFetchResponse(buildSettingsResponse()));
     global.fetch = fetchMock as unknown as typeof fetch;
   });
 
@@ -53,7 +56,9 @@ describe("PortfolioSettingsPage preview", () => {
     fireEvent.change(slugInput, { target: { value: "tester-next" } });
 
     expect(
-      screen.getByText("publicSlug 변경이 감지되었습니다. 저장하면 기존 공유 링크가 깨질 수 있으며 리다이렉트는 제공되지 않습니다."),
+      screen.getByText(
+        "publicSlug 변경이 감지되었습니다. 저장하면 기존 공유 링크가 깨질 수 있으며 리다이렉트는 제공되지 않습니다.",
+      ),
     ).toBeInTheDocument();
   });
 });
