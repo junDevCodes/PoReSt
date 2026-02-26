@@ -50,4 +50,20 @@ describe("Test-M6-08 홈 이동 세션 유지", () => {
     expect(html).toContain('href="/app"');
     expect(html).toContain("워크스페이스로 이동");
   });
+
+  it("Test-M6-09 로그인 세션이 있으면 회원가입 CTA를 노출하지 않아야 한다", async () => {
+    mockedGetServerSession.mockResolvedValueOnce({
+      user: {
+        id: "user-1",
+        isOwner: false,
+        name: "테스터",
+        email: "tester@example.com",
+      },
+      expires: "2099-01-01T00:00:00.000Z",
+    });
+
+    const html = renderToStaticMarkup(await HomePage());
+
+    expect(html).not.toContain('href="/signup"');
+  });
 });
