@@ -1,5 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { getMetadataBase } from "@/lib/site-url";
 import { createProjectsService } from "@/modules/projects";
@@ -10,7 +12,8 @@ const SHOWCASE_LIMIT = 5;
 export const metadata: Metadata = {
   metadataBase: getMetadataBase(),
   title: "PoReSt | 공개 포트폴리오와 개인 워크스페이스",
-  description: "PoReSt에서 공개 포트폴리오를 발행하고 개인 워크스페이스에서 프로젝트와 경력을 관리하세요.",
+  description:
+    "PoReSt에서 공개 포트폴리오를 발행하고 개인 워크스페이스에서 프로젝트와 경력을 관리하세요.",
   alternates: {
     canonical: "/",
   },
@@ -19,13 +22,15 @@ export const metadata: Metadata = {
     siteName: "PoReSt",
     url: "/",
     title: "PoReSt | 공개 포트폴리오와 개인 워크스페이스",
-    description: "PoReSt에서 공개 포트폴리오를 발행하고 개인 워크스페이스에서 프로젝트와 경력을 관리하세요.",
+    description:
+      "PoReSt에서 공개 포트폴리오를 발행하고 개인 워크스페이스에서 프로젝트와 경력을 관리하세요.",
     images: [{ url: DEFAULT_OG_IMAGE_PATH }],
   },
   twitter: {
     card: "summary_large_image",
     title: "PoReSt | 공개 포트폴리오와 개인 워크스페이스",
-    description: "PoReSt에서 공개 포트폴리오를 발행하고 개인 워크스페이스에서 프로젝트와 경력을 관리하세요.",
+    description:
+      "PoReSt에서 공개 포트폴리오를 발행하고 개인 워크스페이스에서 프로젝트와 경력을 관리하세요.",
     images: [DEFAULT_OG_IMAGE_PATH],
   },
 };
@@ -39,6 +44,11 @@ function formatDateLabel(value: Date): string {
 }
 
 export default async function HomePage() {
+  const session = await getServerSession(authOptions);
+  const primaryAction = session?.user?.id
+    ? { href: "/app", label: "워크스페이스로 이동" }
+    : { href: "/login", label: "로그인" };
+
   let recommended: Awaited<ReturnType<typeof projectsService.getHomeShowcase>>["recommended"] = [];
   let latest: Awaited<ReturnType<typeof projectsService.getHomeShowcase>>["latest"] = [];
 
@@ -68,16 +78,16 @@ export default async function HomePage() {
             개인 워크스페이스로 성장 기록을 관리하세요
           </h1>
           <p className="mt-4 max-w-3xl text-base leading-7 text-black/65">
-            PoReSt는 공개 URL 포트폴리오와 개인 작업공간을 한 앱으로 제공합니다. 프로젝트, 경력, 이력서,
-            노트, 블로그를 관리하고 공유 가능한 링크로 바로 발행할 수 있습니다.
+            PoReSt는 공개 URL 포트폴리오와 개인 작업공간을 한 앱으로 제공합니다. 프로젝트, 경력,
+            이력서, 노트, 블로그를 관리하고 공유 가능한 링크로 바로 발행할 수 있습니다.
           </p>
 
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
-              href="/login"
+              href={primaryAction.href}
               className="rounded-full bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-black/90"
             >
-              로그인
+              {primaryAction.label}
             </Link>
             <Link
               href="/signup"
@@ -113,15 +123,21 @@ export default async function HomePage() {
             ) : (
               <ul className="mt-4 space-y-3">
                 {recommended.map((item) => (
-                  <li key={`recommended-${item.publicSlug}`} className="rounded-xl border border-black/10 bg-[#faf9f6] p-4">
+                  <li
+                    key={`recommended-${item.publicSlug}`}
+                    className="rounded-xl border border-black/10 bg-[#faf9f6] p-4"
+                  >
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <h3 className="text-base font-semibold">
                           {item.displayName ?? item.publicSlug}
                         </h3>
-                        <p className="mt-1 text-xs text-black/60">{item.headline ?? "헤드라인이 없습니다."}</p>
+                        <p className="mt-1 text-xs text-black/60">
+                          {item.headline ?? "헤드라인이 없습니다."}
+                        </p>
                         <p className="mt-2 text-xs text-black/50">
-                          공개 프로젝트 {item.publicProjectCount}개 · 대표 {item.featuredPublicProjectCount}개 · 업데이트{" "}
+                          공개 프로젝트 {item.publicProjectCount}개 · 대표{" "}
+                          {item.featuredPublicProjectCount}개 · 업데이트{" "}
                           {formatDateLabel(item.updatedAt)}
                         </p>
                       </div>
@@ -150,15 +166,21 @@ export default async function HomePage() {
             ) : (
               <ul className="mt-4 space-y-3">
                 {latest.map((item) => (
-                  <li key={`latest-${item.publicSlug}`} className="rounded-xl border border-black/10 bg-[#faf9f6] p-4">
+                  <li
+                    key={`latest-${item.publicSlug}`}
+                    className="rounded-xl border border-black/10 bg-[#faf9f6] p-4"
+                  >
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <h3 className="text-base font-semibold">
                           {item.displayName ?? item.publicSlug}
                         </h3>
-                        <p className="mt-1 text-xs text-black/60">{item.headline ?? "헤드라인이 없습니다."}</p>
+                        <p className="mt-1 text-xs text-black/60">
+                          {item.headline ?? "헤드라인이 없습니다."}
+                        </p>
                         <p className="mt-2 text-xs text-black/50">
-                          업데이트 {formatDateLabel(item.updatedAt)} · 공개 프로젝트 {item.publicProjectCount}개
+                          업데이트 {formatDateLabel(item.updatedAt)} · 공개 프로젝트{" "}
+                          {item.publicProjectCount}개
                         </p>
                       </div>
                       <Link
