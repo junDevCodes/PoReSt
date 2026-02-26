@@ -45,6 +45,7 @@ function formatDateLabel(value: Date): string {
 
 export default async function HomePage() {
   const session = await getServerSession(authOptions);
+  const hasSession = Boolean(session?.user?.id);
   const primaryAction = session?.user?.id
     ? { href: "/app", label: "워크스페이스로 이동" }
     : { href: "/login", label: "로그인" };
@@ -89,12 +90,14 @@ export default async function HomePage() {
             >
               {primaryAction.label}
             </Link>
-            <Link
-              href="/signup"
-              className="rounded-full border border-black/20 px-5 py-3 text-sm font-semibold text-black transition hover:border-black/40"
-            >
-              회원가입
-            </Link>
+            {hasSession ? null : (
+              <Link
+                href="/signup"
+                className="rounded-full border border-black/20 px-5 py-3 text-sm font-semibold text-black transition hover:border-black/40"
+              >
+                회원가입
+              </Link>
+            )}
             <Link
               href="/projects"
               className="rounded-full border border-black/20 px-5 py-3 text-sm font-semibold text-black transition hover:border-black/40"
