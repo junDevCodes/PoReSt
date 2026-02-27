@@ -33,12 +33,17 @@ export function BlogPostsPageClient({ initialPosts }: BlogPostsPageClientProps) 
   const toast = useToast();
 
   async function requestPosts() {
-    const response = await fetch("/api/app/blog/posts", { method: "GET" });
-    return parseApiResponse<SerializedOwnerBlogPostListItemDto[]>(response);
+    try {
+      const response = await fetch("/api/app/blog/posts", { method: "GET" });
+      return await parseApiResponse<SerializedOwnerBlogPostListItemDto[]>(response);
+    } catch (error) {
+      return parseApiResponse<SerializedOwnerBlogPostListItemDto[]>(error);
+    }
   }
 
   async function reloadPosts() {
     setIsLoading(true);
+    setError(null);
     const parsed = await requestPosts();
     if (parsed.error) {
       setError(parsed.error);
@@ -53,8 +58,14 @@ export function BlogPostsPageClient({ initialPosts }: BlogPostsPageClientProps) 
     setWorkingId(postId);
     setError(null);
 
-    const response = await fetch(`/api/app/blog/posts/${postId}/lint`, { method: "POST" });
-    const parsed = await parseApiResponse<{ id: string }>(response);
+    const parsed = await (async () => {
+      try {
+        const response = await fetch(`/api/app/blog/posts/${postId}/lint`, { method: "POST" });
+        return await parseApiResponse<{ id: string }>(response);
+      } catch (error) {
+        return parseApiResponse<{ id: string }>(error);
+      }
+    })();
     if (parsed.error) {
       setError(parsed.error);
       toast.error(parsed.error);
@@ -75,8 +86,16 @@ export function BlogPostsPageClient({ initialPosts }: BlogPostsPageClientProps) 
     setWorkingId(pendingDeletePost.id);
     setError(null);
 
-    const response = await fetch(`/api/app/blog/posts/${pendingDeletePost.id}`, { method: "DELETE" });
-    const parsed = await parseApiResponse<{ id: string }>(response);
+    const parsed = await (async () => {
+      try {
+        const response = await fetch(`/api/app/blog/posts/${pendingDeletePost.id}`, {
+          method: "DELETE",
+        });
+        return await parseApiResponse<{ id: string }>(response);
+      } catch (error) {
+        return parseApiResponse<{ id: string }>(error);
+      }
+    })();
     if (parsed.error) {
       setError(parsed.error);
       toast.error(parsed.error);
@@ -100,7 +119,10 @@ export function BlogPostsPageClient({ initialPosts }: BlogPostsPageClientProps) 
             글 작성/편집, Lint 실행, export 다운로드를 한 화면에서 처리합니다.
           </p>
         </div>
-        <Link href="/app/blog/new" className="rounded-full bg-black px-5 py-2 text-sm font-semibold text-white">
+        <Link
+          href="/app/blog/new"
+          className="rounded-full bg-black px-5 py-2 text-sm font-semibold text-white"
+        >
           새 글 작성
         </Link>
       </header>
@@ -121,8 +143,9 @@ export function BlogPostsPageClient({ initialPosts }: BlogPostsPageClientProps) 
                   <div>
                     <h3 className="text-lg font-semibold">{post.title}</h3>
                     <p className="mt-1 text-xs text-black/60">
-                      상태: {post.status} · 공개범위: {post.visibility} · 수정일: {formatDateLabel(post.updatedAt)} ·
-                      최근 Lint: {formatDateLabel(post.lastLintedAt)}
+                      상태: {post.status} · 공개범위: {post.visibility} · 수정일:{" "}
+                      {formatDateLabel(post.updatedAt)} · 최근 Lint:{" "}
+                      {formatDateLabel(post.lastLintedAt)}
                     </p>
                     <p className="mt-2 text-sm text-black/70">{post.summary ?? "요약 없음"}</p>
                     {post.tags.length > 0 ? (
