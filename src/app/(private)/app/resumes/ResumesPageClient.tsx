@@ -30,8 +30,12 @@ export function ResumesPageClient({ initialResumes }: ResumesPageClientProps) {
   const toast = useToast();
 
   async function requestResumes() {
-    const response = await fetch("/api/app/resumes", { method: "GET" });
-    return parseApiResponse<SerializedOwnerResumeListItemDto[]>(response);
+    try {
+      const response = await fetch("/api/app/resumes", { method: "GET" });
+      return await parseApiResponse<SerializedOwnerResumeListItemDto[]>(response);
+    } catch (error) {
+      return parseApiResponse<SerializedOwnerResumeListItemDto[]>(error);
+    }
   }
 
   async function reloadResumes() {
@@ -56,8 +60,16 @@ export function ResumesPageClient({ initialResumes }: ResumesPageClientProps) {
     setDeletingId(pendingDeleteResume.id);
     setError(null);
 
-    const response = await fetch(`/api/app/resumes/${pendingDeleteResume.id}`, { method: "DELETE" });
-    const parsed = await parseApiResponse<{ id: string }>(response);
+    const parsed = await (async () => {
+      try {
+        const response = await fetch(`/api/app/resumes/${pendingDeleteResume.id}`, {
+          method: "DELETE",
+        });
+        return await parseApiResponse<{ id: string }>(response);
+      } catch (error) {
+        return parseApiResponse<{ id: string }>(error);
+      }
+    })();
     if (parsed.error) {
       setError(parsed.error);
       toast.error(parsed.error);
@@ -101,12 +113,16 @@ export function ResumesPageClient({ initialResumes }: ResumesPageClientProps) {
         ) : (
           <div className="mt-4 space-y-3">
             {resumes.map((resume) => (
-              <article key={resume.id} className="rounded-xl border border-black/10 bg-[#faf9f6] p-4">
+              <article
+                key={resume.id}
+                className="rounded-xl border border-black/10 bg-[#faf9f6] p-4"
+              >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <h3 className="text-lg font-semibold">{resume.title}</h3>
                     <p className="mt-1 text-xs text-black/60">
-                      상태: {resume.status} · 항목 수: {resume.itemCount} · 수정일 {formatDateLabel(resume.updatedAt)}
+                      상태: {resume.status} · 항목 수: {resume.itemCount} · 수정일{" "}
+                      {formatDateLabel(resume.updatedAt)}
                     </p>
                     <p className="mt-2 text-sm text-black/70">
                       {resume.targetCompany ?? "회사 미지정"} / {resume.targetRole ?? "직무 미지정"}

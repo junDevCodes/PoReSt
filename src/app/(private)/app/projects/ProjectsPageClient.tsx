@@ -39,8 +39,12 @@ export function ProjectsPageClient({ initialProjects }: ProjectsPageClientProps)
   const toast = useToast();
 
   async function requestProjects() {
-    const response = await fetch("/api/app/projects", { method: "GET" });
-    return parseApiResponse<SerializedOwnerProjectDto[]>(response);
+    try {
+      const response = await fetch("/api/app/projects", { method: "GET" });
+      return await parseApiResponse<SerializedOwnerProjectDto[]>(response);
+    } catch (error) {
+      return parseApiResponse<SerializedOwnerProjectDto[]>(error);
+    }
   }
 
   async function reloadProjects() {
@@ -65,10 +69,16 @@ export function ProjectsPageClient({ initialProjects }: ProjectsPageClientProps)
     setDeletingId(pendingDeleteProject.id);
     setError(null);
 
-    const response = await fetch(`/api/app/projects/${pendingDeleteProject.id}`, {
-      method: "DELETE",
-    });
-    const parsed = await parseApiResponse<{ id: string }>(response);
+    const parsed = await (async () => {
+      try {
+        const response = await fetch(`/api/app/projects/${pendingDeleteProject.id}`, {
+          method: "DELETE",
+        });
+        return await parseApiResponse<{ id: string }>(response);
+      } catch (error) {
+        return parseApiResponse<{ id: string }>(error);
+      }
+    })();
     if (parsed.error) {
       setError(parsed.error);
       toast.error(parsed.error);
@@ -190,13 +200,17 @@ export function ProjectsPageClient({ initialProjects }: ProjectsPageClientProps)
         ) : (
           <div className="mt-4 space-y-3">
             {filteredProjects.map((project) => (
-              <article key={project.id} className="rounded-xl border border-black/10 bg-[#faf9f6] p-4">
+              <article
+                key={project.id}
+                className="rounded-xl border border-black/10 bg-[#faf9f6] p-4"
+              >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p className="text-xs text-black/50">slug: {project.slug}</p>
                     <h3 className="mt-1 text-lg font-semibold">{project.title}</h3>
                     <p className="mt-2 text-xs text-black/60">
-                      수정일 {formatUpdatedAtLabel(project.updatedAt)} · 공개상태: {project.visibility} ·
+                      수정일 {formatUpdatedAtLabel(project.updatedAt)} · 공개상태:{" "}
+                      {project.visibility} ·
                       {project.isFeatured ? " 대표 프로젝트" : " 일반 프로젝트"}
                     </p>
                   </div>
