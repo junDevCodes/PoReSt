@@ -42,7 +42,10 @@ export function NoteDetailClient({ note, initialEdges }: NoteDetailClientProps) 
   const grouped = useMemo(() => {
     return splitEdgesByStatus(note.id, edges);
   }, [edges, note.id]);
-  const graph = useMemo(() => buildNoteGraph(note.id, note.title, edges), [edges, note.id, note.title]);
+  const graph = useMemo(
+    () => buildNoteGraph(note.id, note.title, edges),
+    [edges, note.id, note.title],
+  );
 
   function nodeFillColor(kind: "CENTER" | "CONFIRMED" | "CANDIDATE") {
     if (kind === "CENTER") return "#22d3ee";
@@ -59,21 +62,34 @@ export function NoteDetailClient({ note, initialEdges }: NoteDetailClientProps) 
     setPendingEdgeId(edgeId);
     setError(null);
 
-    const endpoint = action === "confirm" ? "/api/app/notes/edges/confirm" : "/api/app/notes/edges/reject";
-    const response = await fetch(endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ edgeId }),
-    });
-    const parsed = await parseApiResponse<NoteEdgeDto>(response);
+    const endpoint =
+      action === "confirm" ? "/api/app/notes/edges/confirm" : "/api/app/notes/edges/reject";
+    const parsed = await (async () => {
+      try {
+        const response = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ edgeId }),
+        });
+        return await parseApiResponse<NoteEdgeDto>(response);
+      } catch (error) {
+        return parseApiResponse<NoteEdgeDto>(error);
+      }
+    })();
     if (parsed.error) {
       setError(parsed.error);
       setPendingEdgeId(null);
       return;
     }
 
-    const edgeResponse = await fetch(`/api/app/notes/${note.id}/edges`, { method: "GET" });
-    const parsedEdges = await parseApiResponse<NoteEdgeDto[]>(edgeResponse);
+    const parsedEdges = await (async () => {
+      try {
+        const edgeResponse = await fetch(`/api/app/notes/${note.id}/edges`, { method: "GET" });
+        return await parseApiResponse<NoteEdgeDto[]>(edgeResponse);
+      } catch (error) {
+        return parseApiResponse<NoteEdgeDto[]>(error);
+      }
+    })();
     if (parsedEdges.error) {
       setError(parsedEdges.error);
       setPendingEdgeId(null);
@@ -96,7 +112,8 @@ export function NoteDetailClient({ note, initialEdges }: NoteDetailClientProps) 
         <p className="text-xs uppercase tracking-[0.3em] text-white/50">노트 상세</p>
         <h1 className="mt-2 text-3xl font-semibold">{note.title}</h1>
         <p className="mt-2 text-sm text-white/65">
-          노트북: {note.notebook.name} · 수정일: {formatUpdatedAtLabel(note.updatedAt)} · 공개상태: {note.visibility}
+          노트북: {note.notebook.name} · 수정일: {formatUpdatedAtLabel(note.updatedAt)} · 공개상태:{" "}
+          {note.visibility}
         </p>
         {note.summary ? <p className="mt-4 text-sm text-white/75">{note.summary}</p> : null}
         <pre className="mt-4 whitespace-pre-wrap rounded-xl border border-white/10 bg-black/20 p-4 text-sm text-white/85">
@@ -104,7 +121,10 @@ export function NoteDetailClient({ note, initialEdges }: NoteDetailClientProps) 
         </pre>
         <div className="mt-3 flex flex-wrap gap-2">
           {note.tags.map((tag) => (
-            <span key={tag} className="rounded-full border border-white/20 px-3 py-1 text-xs text-white/80">
+            <span
+              key={tag}
+              className="rounded-full border border-white/20 px-3 py-1 text-xs text-white/80"
+            >
               #{tag}
             </span>
           ))}
@@ -119,7 +139,10 @@ export function NoteDetailClient({ note, initialEdges }: NoteDetailClientProps) 
           ) : (
             <ul className="mt-3 space-y-2">
               {grouped.confirmed.map((item) => (
-                <li key={item.edge.id} className="rounded-lg border border-white/10 bg-black/20 px-3 py-2">
+                <li
+                  key={item.edge.id}
+                  className="rounded-lg border border-white/10 bg-black/20 px-3 py-2"
+                >
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-sm">{item.counterpart.title}</span>
                     <Link
@@ -142,7 +165,10 @@ export function NoteDetailClient({ note, initialEdges }: NoteDetailClientProps) 
           ) : (
             <ul className="mt-3 space-y-2">
               {grouped.candidates.map((item) => (
-                <li key={item.edge.id} className="rounded-lg border border-white/10 bg-black/20 px-3 py-2">
+                <li
+                  key={item.edge.id}
+                  className="rounded-lg border border-white/10 bg-black/20 px-3 py-2"
+                >
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
                       <p className="text-sm">{item.counterpart.title}</p>
@@ -176,9 +202,17 @@ export function NoteDetailClient({ note, initialEdges }: NoteDetailClientProps) 
 
       <section className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-6">
         <h2 className="text-lg font-semibold">노트 연결 그래프</h2>
-        <p className="mt-2 text-xs text-white/60">중심 노트 기준으로 CONFIRMED/CANDIDATE 관계를 시각화합니다.</p>
+        <p className="mt-2 text-xs text-white/60">
+          중심 노트 기준으로 CONFIRMED/CANDIDATE 관계를 시각화합니다.
+        </p>
         <div className="mt-4 overflow-x-auto rounded-xl border border-white/10 bg-black/20 p-3">
-          <svg width={graph.width} height={graph.height} viewBox={`0 0 ${graph.width} ${graph.height}`} role="img" aria-label="노트 연결 그래프">
+          <svg
+            width={graph.width}
+            height={graph.height}
+            viewBox={`0 0 ${graph.width} ${graph.height}`}
+            role="img"
+            aria-label="노트 연결 그래프"
+          >
             {graph.edges.map((edge) => {
               const fromNode = graph.nodes.find((node) => node.id === edge.fromId);
               const toNode = graph.nodes.find((node) => node.id === edge.toId);
@@ -197,11 +231,24 @@ export function NoteDetailClient({ note, initialEdges }: NoteDetailClientProps) 
             })}
             {graph.nodes.map((node) => (
               <g key={node.id}>
-                <circle cx={node.x} cy={node.y} r={node.kind === "CENTER" ? 18 : 14} fill={nodeFillColor(node.kind)} stroke="rgba(255,255,255,0.7)" strokeWidth={1.5} />
+                <circle
+                  cx={node.x}
+                  cy={node.y}
+                  r={node.kind === "CENTER" ? 18 : 14}
+                  fill={nodeFillColor(node.kind)}
+                  stroke="rgba(255,255,255,0.7)"
+                  strokeWidth={1.5}
+                />
                 <text x={node.x} y={node.y + 4} textAnchor="middle" fontSize={10} fill="#0b1220">
                   {node.kind === "CENTER" ? "ME" : "N"}
                 </text>
-                <text x={node.x} y={node.y + 28} textAnchor="middle" fontSize={11} fill="rgba(255,255,255,0.9)">
+                <text
+                  x={node.x}
+                  y={node.y + 28}
+                  textAnchor="middle"
+                  fontSize={11}
+                  fill="rgba(255,255,255,0.9)"
+                >
                   {node.title.length > 14 ? `${node.title.slice(0, 14)}…` : node.title}
                 </text>
               </g>

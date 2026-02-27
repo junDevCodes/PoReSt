@@ -68,31 +68,38 @@ export function NotesPageClient({ initialNotes, initialNotebooks }: NotesPageCli
 
   async function loadData() {
     setIsLoading(true);
-    const [notesResponse, notebooksResponse] = await Promise.all([
-      fetch("/api/app/notes", { method: "GET" }),
-      fetch("/api/app/notebooks", { method: "GET" }),
-    ]);
+    setError(null);
 
-    const [notesParsed, notebooksParsed] = await Promise.all([
-      parseApiResponse<OwnerNoteListItemDto[]>(notesResponse),
-      parseApiResponse<SerializedOwnerNotebookDto[]>(notebooksResponse),
-    ]);
+    try {
+      const [notesResponse, notebooksResponse] = await Promise.all([
+        fetch("/api/app/notes", { method: "GET" }),
+        fetch("/api/app/notebooks", { method: "GET" }),
+      ]);
 
-    if (notesParsed.error || notebooksParsed.error) {
-      setError(notesParsed.error ?? notebooksParsed.error ?? "목록을 불러오지 못했습니다.");
+      const [notesParsed, notebooksParsed] = await Promise.all([
+        parseApiResponse<OwnerNoteListItemDto[]>(notesResponse),
+        parseApiResponse<SerializedOwnerNotebookDto[]>(notebooksResponse),
+      ]);
+
+      if (notesParsed.error || notebooksParsed.error) {
+        setError(notesParsed.error ?? notebooksParsed.error ?? "목록을 불러오지 못했습니다.");
+        return;
+      }
+
+      const nextNotebooks = notebooksParsed.data ?? [];
+      const nextNotes = notesParsed.data ?? [];
+      setNotes(nextNotes);
+      setNotebooks(nextNotebooks);
+      setNoteForm((prev) => ({
+        ...prev,
+        notebookId: prev.notebookId || nextNotebooks[0]?.id || "",
+      }));
+    } catch (error) {
+      const parsed = await parseApiResponse<null>(error);
+      setError(parsed.error ?? "목록을 불러오지 못했습니다.");
+    } finally {
       setIsLoading(false);
-      return;
     }
-
-    const nextNotebooks = notebooksParsed.data ?? [];
-    const nextNotes = notesParsed.data ?? [];
-    setNotes(nextNotes);
-    setNotebooks(nextNotebooks);
-    setNoteForm((prev) => ({
-      ...prev,
-      notebookId: prev.notebookId || nextNotebooks[0]?.id || "",
-    }));
-    setIsLoading(false);
   }
 
   const sections = useMemo(() => buildNotebookSections(notes), [notes]);
@@ -102,16 +109,22 @@ export function NotesPageClient({ initialNotes, initialNotebooks }: NotesPageCli
     setError(null);
     setIsCreatingNotebook(true);
 
-    const response = await fetch("/api/app/notebooks", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: newNotebookName,
-        description: newNotebookDescription || null,
-      }),
-    });
+    const parsed = await (async () => {
+      try {
+        const response = await fetch("/api/app/notebooks", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: newNotebookName,
+            description: newNotebookDescription || null,
+          }),
+        });
 
-    const parsed = await parseApiResponse<SerializedOwnerNotebookDto>(response);
+        return await parseApiResponse<SerializedOwnerNotebookDto>(response);
+      } catch (error) {
+        return parseApiResponse<SerializedOwnerNotebookDto>(error);
+      }
+    })();
     if (parsed.error) {
       setError(parsed.error);
       toast.error(parsed.error);
@@ -130,8 +143,14 @@ export function NotesPageClient({ initialNotes, initialNotebooks }: NotesPageCli
     setError(null);
     setDeletingNotebookId(notebookId);
 
-    const response = await fetch(`/api/app/notebooks/${notebookId}`, { method: "DELETE" });
-    const parsed = await parseApiResponse<{ id: string }>(response);
+    const parsed = await (async () => {
+      try {
+        const response = await fetch(`/api/app/notebooks/${notebookId}`, { method: "DELETE" });
+        return await parseApiResponse<{ id: string }>(response);
+      } catch (error) {
+        return parseApiResponse<{ id: string }>(error);
+      }
+    })();
 
     if (parsed.error) {
       setError(parsed.error);
@@ -150,19 +169,25 @@ export function NotesPageClient({ initialNotes, initialNotebooks }: NotesPageCli
     setError(null);
     setIsCreatingNote(true);
 
-    const response = await fetch("/api/app/notes", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        notebookId: noteForm.notebookId,
-        title: noteForm.title,
-        contentMd: noteForm.contentMd,
-        summary: noteForm.summary || null,
-        tags: parseTags(noteForm.tags),
-      }),
-    });
+    const parsed = await (async () => {
+      try {
+        const response = await fetch("/api/app/notes", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            notebookId: noteForm.notebookId,
+            title: noteForm.title,
+            contentMd: noteForm.contentMd,
+            summary: noteForm.summary || null,
+            tags: parseTags(noteForm.tags),
+          }),
+        });
 
-    const parsed = await parseApiResponse<OwnerNoteListItemDto>(response);
+        return await parseApiResponse<OwnerNoteListItemDto>(response);
+      } catch (error) {
+        return parseApiResponse<OwnerNoteListItemDto>(error);
+      }
+    })();
     if (parsed.error) {
       setError(parsed.error);
       toast.error(parsed.error);
@@ -280,13 +305,17 @@ export function NotesPageClient({ initialNotes, initialNotebooks }: NotesPageCli
             />
             <textarea
               value={noteForm.summary}
-              onChange={(event) => setNoteForm((prev) => ({ ...prev, summary: event.target.value }))}
+              onChange={(event) =>
+                setNoteForm((prev) => ({ ...prev, summary: event.target.value }))
+              }
               className="min-h-20 rounded-lg border border-black/15 bg-white px-3 py-2 text-sm"
               placeholder="요약 (선택)"
             />
             <textarea
               value={noteForm.contentMd}
-              onChange={(event) => setNoteForm((prev) => ({ ...prev, contentMd: event.target.value }))}
+              onChange={(event) =>
+                setNoteForm((prev) => ({ ...prev, contentMd: event.target.value }))
+              }
               className="min-h-32 rounded-lg border border-black/15 bg-white px-3 py-2 text-sm"
               placeholder="노트 본문 (Markdown)"
             />
@@ -321,19 +350,26 @@ export function NotesPageClient({ initialNotes, initialNotebooks }: NotesPageCli
         ) : (
           <div className="mt-5 space-y-5">
             {sections.map((section) => (
-              <article key={section.notebook.id} className="rounded-xl border border-black/10 bg-[#faf9f6] p-4">
+              <article
+                key={section.notebook.id}
+                className="rounded-xl border border-black/10 bg-[#faf9f6] p-4"
+              >
                 <header className="flex items-center justify-between gap-2">
                   <h3 className="text-lg font-semibold">{section.notebook.name}</h3>
                   <span className="text-xs text-black/50">{section.notes.length}개 노트</span>
                 </header>
                 <ul className="mt-3 space-y-2">
                   {section.notes.map((note) => (
-                    <li key={note.id} className="rounded-lg border border-black/10 bg-white px-3 py-2">
+                    <li
+                      key={note.id}
+                      className="rounded-lg border border-black/10 bg-white px-3 py-2"
+                    >
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <div>
                           <p className="text-sm font-medium">{note.title}</p>
                           <p className="mt-1 text-xs text-black/55">
-                            수정일 {formatUpdatedAtLabel(String(note.updatedAt))} · 공개상태: {note.visibility}
+                            수정일 {formatUpdatedAtLabel(String(note.updatedAt))} · 공개상태:{" "}
+                            {note.visibility}
                           </p>
                         </div>
                         <Link
