@@ -1,0 +1,61 @@
+# CI/CD 파이프라인
+# build 체크: 린트 + Next.js 빌드 + Jest 테스트
+# deploy 체크: Vercel 배포 (PR → Preview, main 푸시 → Production)
+#
+# 브랜치 보호 규칙 필수 체크 이름:
+#   "CI / build"  ← 이 워크플로우의 build 잡
+#   "CI / deploy" ← 이 워크플로우의 deploy 잡
+
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # 빌드 및 테스트 게이트
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Node.js 설정
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: 의존성 설치
+        run: npm ci
+
+      - name: 린트 검사
+        run: npm run lint
+
+      - name: Next.js 빌드 검사
+        run: npm run build
+
+      - name: 테스트 실행
+        run: npx jest --runInBand
+
+  # Vercel 배포 게이트
+  # 필수 시크릿: VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Vercel Production 배포 (main 브랜치 푸시 시)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: npx vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }} --yes
+
+      - name: Vercel Preview 배포 (PR 또는 dev 브랜치 푸시 시)
+        if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref != 'refs/heads/main')
+        run: npx vercel deploy --token=${{ secrets.VERCEL_TOKEN }} --yes
