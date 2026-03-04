@@ -131,7 +131,10 @@ function parseDownloadFileName(contentDisposition: string | null, fallback: stri
 
 async function downloadResponseFile(response: Response, fallbackFileName: string) {
   const blob = await response.blob();
-  const fileName = parseDownloadFileName(response.headers.get("Content-Disposition"), fallbackFileName);
+  const fileName = parseDownloadFileName(
+    response.headers.get("Content-Disposition"),
+    fallbackFileName,
+  );
   const url = URL.createObjectURL(blob);
 
   const anchor = document.createElement("a");
@@ -206,7 +209,10 @@ export default function BlogEditPage() {
         return;
       }
 
-      const [postResult, exportResult] = await Promise.all([requestPost(postId), requestExportHistory(postId)]);
+      const [postResult, exportResult] = await Promise.all([
+        requestPost(postId),
+        requestExportHistory(postId),
+      ]);
       if (!mounted) {
         return;
       }
@@ -328,7 +334,9 @@ export default function BlogEditPage() {
     setError(null);
     setMessage(null);
 
-    const response = await fetch(`/api/app/blog/posts/${post.id}/export?format=${format}`, { method: "GET" });
+    const response = await fetch(`/api/app/blog/posts/${post.id}/export?format=${format}`, {
+      method: "GET",
+    });
     if (!response.ok) {
       const parsed = await parseApiResponse<never>(response);
       setError(parsed.error ?? "Export 생성에 실패했습니다.");
@@ -351,7 +359,9 @@ export default function BlogEditPage() {
     setError(null);
     setMessage(null);
 
-    const response = await fetch(`/api/app/blog/posts/${post.id}/exports/${exportId}`, { method: "GET" });
+    const response = await fetch(`/api/app/blog/posts/${post.id}/exports/${exportId}`, {
+      method: "GET",
+    });
     if (!response.ok) {
       const parsed = await parseApiResponse<never>(response);
       setError(parsed.error ?? "Export 재다운로드에 실패했습니다.");
@@ -368,19 +378,24 @@ export default function BlogEditPage() {
     <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6 py-12">
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-white/50">관리</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-black/60">관리</p>
           <h1 className="mt-2 text-3xl font-semibold">블로그 글 편집</h1>
-          <p className="mt-3 text-sm text-white/65">본문 편집, Lint, Export 이력 관리를 진행합니다.</p>
+          <p className="mt-3 text-sm text-black/60">
+            본문 편집, Lint, Export 이력 관리를 진행합니다.
+          </p>
         </div>
         <div className="flex gap-2">
-          <Link href="/app/blog" className="rounded-full border border-white/30 px-4 py-2 text-sm">
+          <Link
+            href="/app/blog"
+            className="rounded-lg border border-black/15 bg-white px-3 py-2 text-sm text-black/75 hover:text-black"
+          >
             목록으로
           </Link>
           <button
             type="button"
             onClick={() => void handleDelete()}
             disabled={isDeleting || isLoading}
-            className="rounded-full border border-rose-400/50 px-4 py-2 text-sm text-rose-200 disabled:opacity-60"
+            className="rounded-lg border border-rose-300 px-4 py-2 text-sm text-rose-700 disabled:opacity-60"
           >
             {isDeleting ? "삭제 중..." : "글 삭제"}
           </button>
@@ -388,27 +403,29 @@ export default function BlogEditPage() {
       </header>
 
       {error ? (
-        <p className="mt-6 rounded-xl border border-rose-400/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+        <p className="mt-6 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
           {error}
         </p>
       ) : null}
       {message ? (
-        <p className="mt-6 rounded-xl border border-emerald-400/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+        <p className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
           {message}
         </p>
       ) : null}
 
-      <section className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-6">
+      <section className="mt-8 rounded-2xl border border-black/10 bg-[#faf9f6] p-6">
         {isLoading || !form ? (
-          <p className="text-sm text-white/60">글 정보를 불러오는 중입니다.</p>
+          <p className="text-sm text-black/60">글 정보를 불러오는 중입니다.</p>
         ) : (
           <form onSubmit={handleSave} className="grid gap-4">
             <label className="flex flex-col gap-2 text-sm">
               <span>제목</span>
               <input
                 value={form.title}
-                onChange={(event) => setForm((prev) => (prev ? { ...prev, title: event.target.value } : prev))}
-                className="rounded-lg border border-white/20 bg-black/20 px-3 py-2"
+                onChange={(event) =>
+                  setForm((prev) => (prev ? { ...prev, title: event.target.value } : prev))
+                }
+                className="rounded-lg border border-black/15 bg-white px-3 py-2"
               />
             </label>
 
@@ -418,9 +435,11 @@ export default function BlogEditPage() {
                 <select
                   value={form.status}
                   onChange={(event) =>
-                    setForm((prev) => (prev ? { ...prev, status: event.target.value as PostStatus } : prev))
+                    setForm((prev) =>
+                      prev ? { ...prev, status: event.target.value as PostStatus } : prev,
+                    )
                   }
-                  className="rounded-lg border border-white/20 bg-black/20 px-3 py-2"
+                  className="rounded-lg border border-black/15 bg-white px-3 py-2"
                 >
                   <option value="DRAFT">DRAFT</option>
                   <option value="PUBLISHED">PUBLISHED</option>
@@ -432,9 +451,11 @@ export default function BlogEditPage() {
                 <select
                   value={form.visibility}
                   onChange={(event) =>
-                    setForm((prev) => (prev ? { ...prev, visibility: event.target.value as Visibility } : prev))
+                    setForm((prev) =>
+                      prev ? { ...prev, visibility: event.target.value as Visibility } : prev,
+                    )
                   }
-                  className="rounded-lg border border-white/20 bg-black/20 px-3 py-2"
+                  className="rounded-lg border border-black/15 bg-white px-3 py-2"
                 >
                   <option value="PRIVATE">PRIVATE</option>
                   <option value="UNLISTED">UNLISTED</option>
@@ -447,8 +468,10 @@ export default function BlogEditPage() {
               <span>요약</span>
               <textarea
                 value={form.summary}
-                onChange={(event) => setForm((prev) => (prev ? { ...prev, summary: event.target.value } : prev))}
-                className="min-h-24 rounded-lg border border-white/20 bg-black/20 px-3 py-2"
+                onChange={(event) =>
+                  setForm((prev) => (prev ? { ...prev, summary: event.target.value } : prev))
+                }
+                className="min-h-24 rounded-lg border border-black/15 bg-white px-3 py-2"
               />
             </label>
 
@@ -456,8 +479,10 @@ export default function BlogEditPage() {
               <span>태그 (콤마 구분)</span>
               <input
                 value={form.tags}
-                onChange={(event) => setForm((prev) => (prev ? { ...prev, tags: event.target.value } : prev))}
-                className="rounded-lg border border-white/20 bg-black/20 px-3 py-2"
+                onChange={(event) =>
+                  setForm((prev) => (prev ? { ...prev, tags: event.target.value } : prev))
+                }
+                className="rounded-lg border border-black/15 bg-white px-3 py-2"
               />
             </label>
 
@@ -468,7 +493,7 @@ export default function BlogEditPage() {
                 onChange={(event) =>
                   setForm((prev) => (prev ? { ...prev, contentMd: event.target.value } : prev))
                 }
-                className="min-h-96 rounded-lg border border-white/20 bg-black/20 px-3 py-2"
+                className="min-h-96 rounded-lg border border-black/15 bg-white px-3 py-2"
               />
             </label>
 
@@ -476,7 +501,7 @@ export default function BlogEditPage() {
               <button
                 type="submit"
                 disabled={isSaving}
-                className="rounded-full bg-white px-5 py-2 text-sm font-semibold text-black disabled:opacity-60"
+                className="rounded-full bg-black px-5 py-2 text-sm font-semibold text-white disabled:opacity-60"
               >
                 {isSaving ? "저장 중..." : "저장"}
               </button>
@@ -484,7 +509,7 @@ export default function BlogEditPage() {
                 type="button"
                 onClick={() => void handleRunLint()}
                 disabled={isRunningLint}
-                className="rounded-full border border-cyan-400/50 px-5 py-2 text-sm text-cyan-200 disabled:opacity-60"
+                className="rounded-full border border-cyan-600/30 px-5 py-2 text-sm text-cyan-800 disabled:opacity-60"
               >
                 {isRunningLint ? "Lint 실행 중..." : "Lint 실행"}
               </button>
@@ -492,7 +517,7 @@ export default function BlogEditPage() {
                 type="button"
                 onClick={() => void handleCreateExport("html")}
                 disabled={exportingFormat !== null}
-                className="rounded-full border border-white/30 px-5 py-2 text-sm text-white/90 disabled:opacity-60"
+                className="rounded-full border border-black/15 px-5 py-2 text-sm text-black/75 disabled:opacity-60"
               >
                 {exportingFormat === "html" ? "HTML 생성 중..." : "HTML"}
               </button>
@@ -500,7 +525,7 @@ export default function BlogEditPage() {
                 type="button"
                 onClick={() => void handleCreateExport("md")}
                 disabled={exportingFormat !== null}
-                className="rounded-full border border-white/30 px-5 py-2 text-sm text-white/90 disabled:opacity-60"
+                className="rounded-full border border-black/15 px-5 py-2 text-sm text-black/75 disabled:opacity-60"
               >
                 {exportingFormat === "md" ? "MD 생성 중..." : "MD"}
               </button>
@@ -508,7 +533,7 @@ export default function BlogEditPage() {
                 type="button"
                 onClick={() => void handleCreateExport("zip")}
                 disabled={exportingFormat !== null}
-                className="rounded-full border border-white/30 px-5 py-2 text-sm text-white/90 disabled:opacity-60"
+                className="rounded-full border border-black/15 px-5 py-2 text-sm text-black/75 disabled:opacity-60"
               >
                 {exportingFormat === "zip" ? "ZIP 생성 중..." : "ZIP"}
               </button>
@@ -517,7 +542,7 @@ export default function BlogEditPage() {
         )}
       </section>
 
-      <section className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-6">
+      <section className="mt-8 rounded-2xl border border-black/10 bg-[#faf9f6] p-6">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-lg font-semibold">Export 이력</h2>
           {post ? (
@@ -525,7 +550,7 @@ export default function BlogEditPage() {
               type="button"
               onClick={() => void loadExportHistory(post.id)}
               disabled={isLoadingExports}
-              className="rounded-lg border border-white/20 px-3 py-2 text-xs text-white/80 disabled:opacity-60"
+              className="rounded-lg border border-black/15 px-3 py-2 text-xs text-black/70 disabled:opacity-60"
             >
               {isLoadingExports ? "새로고침 중..." : "이력 새로고침"}
             </button>
@@ -533,26 +558,27 @@ export default function BlogEditPage() {
         </div>
 
         {isLoading || isLoadingExports ? (
-          <p className="mt-4 text-sm text-white/60">Export 이력을 불러오는 중입니다.</p>
+          <p className="mt-4 text-sm text-black/60">Export 이력을 불러오는 중입니다.</p>
         ) : exportsHistory.length === 0 ? (
-          <p className="mt-4 text-sm text-white/60">생성된 Export 이력이 없습니다.</p>
+          <p className="mt-4 text-sm text-black/60">생성된 Export 이력이 없습니다.</p>
         ) : (
           <div className="mt-4 space-y-3">
             {exportsHistory.map((artifact) => (
-              <article key={artifact.id} className="rounded-lg border border-white/10 bg-black/20 p-3">
+              <article key={artifact.id} className="rounded-lg border border-black/10 bg-white p-3">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <p className="text-sm font-medium text-white">{artifact.fileName}</p>
-                    <p className="mt-1 text-xs text-white/60">
-                      형식: {artifact.format.toUpperCase()} / 크기: {artifact.byteSize} bytes / 생성: {formatDateLabel(artifact.createdAt)}
+                    <p className="text-sm font-medium text-black">{artifact.fileName}</p>
+                    <p className="mt-1 text-xs text-black/60">
+                      형식: {artifact.format.toUpperCase()} / 크기: {artifact.byteSize} bytes /
+                      생성: {formatDateLabel(artifact.createdAt)}
                     </p>
-                    <p className="mt-1 text-[11px] text-white/45">hash: {artifact.snapshotHash}</p>
+                    <p className="mt-1 text-[11px] text-black/50">hash: {artifact.snapshotHash}</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => void handleDownloadHistoryExport(artifact.id, artifact.fileName)}
                     disabled={downloadingExportId === artifact.id}
-                    className="rounded-lg border border-cyan-400/50 px-3 py-2 text-sm text-cyan-200 disabled:opacity-60"
+                    className="rounded-lg border border-cyan-600/30 px-3 py-2 text-sm text-cyan-800 disabled:opacity-60"
                   >
                     {downloadingExportId === artifact.id ? "다운로드 중..." : "재다운로드"}
                   </button>
@@ -563,19 +589,22 @@ export default function BlogEditPage() {
         )}
       </section>
 
-      <section className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-6">
+      <section className="mt-8 rounded-2xl border border-black/10 bg-[#faf9f6] p-6">
         <h2 className="text-lg font-semibold">Lint 결과</h2>
         {lintIssues.length === 0 ? (
-          <p className="mt-4 text-sm text-white/60">Lint 이슈가 없거나 아직 실행되지 않았습니다.</p>
+          <p className="mt-4 text-sm text-black/60">Lint 이슈가 없거나 아직 실행되지 않았습니다.</p>
         ) : (
           <div className="mt-4 space-y-3">
             {lintIssues.map((issue, index) => (
-              <article key={`${issue.ruleId}-${index}`} className="rounded-lg border border-amber-400/40 bg-amber-500/10 p-3">
-                <p className="text-sm font-semibold text-amber-100">
+              <article
+                key={`${issue.ruleId}-${index}`}
+                className="rounded-lg border border-amber-200 bg-amber-50 p-3"
+              >
+                <p className="text-sm font-semibold text-amber-800">
                   {issue.ruleId} / line {issue.line}
                 </p>
-                <p className="mt-1 text-sm text-amber-100/90">{issue.message}</p>
-                <p className="mt-2 text-xs text-amber-100/80">excerpt: {issue.excerpt}</p>
+                <p className="mt-1 text-sm text-amber-700">{issue.message}</p>
+                <p className="mt-2 text-xs text-amber-700">excerpt: {issue.excerpt}</p>
               </article>
             ))}
           </div>

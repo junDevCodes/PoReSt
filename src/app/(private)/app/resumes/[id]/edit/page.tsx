@@ -209,7 +209,8 @@ export default function ResumeEditPage() {
 
   async function loadExperiences() {
     const response = await fetch("/api/app/experiences", { method: "GET" });
-    const parsed = await parseApiResponse<Array<{ id: string; company: string; role: string }>>(response);
+    const parsed =
+      await parseApiResponse<Array<{ id: string; company: string; role: string }>>(response);
     if (parsed.error) {
       return parsed;
     }
@@ -555,18 +556,21 @@ export default function ResumeEditPage() {
     <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6 py-12">
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-white/50">관리</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-black/60">관리</p>
           <h1 className="mt-2 text-3xl font-semibold">이력서 편집</h1>
         </div>
         <div className="flex gap-2">
-          <Link href="/app/resumes" className="rounded-full border border-white/30 px-4 py-2 text-sm">
+          <Link
+            href="/app/resumes"
+            className="rounded-lg border border-black/15 bg-white px-3 py-2 text-sm text-black/75 hover:text-black"
+          >
             목록으로
           </Link>
           <button
             type="button"
             onClick={() => void handleDeleteResume()}
             disabled={isDeletingResume || isLoading}
-            className="rounded-full border border-rose-400/50 px-4 py-2 text-sm text-rose-200 disabled:opacity-60"
+            className="rounded-lg border border-rose-300 px-4 py-2 text-sm text-rose-700 disabled:opacity-60"
           >
             {isDeletingResume ? "삭제 중..." : "이력서 삭제"}
           </button>
@@ -574,28 +578,30 @@ export default function ResumeEditPage() {
       </header>
 
       {error ? (
-        <p className="mt-6 rounded-xl border border-rose-400/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+        <p className="mt-6 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
           {error}
         </p>
       ) : null}
       {message ? (
-        <p className="mt-6 rounded-xl border border-emerald-400/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+        <p className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
           {message}
         </p>
       ) : null}
 
-      <section className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-6">
+      <section className="mt-8 rounded-2xl border border-black/10 bg-[#faf9f6] p-6">
         <h2 className="text-lg font-semibold">이력서 기본 정보</h2>
         {isLoading || !form ? (
-          <p className="mt-4 text-sm text-white/60">이력서를 불러오는 중입니다.</p>
+          <p className="mt-4 text-sm text-black/60">이력서를 불러오는 중입니다.</p>
         ) : (
           <div className="mt-4 grid gap-4">
             <label className="flex flex-col gap-2 text-sm">
               <span>제목</span>
               <input
                 value={form.title}
-                onChange={(event) => setForm((prev) => (prev ? { ...prev, title: event.target.value } : prev))}
-                className="rounded-lg border border-white/20 bg-black/20 px-3 py-2"
+                onChange={(event) =>
+                  setForm((prev) => (prev ? { ...prev, title: event.target.value } : prev))
+                }
+                className="rounded-lg border border-black/15 bg-white px-3 py-2"
               />
             </label>
             <div className="grid gap-4 md:grid-cols-4">
@@ -608,7 +614,7 @@ export default function ResumeEditPage() {
                       prev ? { ...prev, status: event.target.value as ResumeStatus } : prev,
                     )
                   }
-                  className="rounded-lg border border-white/20 bg-black/20 px-3 py-2"
+                  className="rounded-lg border border-black/15 bg-white px-3 py-2"
                 >
                   <option value="DRAFT">DRAFT</option>
                   <option value="SUBMITTED">SUBMITTED</option>
@@ -620,9 +626,11 @@ export default function ResumeEditPage() {
                 <input
                   value={form.targetCompany}
                   onChange={(event) =>
-                    setForm((prev) => (prev ? { ...prev, targetCompany: event.target.value } : prev))
+                    setForm((prev) =>
+                      prev ? { ...prev, targetCompany: event.target.value } : prev,
+                    )
                   }
-                  className="rounded-lg border border-white/20 bg-black/20 px-3 py-2"
+                  className="rounded-lg border border-black/15 bg-white px-3 py-2"
                 />
               </label>
               <label className="flex flex-col gap-2 text-sm">
@@ -632,7 +640,7 @@ export default function ResumeEditPage() {
                   onChange={(event) =>
                     setForm((prev) => (prev ? { ...prev, targetRole: event.target.value } : prev))
                   }
-                  className="rounded-lg border border-white/20 bg-black/20 px-3 py-2"
+                  className="rounded-lg border border-black/15 bg-white px-3 py-2"
                 />
               </label>
               <label className="flex flex-col gap-2 text-sm">
@@ -642,7 +650,7 @@ export default function ResumeEditPage() {
                   onChange={(event) =>
                     setForm((prev) => (prev ? { ...prev, level: event.target.value } : prev))
                   }
-                  className="rounded-lg border border-white/20 bg-black/20 px-3 py-2"
+                  className="rounded-lg border border-black/15 bg-white px-3 py-2"
                 />
               </label>
             </div>
@@ -653,14 +661,14 @@ export default function ResumeEditPage() {
                 onChange={(event) =>
                   setForm((prev) => (prev ? { ...prev, summaryMd: event.target.value } : prev))
                 }
-                className="min-h-36 rounded-lg border border-white/20 bg-black/20 px-3 py-2"
+                className="min-h-36 rounded-lg border border-black/15 bg-white px-3 py-2"
               />
             </label>
             <button
               type="button"
               onClick={() => void handleSaveResume()}
               disabled={isSavingResume}
-              className="w-fit rounded-full bg-white px-5 py-2 text-sm font-semibold text-black disabled:opacity-60"
+              className="w-fit rounded-full bg-black px-5 py-2 text-sm font-semibold text-white disabled:opacity-60"
             >
               {isSavingResume ? "저장 중..." : "이력서 저장"}
             </button>
@@ -668,7 +676,7 @@ export default function ResumeEditPage() {
         )}
       </section>
 
-      <section className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-6">
+      <section className="mt-8 rounded-2xl border border-black/10 bg-[#faf9f6] p-6">
         <h2 className="text-lg font-semibold">경력 항목 추가</h2>
         <div className="mt-4 grid gap-3 md:grid-cols-[1fr_160px_120px]">
           <select
@@ -676,7 +684,7 @@ export default function ResumeEditPage() {
             onChange={(event) =>
               setCreateItem((prev) => ({ ...prev, experienceId: event.target.value }))
             }
-            className="rounded-lg border border-white/20 bg-black/20 px-3 py-2 text-sm"
+            className="rounded-lg border border-black/15 bg-white px-3 py-2 text-sm"
           >
             <option value="">추가할 경력을 선택하세요</option>
             {availableExperienceOptions.map((experience) => (
@@ -693,35 +701,37 @@ export default function ResumeEditPage() {
             }
             min={0}
             max={9999}
-            className="rounded-lg border border-white/20 bg-black/20 px-3 py-2 text-sm"
+            className="rounded-lg border border-black/15 bg-white px-3 py-2 text-sm"
           />
           <button
             type="button"
             onClick={() => void handleCreateItem()}
             disabled={isCreatingItem || !createItem.experienceId}
-            className="rounded-lg border border-cyan-400/50 px-3 py-2 text-sm text-cyan-200 disabled:opacity-60"
+            className="rounded-lg border border-cyan-600/30 px-3 py-2 text-sm text-cyan-800 disabled:opacity-60"
           >
             {isCreatingItem ? "추가 중..." : "항목 추가"}
           </button>
         </div>
       </section>
 
-      <section className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-6">
+      <section className="mt-8 rounded-2xl border border-black/10 bg-[#faf9f6] p-6">
         <h2 className="text-lg font-semibold">이력서 항목</h2>
         {isLoading || !resume ? (
-          <p className="mt-4 text-sm text-white/60">이력서 항목을 불러오는 중입니다.</p>
+          <p className="mt-4 text-sm text-black/60">이력서 항목을 불러오는 중입니다.</p>
         ) : resume.items.length === 0 ? (
-          <p className="mt-4 text-sm text-white/60">추가된 항목이 없습니다.</p>
+          <p className="mt-4 text-sm text-black/60">추가된 항목이 없습니다.</p>
         ) : (
           <div className="mt-4 space-y-3">
-            <p className="text-xs text-white/60">항목 카드를 드래그해서 순서를 변경할 수 있습니다.</p>
+            <p className="text-xs text-black/60">
+              항목 카드를 드래그해서 순서를 변경할 수 있습니다.
+            </p>
             {isReorderingItems ? (
-              <p className="text-xs text-cyan-200">순서를 저장하는 중입니다.</p>
+              <p className="text-xs text-cyan-800">순서를 저장하는 중입니다.</p>
             ) : null}
             {outdatedItemCount > 0 ? (
-              <p className="rounded-lg border border-amber-400/40 bg-amber-400/10 px-3 py-2 text-xs text-amber-100">
-                원본 Experience가 변경된 항목이 {outdatedItemCount}개 있습니다. 필요한 항목을 확인 후 저장해
-                동기화 상태를 맞춰주세요.
+              <p className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-700">
+                원본 Experience가 변경된 항목이 {outdatedItemCount}개 있습니다. 필요한 항목을 확인
+                후 저장해 동기화 상태를 맞춰주세요.
               </p>
             ) : null}
             {resume.items.map((item) => {
@@ -735,12 +745,13 @@ export default function ResumeEditPage() {
               };
               const syncStatus = getResumeItemSyncStatus(item.updatedAt, item.experience.updatedAt);
               const syncBadgeText = getResumeItemSyncBadgeText(syncStatus);
+              // 동기화 상태 뱃지 색상 — 라이트 테마 기준
               const syncBadgeClassName =
                 syncStatus === "OUTDATED"
-                  ? "border-amber-400/50 bg-amber-400/10 text-amber-100"
+                  ? "border-amber-300 bg-amber-50 text-amber-700"
                   : syncStatus === "SYNCED"
-                    ? "border-emerald-400/50 bg-emerald-500/10 text-emerald-100"
-                    : "border-white/20 bg-white/10 text-white/80";
+                    ? "border-emerald-300 bg-emerald-50 text-emerald-700"
+                    : "border-black/15 bg-black/5 text-black/70";
               const comparison = resolveResumeItemComparison({
                 experience: {
                   bulletsJson: item.experience.bulletsJson,
@@ -763,10 +774,10 @@ export default function ResumeEditPage() {
                     event.preventDefault();
                     void handleDropItem(item.id);
                   }}
-                  className={`rounded-xl border bg-black/20 p-4 transition ${
+                  className={`rounded-xl border bg-white p-4 transition ${
                     draggingItemId === item.id
-                      ? "border-cyan-300/70"
-                      : "border-white/10 hover:border-cyan-500/50"
+                      ? "border-cyan-600/50"
+                      : "border-black/10 hover:border-cyan-600/40"
                   }`}
                 >
                   <div className="flex flex-wrap items-center gap-2">
@@ -788,7 +799,7 @@ export default function ResumeEditPage() {
                           [item.id]: { ...editor, experienceId: event.target.value },
                         }))
                       }
-                      className="rounded-lg border border-white/20 bg-black/30 px-3 py-2 text-sm"
+                      className="rounded-lg border border-black/15 bg-[#faf9f6] px-3 py-2 text-sm"
                     >
                       {availableExperiences.map((experience) => (
                         <option key={experience.id} value={experience.id}>
@@ -805,7 +816,7 @@ export default function ResumeEditPage() {
                           [item.id]: { ...editor, sortOrder: Number(event.target.value) || 0 },
                         }))
                       }
-                      className="rounded-lg border border-white/20 bg-black/30 px-3 py-2 text-sm"
+                      className="rounded-lg border border-black/15 bg-[#faf9f6] px-3 py-2 text-sm"
                     />
                     <input
                       value={editor.overrideTechTagsText}
@@ -815,14 +826,14 @@ export default function ResumeEditPage() {
                           [item.id]: { ...editor, overrideTechTagsText: event.target.value },
                         }))
                       }
-                      className="rounded-lg border border-white/20 bg-black/30 px-3 py-2 text-sm"
+                      className="rounded-lg border border-black/15 bg-[#faf9f6] px-3 py-2 text-sm"
                       placeholder="기술 태그(콤마 구분)"
                     />
                     <button
                       type="button"
                       onClick={() => void handleSaveItem(item.id)}
                       disabled={savingItemId === item.id || isReorderingItems}
-                      className="rounded-lg border border-emerald-400/50 px-3 py-2 text-sm text-emerald-200 disabled:opacity-60"
+                      className="rounded-lg border border-emerald-300 px-3 py-2 text-sm text-emerald-700 disabled:opacity-60"
                     >
                       {savingItemId === item.id ? "저장..." : "저장"}
                     </button>
@@ -830,7 +841,7 @@ export default function ResumeEditPage() {
                       type="button"
                       onClick={() => void handleDeleteItem(item.id)}
                       disabled={deletingItemId === item.id || isReorderingItems}
-                      className="rounded-lg border border-rose-400/50 px-3 py-2 text-sm text-rose-200 disabled:opacity-60"
+                      className="rounded-lg border border-rose-300 px-3 py-2 text-sm text-rose-700 disabled:opacity-60"
                     >
                       {deletingItemId === item.id ? "삭제..." : "삭제"}
                     </button>
@@ -846,7 +857,7 @@ export default function ResumeEditPage() {
                             [item.id]: { ...editor, overrideBulletsJsonText: event.target.value },
                           }))
                         }
-                        className="min-h-24 rounded-lg border border-white/20 bg-black/30 px-3 py-2 text-xs"
+                        className="min-h-24 rounded-lg border border-black/15 bg-[#faf9f6] px-3 py-2 text-xs"
                         placeholder='["핵심 성과 1", "핵심 성과 2"]'
                       />
                     </label>
@@ -860,7 +871,7 @@ export default function ResumeEditPage() {
                             [item.id]: { ...editor, overrideMetricsJsonText: event.target.value },
                           }))
                         }
-                        className="min-h-24 rounded-lg border border-white/20 bg-black/30 px-3 py-2 text-xs"
+                        className="min-h-24 rounded-lg border border-black/15 bg-[#faf9f6] px-3 py-2 text-xs"
                         placeholder='{"conversionRate":"18%"}'
                       />
                     </label>
@@ -873,39 +884,39 @@ export default function ResumeEditPage() {
                         [item.id]: { ...editor, notes: event.target.value },
                       }))
                     }
-                    className="mt-3 min-h-20 w-full rounded-lg border border-white/20 bg-black/30 px-3 py-2 text-sm"
+                    className="mt-3 min-h-20 w-full rounded-lg border border-black/15 bg-[#faf9f6] px-3 py-2 text-sm"
                     placeholder="항목 메모"
                   />
                   <div className="mt-3 grid gap-3 md:grid-cols-2">
-                    <div className="rounded-lg border border-white/10 bg-black/30 p-3">
-                      <p className="text-xs font-semibold text-white/80">원본</p>
-                      <pre className="mt-2 overflow-x-auto text-[11px] text-white/70">
+                    <div className="rounded-lg border border-black/10 bg-[#f5f5f0] p-3">
+                      <p className="text-xs font-semibold text-black/70">원본</p>
+                      <pre className="mt-2 overflow-x-auto text-[11px] text-black/60">
                         {`bullets: ${JSON.stringify(comparison.original.bulletsJson)}`}
                       </pre>
-                      <pre className="mt-2 overflow-x-auto text-[11px] text-white/70">
+                      <pre className="mt-2 overflow-x-auto text-[11px] text-black/60">
                         {`metrics: ${JSON.stringify(comparison.original.metricsJson)}`}
                       </pre>
-                      <p className="mt-2 text-[11px] text-white/70">
+                      <p className="mt-2 text-[11px] text-black/60">
                         tags:{" "}
                         {comparison.original.techTags.length > 0
                           ? comparison.original.techTags.join(", ")
                           : "-"}
                       </p>
                     </div>
-                    <div className="rounded-lg border border-cyan-500/30 bg-cyan-500/5 p-3">
-                      <p className="text-xs font-semibold text-cyan-100">수정본</p>
-                      <p className="mt-1 text-[11px] text-cyan-200/80">
+                    <div className="rounded-lg border border-cyan-200 bg-cyan-50/50 p-3">
+                      <p className="text-xs font-semibold text-cyan-800">수정본</p>
+                      <p className="mt-1 text-[11px] text-cyan-700">
                         bullets {comparison.hasOverride.bullets ? "override" : "original"} / metrics{" "}
                         {comparison.hasOverride.metrics ? "override" : "original"} / tags{" "}
                         {comparison.hasOverride.techTags ? "override" : "original"}
                       </p>
-                      <pre className="mt-2 overflow-x-auto text-[11px] text-cyan-100/85">
+                      <pre className="mt-2 overflow-x-auto text-[11px] text-cyan-800">
                         {`bullets: ${JSON.stringify(comparison.resolved.bulletsJson)}`}
                       </pre>
-                      <pre className="mt-2 overflow-x-auto text-[11px] text-cyan-100/85">
+                      <pre className="mt-2 overflow-x-auto text-[11px] text-cyan-800">
                         {`metrics: ${JSON.stringify(comparison.resolved.metricsJson)}`}
                       </pre>
-                      <p className="mt-2 text-[11px] text-cyan-100/85">
+                      <p className="mt-2 text-[11px] text-cyan-800">
                         tags:{" "}
                         {comparison.resolved.techTags.length > 0
                           ? comparison.resolved.techTags.join(", ")
@@ -920,14 +931,14 @@ export default function ResumeEditPage() {
         )}
       </section>
 
-      <section className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-6">
+      <section className="mt-8 rounded-2xl border border-black/10 bg-[#faf9f6] p-6">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-lg font-semibold">프리뷰</h2>
           <div className="flex gap-2">
             <button
               type="button"
               onClick={() => void handleLoadPreview()}
-              className="rounded-lg border border-white/20 px-3 py-2 text-sm text-white/90"
+              className="rounded-lg border border-black/15 px-3 py-2 text-sm text-black/75"
             >
               프리뷰 갱신
             </button>
@@ -935,7 +946,7 @@ export default function ResumeEditPage() {
               type="button"
               onClick={() => void handleDownloadPdf()}
               disabled={isDownloadingPdf}
-              className="rounded-lg border border-cyan-400/50 px-3 py-2 text-sm text-cyan-200 disabled:opacity-60"
+              className="rounded-lg border border-cyan-600/30 px-3 py-2 text-sm text-cyan-800 disabled:opacity-60"
             >
               {isDownloadingPdf ? "PDF 준비 중..." : "PDF 다운로드"}
             </button>
@@ -943,27 +954,35 @@ export default function ResumeEditPage() {
         </div>
 
         {!preview ? (
-          <p className="mt-4 text-sm text-white/60">프리뷰를 불러오면 이력서 결과를 확인할 수 있습니다.</p>
+          <p className="mt-4 text-sm text-black/60">
+            프리뷰를 불러오면 이력서 결과를 확인할 수 있습니다.
+          </p>
         ) : (
           <div className="mt-4 space-y-3">
-            <p className="text-sm text-white/80">
+            <p className="text-sm text-black/70">
               {preview.resume.title} ({preview.items.length}개 항목)
             </p>
             {preview.items.map((item) => (
-              <article key={item.itemId} className="rounded-lg border border-white/10 bg-black/20 p-3">
+              <article
+                key={item.itemId}
+                className="rounded-lg border border-black/10 bg-[#faf9f6] p-3"
+              >
                 <p className="text-sm font-medium">
                   {item.sortOrder}. {item.experience.company} / {item.experience.role}
                 </p>
-                <p className="mt-1 text-xs text-white/65">
-                  기술: {item.resolvedTechTags.length > 0 ? item.resolvedTechTags.join(", ") : "없음"}
+                <p className="mt-1 text-xs text-black/60">
+                  기술:{" "}
+                  {item.resolvedTechTags.length > 0 ? item.resolvedTechTags.join(", ") : "없음"}
                 </p>
-                <pre className="mt-2 overflow-x-auto rounded border border-white/10 bg-black/30 px-2 py-1 text-[11px] text-white/70">
+                <pre className="mt-2 overflow-x-auto rounded border border-black/10 bg-[#f5f5f0] px-2 py-1 text-[11px] text-black/60">
                   {`bullets: ${JSON.stringify(item.resolvedBulletsJson)}`}
                 </pre>
-                <pre className="mt-2 overflow-x-auto rounded border border-white/10 bg-black/30 px-2 py-1 text-[11px] text-white/70">
+                <pre className="mt-2 overflow-x-auto rounded border border-black/10 bg-[#f5f5f0] px-2 py-1 text-[11px] text-black/60">
                   {`metrics: ${JSON.stringify(item.resolvedMetricsJson)}`}
                 </pre>
-                {item.notes ? <p className="mt-1 text-xs text-white/70">메모: {item.notes}</p> : null}
+                {item.notes ? (
+                  <p className="mt-1 text-xs text-black/60">메모: {item.notes}</p>
+                ) : null}
               </article>
             ))}
           </div>

@@ -103,27 +103,27 @@ export function NoteDetailClient({ note, initialEdges }: NoteDetailClientProps) 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6 py-12">
       {error ? (
-        <p className="rounded-xl border border-rose-400/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+        <p className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
           {error}
         </p>
       ) : null}
 
-      <header className="rounded-2xl border border-white/10 bg-white/5 p-6">
-        <p className="text-xs uppercase tracking-[0.3em] text-white/50">노트 상세</p>
+      <header className="rounded-2xl border border-black/10 bg-[#faf9f6] p-6">
+        <p className="text-xs uppercase tracking-[0.3em] text-black/60">노트 상세</p>
         <h1 className="mt-2 text-3xl font-semibold">{note.title}</h1>
-        <p className="mt-2 text-sm text-white/65">
+        <p className="mt-2 text-sm text-black/60">
           노트북: {note.notebook.name} · 수정일: {formatUpdatedAtLabel(note.updatedAt)} · 공개상태:{" "}
           {note.visibility}
         </p>
-        {note.summary ? <p className="mt-4 text-sm text-white/75">{note.summary}</p> : null}
-        <pre className="mt-4 whitespace-pre-wrap rounded-xl border border-white/10 bg-black/20 p-4 text-sm text-white/85">
+        {note.summary ? <p className="mt-4 text-sm text-black/70">{note.summary}</p> : null}
+        <pre className="mt-4 whitespace-pre-wrap rounded-xl border border-black/10 bg-white p-4 text-sm text-black/75">
           {note.contentMd}
         </pre>
         <div className="mt-3 flex flex-wrap gap-2">
           {note.tags.map((tag) => (
             <span
               key={tag}
-              className="rounded-full border border-white/20 px-3 py-1 text-xs text-white/80"
+              className="rounded-full border border-black/15 px-3 py-1 text-xs text-black/70"
             >
               #{tag}
             </span>
@@ -132,22 +132,22 @@ export function NoteDetailClient({ note, initialEdges }: NoteDetailClientProps) 
       </header>
 
       <section className="mt-8 grid gap-6 lg:grid-cols-2">
-        <article className="rounded-2xl border border-white/10 bg-white/5 p-6">
+        <article className="rounded-2xl border border-black/10 bg-[#faf9f6] p-6">
           <h2 className="text-lg font-semibold">연관 개념 (CONFIRMED)</h2>
           {grouped.confirmed.length === 0 ? (
-            <p className="mt-3 text-sm text-white/60">확정된 연관 개념이 없습니다.</p>
+            <p className="mt-3 text-sm text-black/60">확정된 연관 개념이 없습니다.</p>
           ) : (
             <ul className="mt-3 space-y-2">
               {grouped.confirmed.map((item) => (
                 <li
                   key={item.edge.id}
-                  className="rounded-lg border border-white/10 bg-black/20 px-3 py-2"
+                  className="rounded-lg border border-black/10 bg-white px-3 py-2"
                 >
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-sm">{item.counterpart.title}</span>
                     <Link
                       href={`/app/notes/${item.counterpart.id}`}
-                      className="rounded-lg border border-white/20 px-3 py-1 text-xs text-white/80"
+                      className="rounded-lg border border-black/15 px-3 py-1 text-xs text-black/70"
                     >
                       이동
                     </Link>
@@ -158,28 +158,28 @@ export function NoteDetailClient({ note, initialEdges }: NoteDetailClientProps) 
           )}
         </article>
 
-        <article className="rounded-2xl border border-white/10 bg-white/5 p-6">
+        <article className="rounded-2xl border border-black/10 bg-[#faf9f6] p-6">
           <h2 className="text-lg font-semibold">연관 후보 (CANDIDATE)</h2>
           {grouped.candidates.length === 0 ? (
-            <p className="mt-3 text-sm text-white/60">연관 후보가 없습니다.</p>
+            <p className="mt-3 text-sm text-black/60">연관 후보가 없습니다.</p>
           ) : (
             <ul className="mt-3 space-y-2">
               {grouped.candidates.map((item) => (
                 <li
                   key={item.edge.id}
-                  className="rounded-lg border border-white/10 bg-black/20 px-3 py-2"
+                  className="rounded-lg border border-black/10 bg-white px-3 py-2"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
                       <p className="text-sm">{item.counterpart.title}</p>
-                      <p className="mt-1 text-xs text-white/55">유사도: {item.edge.weight ?? 0}</p>
+                      <p className="mt-1 text-xs text-black/60">유사도: {item.edge.weight ?? 0}</p>
                     </div>
                     <div className="flex gap-2">
                       <button
                         type="button"
                         onClick={() => void handleEdgeAction("confirm", item.edge.id)}
                         disabled={pendingEdgeId === item.edge.id}
-                        className="rounded-lg border border-emerald-400/50 px-3 py-1 text-xs text-emerald-200 disabled:opacity-60"
+                        className="rounded-lg border border-emerald-300 px-3 py-1 text-xs text-emerald-700 disabled:opacity-60"
                       >
                         확정
                       </button>
@@ -187,7 +187,7 @@ export function NoteDetailClient({ note, initialEdges }: NoteDetailClientProps) 
                         type="button"
                         onClick={() => void handleEdgeAction("reject", item.edge.id)}
                         disabled={pendingEdgeId === item.edge.id}
-                        className="rounded-lg border border-rose-400/50 px-3 py-1 text-xs text-rose-200 disabled:opacity-60"
+                        className="rounded-lg border border-rose-300 px-3 py-1 text-xs text-rose-700 disabled:opacity-60"
                       >
                         거절
                       </button>
@@ -200,12 +200,12 @@ export function NoteDetailClient({ note, initialEdges }: NoteDetailClientProps) 
         </article>
       </section>
 
-      <section className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-6">
+      <section className="mt-8 rounded-2xl border border-black/10 bg-[#faf9f6] p-6">
         <h2 className="text-lg font-semibold">노트 연결 그래프</h2>
-        <p className="mt-2 text-xs text-white/60">
+        <p className="mt-2 text-xs text-black/60">
           중심 노트 기준으로 CONFIRMED/CANDIDATE 관계를 시각화합니다.
         </p>
-        <div className="mt-4 overflow-x-auto rounded-xl border border-white/10 bg-black/20 p-3">
+        <div className="mt-4 overflow-x-auto rounded-xl border border-black/10 bg-white p-3">
           <svg
             width={graph.width}
             height={graph.height}
@@ -236,7 +236,7 @@ export function NoteDetailClient({ note, initialEdges }: NoteDetailClientProps) 
                   cy={node.y}
                   r={node.kind === "CENTER" ? 18 : 14}
                   fill={nodeFillColor(node.kind)}
-                  stroke="rgba(255,255,255,0.7)"
+                  stroke="rgba(0,0,0,0.2)"
                   strokeWidth={1.5}
                 />
                 <text x={node.x} y={node.y + 4} textAnchor="middle" fontSize={10} fill="#0b1220">
@@ -247,7 +247,7 @@ export function NoteDetailClient({ note, initialEdges }: NoteDetailClientProps) 
                   y={node.y + 28}
                   textAnchor="middle"
                   fontSize={11}
-                  fill="rgba(255,255,255,0.9)"
+                  fill="rgba(0,0,0,0.8)"
                 >
                   {node.title.length > 14 ? `${node.title.slice(0, 14)}…` : node.title}
                 </text>
