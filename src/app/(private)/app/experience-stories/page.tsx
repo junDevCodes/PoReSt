@@ -293,13 +293,13 @@ export default function ExperienceStoriesPage() {
         <div className="flex items-center gap-3">
           <Link
             href="/app"
-            className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/70 hover:text-white"
+            className="rounded-lg border border-black/15 bg-white px-3 py-2 text-sm text-black/75 hover:text-black"
           >
             /app
           </Link>
           <Link
             href="/app/experiences"
-            className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/70 hover:text-white"
+            className="rounded-lg border border-black/15 bg-white px-3 py-2 text-sm text-black/75 hover:text-black"
           >
             경험 관리로 이동
           </Link>
@@ -307,13 +307,13 @@ export default function ExperienceStoriesPage() {
       </header>
 
       <section className="mt-8 grid gap-6">
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+        <div className="rounded-2xl border border-black/10 bg-white p-6">
           <h2 className="text-lg font-semibold">필터</h2>
           <div className="mt-4 grid gap-3 md:grid-cols-3">
-            <label className="grid gap-1 text-sm text-white/70">
+            <label className="grid gap-1 text-sm text-black/70">
               <span>경험 선택</span>
               <select
-                className="rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-white"
+                className="rounded-lg border border-black/15 bg-white px-3 py-2 text-black"
                 value={selectedExperienceId}
                 onChange={(e) => setSelectedExperienceId(e.target.value)}
               >
@@ -325,18 +325,18 @@ export default function ExperienceStoriesPage() {
                 ))}
               </select>
             </label>
-            <label className="grid gap-1 text-sm text-white/70 md:col-span-2">
+            <label className="grid gap-1 text-sm text-black/70 md:col-span-2">
               <span>검색</span>
               <div className="flex gap-2">
                 <input
-                  className="w-full rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-white"
+                  className="w-full rounded-lg border border-black/15 bg-white px-3 py-2 text-black"
                   placeholder="제목/본문에서 검색"
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
                 />
                 <button
                   type="button"
-                  className="rounded-lg border border-white/10 bg-white/10 px-4 py-2 text-sm text-white/80 hover:text-white"
+                  className="rounded-lg border border-black/15 bg-black px-4 py-2 text-sm text-white hover:bg-black/90"
                   onClick={() => void reloadAll()}
                 >
                   새로고침
@@ -351,24 +351,24 @@ export default function ExperienceStoriesPage() {
           ) : null}
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+        <div className="rounded-2xl border border-black/10 bg-white p-6">
           <h2 className="text-lg font-semibold">새 STAR 스토리</h2>
 
           {experiences.length === 0 ? (
-            <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4 text-sm text-white/70">
+            <div className="mt-4 rounded-xl border border-black/10 bg-[#faf9f6] p-4 text-sm text-black/70">
               <p>먼저 경험을 만들고 STAR 스토리를 추가하세요.</p>
               <p className="mt-2">
-                <Link href="/app/experiences" className="text-white underline">
+                <Link href="/app/experiences" className="text-black underline">
                   /app/experiences
                 </Link>
               </p>
             </div>
           ) : (
             <form onSubmit={(e) => void handleCreate(e)} className="mt-4 grid gap-3">
-              <label className="grid gap-1 text-sm text-white/70">
+              <label className="grid gap-1 text-sm text-black/70">
                 <span>경험(Experience)</span>
                 <select
-                  className="rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-white"
+                  className="rounded-lg border border-black/15 bg-white px-3 py-2 text-black"
                   value={createForm.experienceId || selectedExperienceId}
                   onChange={(e) =>
                     setCreateForm((prev) => ({ ...prev, experienceId: e.target.value }))
@@ -383,56 +383,56 @@ export default function ExperienceStoriesPage() {
                 </select>
               </label>
 
-              <label className="grid gap-1 text-sm text-white/70">
+              <label className="grid gap-1 text-sm text-black/70">
                 <span>제목</span>
                 <input
-                  className="rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-white"
+                  className="rounded-lg border border-black/15 bg-white px-3 py-2 text-black"
                   value={createForm.title}
                   onChange={(e) => setCreateForm((prev) => ({ ...prev, title: e.target.value }))}
                 />
               </label>
 
               <div className="grid gap-3 md:grid-cols-2">
-                <label className="grid gap-1 text-sm text-white/70">
+                <label className="grid gap-1 text-sm text-black/70">
                   <span>Situation</span>
                   <textarea
-                    className="min-h-[120px] rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-white"
+                    className="min-h-[120px] rounded-lg border border-black/15 bg-white px-3 py-2 text-black"
                     value={createForm.situation}
                     onChange={(e) =>
                       setCreateForm((prev) => ({ ...prev, situation: e.target.value }))
                     }
                   />
                 </label>
-                <label className="grid gap-1 text-sm text-white/70">
+                <label className="grid gap-1 text-sm text-black/70">
                   <span>Task</span>
                   <textarea
-                    className="min-h-[120px] rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-white"
+                    className="min-h-[120px] rounded-lg border border-black/15 bg-white px-3 py-2 text-black"
                     value={createForm.task}
                     onChange={(e) => setCreateForm((prev) => ({ ...prev, task: e.target.value }))}
                   />
                 </label>
-                <label className="grid gap-1 text-sm text-white/70">
+                <label className="grid gap-1 text-sm text-black/70">
                   <span>Action</span>
                   <textarea
-                    className="min-h-[120px] rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-white"
+                    className="min-h-[120px] rounded-lg border border-black/15 bg-white px-3 py-2 text-black"
                     value={createForm.action}
                     onChange={(e) => setCreateForm((prev) => ({ ...prev, action: e.target.value }))}
                   />
                 </label>
-                <label className="grid gap-1 text-sm text-white/70">
+                <label className="grid gap-1 text-sm text-black/70">
                   <span>Result</span>
                   <textarea
-                    className="min-h-[120px] rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-white"
+                    className="min-h-[120px] rounded-lg border border-black/15 bg-white px-3 py-2 text-black"
                     value={createForm.result}
                     onChange={(e) => setCreateForm((prev) => ({ ...prev, result: e.target.value }))}
                   />
                 </label>
               </div>
 
-              <label className="grid gap-1 text-sm text-white/70">
+              <label className="grid gap-1 text-sm text-black/70">
                 <span>태그(쉼표로 구분)</span>
                 <input
-                  className="rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-white"
+                  className="rounded-lg border border-black/15 bg-white px-3 py-2 text-black"
                   value={createForm.tags}
                   onChange={(e) => setCreateForm((prev) => ({ ...prev, tags: e.target.value }))}
                 />
@@ -441,17 +441,17 @@ export default function ExperienceStoriesPage() {
               <button
                 type="submit"
                 disabled={isCreating}
-                className="mt-2 inline-flex w-fit items-center rounded-lg border border-white/10 bg-white/10 px-4 py-2 text-sm text-white/80 hover:text-white disabled:opacity-50"
+                className="mt-2 inline-flex w-fit items-center rounded-lg border border-black/15 bg-black px-4 py-2 text-sm text-white hover:bg-black/90 disabled:opacity-50"
               >
                 {isCreating ? "생성 중..." : "생성"}
               </button>
             </form>
           )}
 
-          {message ? <p className="mt-4 text-sm text-emerald-200">{message}</p> : null}
-          {error ? <p className="mt-4 text-sm text-red-200">{error}</p> : null}
+          {message ? <p className="mt-4 text-sm text-emerald-700">{message}</p> : null}
+          {error ? <p className="mt-4 text-sm text-rose-700">{error}</p> : null}
           {fields ? (
-            <div className="mt-3 rounded-xl border border-white/10 bg-black/20 p-3 text-sm text-white/70">
+            <div className="mt-3 rounded-xl border border-black/10 bg-[#faf9f6] p-3 text-sm text-black/70">
               <p className="font-medium">필드 오류</p>
               <ul className="mt-2 list-disc pl-5">
                 {Object.entries(fields).map(([key, value]) => (
@@ -464,7 +464,7 @@ export default function ExperienceStoriesPage() {
           ) : null}
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+        <div className="rounded-2xl border border-black/10 bg-white p-6">
           <h2 className="text-lg font-semibold">스토리 목록</h2>
           {isLoading ? (
             <p className="mt-4 text-sm text-black/60">로딩 중...</p>
@@ -475,7 +475,10 @@ export default function ExperienceStoriesPage() {
               {stories.map((story) => {
                 const editor = editors[story.id];
                 return (
-                  <div key={story.id} className="rounded-xl border border-white/10 bg-black/20 p-4">
+                  <div
+                    key={story.id}
+                    className="rounded-xl border border-black/10 bg-[#faf9f6] p-4"
+                  >
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
                         <p className="text-sm text-black/60">
@@ -489,14 +492,14 @@ export default function ExperienceStoriesPage() {
                       <div className="flex items-center gap-2">
                         <button
                           type="button"
-                          className="rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-sm text-white/80 hover:text-white"
+                          className="rounded-lg border border-emerald-300 px-3 py-2 text-sm text-emerald-800"
                           onClick={() => void handleUpdate(story.id)}
                         >
                           저장
                         </button>
                         <button
                           type="button"
-                          className="rounded-lg border border-white/10 bg-red-500/10 px-3 py-2 text-sm text-red-200 hover:text-red-100"
+                          className="rounded-lg border border-rose-300 px-3 py-2 text-sm text-rose-800"
                           onClick={() => void handleDelete(story.id)}
                         >
                           삭제
@@ -506,10 +509,10 @@ export default function ExperienceStoriesPage() {
 
                     {editor ? (
                       <div className="mt-4 grid gap-3">
-                        <label className="grid gap-1 text-sm text-white/70">
+                        <label className="grid gap-1 text-sm text-black/70">
                           <span>제목</span>
                           <input
-                            className="rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-white"
+                            className="rounded-lg border border-black/15 bg-white px-3 py-2 text-black"
                             value={editor.title}
                             onChange={(e) =>
                               setEditors((prev) => ({
@@ -520,10 +523,10 @@ export default function ExperienceStoriesPage() {
                           />
                         </label>
                         <div className="grid gap-3 md:grid-cols-2">
-                          <label className="grid gap-1 text-sm text-white/70">
+                          <label className="grid gap-1 text-sm text-black/70">
                             <span>Situation</span>
                             <textarea
-                              className="min-h-[120px] rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-white"
+                              className="min-h-[120px] rounded-lg border border-black/15 bg-white px-3 py-2 text-black"
                               value={editor.situation}
                               onChange={(e) =>
                                 setEditors((prev) => ({
@@ -533,10 +536,10 @@ export default function ExperienceStoriesPage() {
                               }
                             />
                           </label>
-                          <label className="grid gap-1 text-sm text-white/70">
+                          <label className="grid gap-1 text-sm text-black/70">
                             <span>Task</span>
                             <textarea
-                              className="min-h-[120px] rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-white"
+                              className="min-h-[120px] rounded-lg border border-black/15 bg-white px-3 py-2 text-black"
                               value={editor.task}
                               onChange={(e) =>
                                 setEditors((prev) => ({
@@ -546,10 +549,10 @@ export default function ExperienceStoriesPage() {
                               }
                             />
                           </label>
-                          <label className="grid gap-1 text-sm text-white/70">
+                          <label className="grid gap-1 text-sm text-black/70">
                             <span>Action</span>
                             <textarea
-                              className="min-h-[120px] rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-white"
+                              className="min-h-[120px] rounded-lg border border-black/15 bg-white px-3 py-2 text-black"
                               value={editor.action}
                               onChange={(e) =>
                                 setEditors((prev) => ({
@@ -559,10 +562,10 @@ export default function ExperienceStoriesPage() {
                               }
                             />
                           </label>
-                          <label className="grid gap-1 text-sm text-white/70">
+                          <label className="grid gap-1 text-sm text-black/70">
                             <span>Result</span>
                             <textarea
-                              className="min-h-[120px] rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-white"
+                              className="min-h-[120px] rounded-lg border border-black/15 bg-white px-3 py-2 text-black"
                               value={editor.result}
                               onChange={(e) =>
                                 setEditors((prev) => ({
@@ -573,10 +576,10 @@ export default function ExperienceStoriesPage() {
                             />
                           </label>
                         </div>
-                        <label className="grid gap-1 text-sm text-white/70">
+                        <label className="grid gap-1 text-sm text-black/70">
                           <span>태그(쉼표로 구분)</span>
                           <input
-                            className="rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-white"
+                            className="rounded-lg border border-black/15 bg-white px-3 py-2 text-black"
                             value={editor.tags}
                             onChange={(e) =>
                               setEditors((prev) => ({

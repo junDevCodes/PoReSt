@@ -31,6 +31,10 @@ const LOW_CONTRAST_WHITE_CLASS_NAMES = [
   "text-white/55",
   "text-white/60",
   "text-white/65",
+  "text-white/70",
+  "text-white/75",
+  "text-white/80",
+  "text-white/90",
 ];
 
 const INITIAL_PROJECTS: SerializedOwnerProjectDto[] = [

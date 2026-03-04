@@ -122,7 +122,7 @@ export default function AuditPage() {
         </p>
       ) : null}
 
-      <section className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-6">
+      <section className="mt-8 rounded-2xl border border-black/10 bg-white p-6">
         {isLoading ? (
           <p className="text-sm text-black/60">로그를 불러오는 중입니다.</p>
         ) : logs.length === 0 ? (
@@ -130,12 +130,12 @@ export default function AuditPage() {
         ) : (
           <div className="space-y-3">
             {logs.map((log) => (
-              <article key={log.id} className="rounded-lg border border-white/10 bg-black/20 p-3">
+              <article key={log.id} className="rounded-lg border border-black/10 bg-[#faf9f6] p-3">
                 <p className="text-xs text-black/60">{formatDateTime(log.createdAt)}</p>
-                <p className="mt-1 text-sm font-semibold text-white">
+                <p className="mt-1 text-sm font-semibold text-black">
                   {log.action} / {log.entityType}
                 </p>
-                <p className="mt-1 text-xs text-white/70">entityId: {log.entityId}</p>
+                <p className="mt-1 text-xs text-black/70">entityId: {log.entityId}</p>
                 <p className="mt-1 break-all text-[11px] text-black/55">
                   meta: {stringifyMeta(log.metaJson)}
                 </p>
@@ -149,7 +149,7 @@ export default function AuditPage() {
             type="button"
             onClick={() => void handleLoadMore()}
             disabled={isLoadingMore}
-            className="mt-4 rounded-lg border border-white/30 px-3 py-2 text-sm text-white/90 disabled:opacity-60"
+            className="mt-4 rounded-lg border border-black/20 px-3 py-2 text-sm text-black/85 disabled:opacity-60"
           >
             {isLoadingMore ? "불러오는 중..." : "더 보기"}
           </button>

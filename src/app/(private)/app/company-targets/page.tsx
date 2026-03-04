@@ -279,7 +279,7 @@ export default function CompanyTargetsPage() {
         <div className="flex items-center gap-3">
           <Link
             href="/app"
-            className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/70 hover:text-white"
+            className="rounded-lg border border-black/15 bg-white px-3 py-2 text-sm text-black/75 hover:text-black"
           >
             /app
           </Link>
@@ -287,13 +287,13 @@ export default function CompanyTargetsPage() {
       </header>
 
       <section className="mt-8 grid gap-6">
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+        <div className="rounded-2xl border border-black/10 bg-white p-6">
           <h2 className="text-lg font-semibold">필터</h2>
           <div className="mt-4 grid gap-3 md:grid-cols-3">
-            <label className="grid gap-1 text-sm text-white/70">
+            <label className="grid gap-1 text-sm text-black/70">
               <span>상태</span>
               <select
-                className="rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-white"
+                className="rounded-lg border border-black/15 bg-white px-3 py-2 text-black"
                 value={status}
                 onChange={(e) => setStatus(e.target.value as CompanyTargetStatus | "")}
               >
@@ -305,18 +305,18 @@ export default function CompanyTargetsPage() {
                 ))}
               </select>
             </label>
-            <label className="grid gap-1 text-sm text-white/70 md:col-span-2">
+            <label className="grid gap-1 text-sm text-black/70 md:col-span-2">
               <span>검색</span>
               <div className="flex gap-2">
                 <input
-                  className="w-full rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-white"
+                  className="w-full rounded-lg border border-black/15 bg-white px-3 py-2 text-black"
                   placeholder="회사/직무/요약/분석에서 검색"
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
                 />
                 <button
                   type="button"
-                  className="rounded-lg border border-white/10 bg-white/10 px-4 py-2 text-sm text-white/80 hover:text-white"
+                  className="rounded-lg border border-black/15 bg-black px-4 py-2 text-sm text-white hover:bg-black/90"
                   onClick={() => void reloadTargets()}
                 >
                   새로고침
@@ -327,22 +327,22 @@ export default function CompanyTargetsPage() {
           <p className="mt-4 text-sm text-black/60">현재 필터: {statusLabel}</p>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+        <div className="rounded-2xl border border-black/10 bg-white p-6">
           <h2 className="text-lg font-semibold">새 카드</h2>
           <form onSubmit={(e) => void handleCreate(e)} className="mt-4 grid gap-3">
             <div className="grid gap-3 md:grid-cols-2">
-              <label className="grid gap-1 text-sm text-white/70">
+              <label className="grid gap-1 text-sm text-black/70">
                 <span>회사명</span>
                 <input
-                  className="rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-white"
+                  className="rounded-lg border border-black/15 bg-white px-3 py-2 text-black"
                   value={createForm.company}
                   onChange={(e) => setCreateForm((prev) => ({ ...prev, company: e.target.value }))}
                 />
               </label>
-              <label className="grid gap-1 text-sm text-white/70">
+              <label className="grid gap-1 text-sm text-black/70">
                 <span>직무</span>
                 <input
-                  className="rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-white"
+                  className="rounded-lg border border-black/15 bg-white px-3 py-2 text-black"
                   value={createForm.role}
                   onChange={(e) => setCreateForm((prev) => ({ ...prev, role: e.target.value }))}
                 />
@@ -350,10 +350,10 @@ export default function CompanyTargetsPage() {
             </div>
 
             <div className="grid gap-3 md:grid-cols-3">
-              <label className="grid gap-1 text-sm text-white/70">
+              <label className="grid gap-1 text-sm text-black/70">
                 <span>상태</span>
                 <select
-                  className="rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-white"
+                  className="rounded-lg border border-black/15 bg-white px-3 py-2 text-black"
                   value={createForm.status}
                   onChange={(e) =>
                     setCreateForm((prev) => ({
@@ -369,40 +369,40 @@ export default function CompanyTargetsPage() {
                   ))}
                 </select>
               </label>
-              <label className="grid gap-1 text-sm text-white/70">
+              <label className="grid gap-1 text-sm text-black/70">
                 <span>우선순위</span>
                 <input
                   type="number"
-                  className="rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-white"
+                  className="rounded-lg border border-black/15 bg-white px-3 py-2 text-black"
                   value={createForm.priority}
                   onChange={(e) =>
                     setCreateForm((prev) => ({ ...prev, priority: Number(e.target.value) }))
                   }
                 />
               </label>
-              <label className="grid gap-1 text-sm text-white/70">
+              <label className="grid gap-1 text-sm text-black/70">
                 <span>태그(쉼표로 구분)</span>
                 <input
-                  className="rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-white"
+                  className="rounded-lg border border-black/15 bg-white px-3 py-2 text-black"
                   value={createForm.tags}
                   onChange={(e) => setCreateForm((prev) => ({ ...prev, tags: e.target.value }))}
                 />
               </label>
             </div>
 
-            <label className="grid gap-1 text-sm text-white/70">
+            <label className="grid gap-1 text-sm text-black/70">
               <span>요약(선택)</span>
               <textarea
-                className="min-h-[80px] rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-white"
+                className="min-h-[80px] rounded-lg border border-black/15 bg-white px-3 py-2 text-black"
                 value={createForm.summary}
                 onChange={(e) => setCreateForm((prev) => ({ ...prev, summary: e.target.value }))}
               />
             </label>
 
-            <label className="grid gap-1 text-sm text-white/70">
+            <label className="grid gap-1 text-sm text-black/70">
               <span>분석 메모(선택)</span>
               <textarea
-                className="min-h-[140px] rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-white"
+                className="min-h-[140px] rounded-lg border border-black/15 bg-white px-3 py-2 text-black"
                 value={createForm.analysisMd}
                 onChange={(e) => setCreateForm((prev) => ({ ...prev, analysisMd: e.target.value }))}
               />
@@ -411,16 +411,16 @@ export default function CompanyTargetsPage() {
             <button
               type="submit"
               disabled={isCreating}
-              className="mt-2 inline-flex w-fit items-center rounded-lg border border-white/10 bg-white/10 px-4 py-2 text-sm text-white/80 hover:text-white disabled:opacity-50"
+              className="mt-2 inline-flex w-fit items-center rounded-lg border border-black/15 bg-black px-4 py-2 text-sm text-white hover:bg-black/90 disabled:opacity-50"
             >
               {isCreating ? "생성 중..." : "생성"}
             </button>
           </form>
 
-          {message ? <p className="mt-4 text-sm text-emerald-200">{message}</p> : null}
-          {error ? <p className="mt-4 text-sm text-red-200">{error}</p> : null}
+          {message ? <p className="mt-4 text-sm text-emerald-700">{message}</p> : null}
+          {error ? <p className="mt-4 text-sm text-rose-700">{error}</p> : null}
           {fields ? (
-            <div className="mt-3 rounded-xl border border-white/10 bg-black/20 p-3 text-sm text-white/70">
+            <div className="mt-3 rounded-xl border border-black/10 bg-[#faf9f6] p-3 text-sm text-black/70">
               <p className="font-medium">필드 오류</p>
               <ul className="mt-2 list-disc pl-5">
                 {Object.entries(fields).map(([key, value]) => (
@@ -433,7 +433,7 @@ export default function CompanyTargetsPage() {
           ) : null}
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+        <div className="rounded-2xl border border-black/10 bg-white p-6">
           <h2 className="text-lg font-semibold">카드 목록</h2>
           {isLoading ? (
             <p className="mt-4 text-sm text-black/60">로딩 중...</p>
@@ -446,7 +446,7 @@ export default function CompanyTargetsPage() {
                 return (
                   <div
                     key={target.id}
-                    className="rounded-xl border border-white/10 bg-black/20 p-4"
+                    className="rounded-xl border border-black/10 bg-[#faf9f6] p-4"
                   >
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
@@ -463,14 +463,14 @@ export default function CompanyTargetsPage() {
                       <div className="flex items-center gap-2">
                         <button
                           type="button"
-                          className="rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-sm text-white/80 hover:text-white"
+                          className="rounded-lg border border-emerald-300 px-3 py-2 text-sm text-emerald-800"
                           onClick={() => void handleUpdate(target.id)}
                         >
                           저장
                         </button>
                         <button
                           type="button"
-                          className="rounded-lg border border-white/10 bg-red-500/10 px-3 py-2 text-sm text-red-200 hover:text-red-100"
+                          className="rounded-lg border border-rose-300 px-3 py-2 text-sm text-rose-800"
                           onClick={() => void handleDelete(target.id)}
                         >
                           삭제
@@ -481,10 +481,10 @@ export default function CompanyTargetsPage() {
                     {editor ? (
                       <div className="mt-4 grid gap-3">
                         <div className="grid gap-3 md:grid-cols-2">
-                          <label className="grid gap-1 text-sm text-white/70">
+                          <label className="grid gap-1 text-sm text-black/70">
                             <span>회사명</span>
                             <input
-                              className="rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-white"
+                              className="rounded-lg border border-black/15 bg-white px-3 py-2 text-black"
                               value={editor.company}
                               onChange={(e) =>
                                 setEditors((prev) => ({
@@ -494,10 +494,10 @@ export default function CompanyTargetsPage() {
                               }
                             />
                           </label>
-                          <label className="grid gap-1 text-sm text-white/70">
+                          <label className="grid gap-1 text-sm text-black/70">
                             <span>직무</span>
                             <input
-                              className="rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-white"
+                              className="rounded-lg border border-black/15 bg-white px-3 py-2 text-black"
                               value={editor.role}
                               onChange={(e) =>
                                 setEditors((prev) => ({
@@ -510,10 +510,10 @@ export default function CompanyTargetsPage() {
                         </div>
 
                         <div className="grid gap-3 md:grid-cols-3">
-                          <label className="grid gap-1 text-sm text-white/70">
+                          <label className="grid gap-1 text-sm text-black/70">
                             <span>상태</span>
                             <select
-                              className="rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-white"
+                              className="rounded-lg border border-black/15 bg-white px-3 py-2 text-black"
                               value={editor.status}
                               onChange={(e) =>
                                 setEditors((prev) => ({
@@ -532,11 +532,11 @@ export default function CompanyTargetsPage() {
                               ))}
                             </select>
                           </label>
-                          <label className="grid gap-1 text-sm text-white/70">
+                          <label className="grid gap-1 text-sm text-black/70">
                             <span>우선순위</span>
                             <input
                               type="number"
-                              className="rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-white"
+                              className="rounded-lg border border-black/15 bg-white px-3 py-2 text-black"
                               value={editor.priority}
                               onChange={(e) =>
                                 setEditors((prev) => ({
@@ -549,10 +549,10 @@ export default function CompanyTargetsPage() {
                               }
                             />
                           </label>
-                          <label className="grid gap-1 text-sm text-white/70">
+                          <label className="grid gap-1 text-sm text-black/70">
                             <span>태그(쉼표로 구분)</span>
                             <input
-                              className="rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-white"
+                              className="rounded-lg border border-black/15 bg-white px-3 py-2 text-black"
                               value={editor.tags}
                               onChange={(e) =>
                                 setEditors((prev) => ({
@@ -564,10 +564,10 @@ export default function CompanyTargetsPage() {
                           </label>
                         </div>
 
-                        <label className="grid gap-1 text-sm text-white/70">
+                        <label className="grid gap-1 text-sm text-black/70">
                           <span>요약(선택)</span>
                           <textarea
-                            className="min-h-[80px] rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-white"
+                            className="min-h-[80px] rounded-lg border border-black/15 bg-white px-3 py-2 text-black"
                             value={editor.summary}
                             onChange={(e) =>
                               setEditors((prev) => ({
@@ -578,10 +578,10 @@ export default function CompanyTargetsPage() {
                           />
                         </label>
 
-                        <label className="grid gap-1 text-sm text-white/70">
+                        <label className="grid gap-1 text-sm text-black/70">
                           <span>분석 메모(선택)</span>
                           <textarea
-                            className="min-h-[140px] rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-white"
+                            className="min-h-[140px] rounded-lg border border-black/15 bg-white px-3 py-2 text-black"
                             value={editor.analysisMd}
                             onChange={(e) =>
                               setEditors((prev) => ({

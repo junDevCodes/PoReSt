@@ -222,18 +222,18 @@ export default function DomainLinksPage() {
         </p>
       ) : null}
 
-      <section className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-6">
-        <h2 className="text-lg font-semibold text-white">링크 생성</h2>
+      <section className="mt-8 rounded-2xl border border-black/10 bg-white p-6">
+        <h2 className="text-lg font-semibold text-black">링크 생성</h2>
         <form
           className="mt-4 grid gap-4 md:grid-cols-2"
           onSubmit={(event) => void handleCreateLink(event)}
         >
-          <label className="flex flex-col gap-2 text-sm text-white/80">
+          <label className="flex flex-col gap-2 text-sm text-black/70">
             Source 타입
             <select
               value={sourceType}
               onChange={(event) => setSourceType(event.target.value as DomainType)}
-              className="rounded-lg border border-white/20 bg-black/20 px-3 py-2 text-white"
+              className="rounded-lg border border-black/15 bg-white px-3 py-2 text-black"
             >
               {Object.entries(DOMAIN_TYPE_LABEL).map(([value, label]) => (
                 <option key={value} value={value}>
@@ -243,12 +243,12 @@ export default function DomainLinksPage() {
             </select>
           </label>
 
-          <label className="flex flex-col gap-2 text-sm text-white/80">
+          <label className="flex flex-col gap-2 text-sm text-black/70">
             Source 엔티티
             <select
               value={effectiveSourceId}
               onChange={(event) => setSourceId(event.target.value)}
-              className="rounded-lg border border-white/20 bg-black/20 px-3 py-2 text-white"
+              className="rounded-lg border border-black/15 bg-white px-3 py-2 text-black"
               disabled={sourceOptions.length === 0}
             >
               {sourceOptions.length === 0 ? (
@@ -263,12 +263,12 @@ export default function DomainLinksPage() {
             </select>
           </label>
 
-          <label className="flex flex-col gap-2 text-sm text-white/80">
+          <label className="flex flex-col gap-2 text-sm text-black/70">
             Target 타입
             <select
               value={targetType}
               onChange={(event) => setTargetType(event.target.value as DomainType)}
-              className="rounded-lg border border-white/20 bg-black/20 px-3 py-2 text-white"
+              className="rounded-lg border border-black/15 bg-white px-3 py-2 text-black"
             >
               {Object.entries(DOMAIN_TYPE_LABEL).map(([value, label]) => (
                 <option key={value} value={value}>
@@ -278,12 +278,12 @@ export default function DomainLinksPage() {
             </select>
           </label>
 
-          <label className="flex flex-col gap-2 text-sm text-white/80">
+          <label className="flex flex-col gap-2 text-sm text-black/70">
             Target 엔티티
             <select
               value={effectiveTargetId}
               onChange={(event) => setTargetId(event.target.value)}
-              className="rounded-lg border border-white/20 bg-black/20 px-3 py-2 text-white"
+              className="rounded-lg border border-black/15 bg-white px-3 py-2 text-black"
               disabled={targetOptions.length === 0}
             >
               {targetOptions.length === 0 ? (
@@ -298,12 +298,12 @@ export default function DomainLinksPage() {
             </select>
           </label>
 
-          <label className="flex flex-col gap-2 text-sm text-white/80 md:col-span-2">
+          <label className="flex flex-col gap-2 text-sm text-black/70 md:col-span-2">
             연결 설명 (선택)
             <input
               value={context}
               onChange={(event) => setContext(event.target.value)}
-              className="rounded-lg border border-white/20 bg-black/20 px-3 py-2 text-white"
+              className="rounded-lg border border-black/15 bg-white px-3 py-2 text-black"
               placeholder="예: 프로젝트 구현 배경 노트"
               maxLength={200}
             />
@@ -321,8 +321,8 @@ export default function DomainLinksPage() {
         </form>
       </section>
 
-      <section className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-6">
-        <h2 className="text-lg font-semibold text-white">링크 목록</h2>
+      <section className="mt-6 rounded-2xl border border-black/10 bg-white p-6">
+        <h2 className="text-lg font-semibold text-black">링크 목록</h2>
         {isLoading ? (
           <p className="mt-3 text-sm text-black/60">링크를 불러오는 중입니다.</p>
         ) : links.length === 0 ? (
@@ -330,12 +330,12 @@ export default function DomainLinksPage() {
         ) : (
           <div className="mt-4 space-y-3">
             {links.map((link) => (
-              <article key={link.id} className="rounded-lg border border-white/10 bg-black/20 p-4">
-                <p className="text-sm font-semibold text-white">
+              <article key={link.id} className="rounded-lg border border-black/10 bg-[#faf9f6] p-4">
+                <p className="text-sm font-semibold text-black">
                   {DOMAIN_TYPE_LABEL[link.sourceType]}:{" "}
                   {findLabel(options, link.sourceType, link.sourceId)}
                 </p>
-                <p className="mt-1 text-sm text-white/75">
+                <p className="mt-1 text-sm text-black/75">
                   → {DOMAIN_TYPE_LABEL[link.targetType]}:{" "}
                   {findLabel(options, link.targetType, link.targetId)}
                 </p>
@@ -345,7 +345,7 @@ export default function DomainLinksPage() {
                   <button
                     type="button"
                     onClick={() => void handleDeleteLink(link.id)}
-                    className="rounded border border-white/25 px-2 py-1 text-white/80 hover:bg-white/10"
+                    className="rounded border border-rose-300 px-2 py-1 text-rose-800 hover:bg-rose-50"
                   >
                     삭제
                   </button>
