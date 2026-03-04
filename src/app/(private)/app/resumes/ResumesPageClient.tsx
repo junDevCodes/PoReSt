@@ -87,7 +87,7 @@ export function ResumesPageClient({ initialResumes }: ResumesPageClientProps) {
     <div className="mx-auto flex w-full max-w-6xl flex-col">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-black/45">관리</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-black/60">관리</p>
           <h1 className="mt-2 text-3xl font-semibold">이력서 관리</h1>
           <p className="mt-3 text-sm text-black/65">
             회사/직무별 이력서 버전을 생성하고, 포함 경력과 항목 구성을 관리합니다.

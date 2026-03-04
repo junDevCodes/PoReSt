@@ -211,7 +211,7 @@ export function NotesPageClient({ initialNotes, initialNotebooks }: NotesPageCli
     <div className="mx-auto flex w-full max-w-6xl flex-col">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-black/45">관리</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-black/60">관리</p>
           <h1 className="mt-2 text-3xl font-semibold">노트 관리</h1>
           <p className="mt-3 text-sm text-black/65">
             노트북을 만들고 노트를 작성한 뒤, 상세 페이지에서 연관 후보를 관리할 수 있습니다.
@@ -356,7 +356,7 @@ export function NotesPageClient({ initialNotes, initialNotebooks }: NotesPageCli
               >
                 <header className="flex items-center justify-between gap-2">
                   <h3 className="text-lg font-semibold">{section.notebook.name}</h3>
-                  <span className="text-xs text-black/50">{section.notes.length}개 노트</span>
+                  <span className="text-xs text-black/60">{section.notes.length}개 노트</span>
                 </header>
                 <ul className="mt-3 space-y-2">
                   {section.notes.map((note) => (

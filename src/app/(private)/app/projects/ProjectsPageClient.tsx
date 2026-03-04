@@ -128,7 +128,7 @@ export function ProjectsPageClient({ initialProjects }: ProjectsPageClientProps)
     <div className="mx-auto flex w-full max-w-6xl flex-col">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-black/45">관리</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-black/60">관리</p>
           <h1 className="mt-2 text-3xl font-semibold">프로젝트 관리</h1>
           <p className="mt-3 text-sm text-black/65">
             목록에서 검색 조건을 조정하고, 생성/편집 페이지로 이동해 작업합니다.
@@ -206,7 +206,7 @@ export function ProjectsPageClient({ initialProjects }: ProjectsPageClientProps)
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <p className="text-xs text-black/50">slug: {project.slug}</p>
+                    <p className="text-xs text-black/60">slug: {project.slug}</p>
                     <h3 className="mt-1 text-lg font-semibold">{project.title}</h3>
                     <p className="mt-2 text-xs text-black/60">
                       수정일 {formatUpdatedAtLabel(project.updatedAt)} · 공개상태:{" "}

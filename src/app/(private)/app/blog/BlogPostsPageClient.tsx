@@ -113,7 +113,7 @@ export function BlogPostsPageClient({ initialPosts }: BlogPostsPageClientProps) 
     <div className="mx-auto flex w-full max-w-6xl flex-col">
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-black/45">관리</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-black/60">관리</p>
           <h1 className="mt-2 text-3xl font-semibold">블로그 글 관리</h1>
           <p className="mt-3 text-sm text-black/65">
             글 작성/편집, Lint 실행, export 다운로드를 한 화면에서 처리합니다.
