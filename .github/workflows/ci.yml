@@ -19,6 +19,11 @@ jobs:
   # 빌드 및 테스트 게이트 — 시크릿 불필요
   build:
     runs-on: ubuntu-latest
+    env:
+      # prisma generate(postinstall)가 prisma.config.ts를 로드할 때 env 참조를 요구함
+      # 실제 DB 접속 없이 스키마 생성만 수행하므로 더미 값으로 충분
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci_db
+      DATABASE_URL_UNPOOLED: postgresql://ci:ci@localhost:5432/ci_db
     steps:
       - name: 코드 체크아웃
         uses: actions/checkout@v4
