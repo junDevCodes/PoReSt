@@ -5,13 +5,41 @@ Features a public portfolio page and a private admin hub for content management.
 
 ## 🚀 Tech Stack
 
-- **Framework**: Next.js 16 (App Router)
-- **Database**: PostgreSQL (Neon)
-- **ORM**: Prisma
-- **Authentication**: Auth.js (NextAuth v4)
+### Core
+
+- **Framework**: Next.js 16.1.6 (App Router, Route Handlers, Middleware)
+- **Language**: TypeScript 5
+- **UI Runtime**: React 19.2.3
+
+### Frontend
+
 - **Styling**: Tailwind CSS 4
-- **Deployment**: Vercel
-- **Language**: TypeScript
+- **Forms**: React Hook Form + `@hookform/resolvers`
+
+### Authentication & Authorization
+
+- **Auth**: Auth.js (NextAuth v4)
+- **Adapter**: `@auth/prisma-adapter`
+- **OAuth Provider**: GitHub OAuth
+- **Session Strategy**: JWT session + owner-based access control
+
+### Database & Data Layer
+
+- **Database**: PostgreSQL (Neon)
+- **ORM**: Prisma 7.3.0 + Prisma Client
+- **Connection/Driver**: `@neondatabase/serverless` + `@prisma/adapter-neon`
+- **Vector Search**: `pgvector` extension + `ivfflat` index (notes embedding)
+
+### Testing & Code Quality
+
+- **Testing**: Jest 29 + Testing Library + jsdom
+- **Linting**: ESLint 9 + `eslint-config-next`
+- **Formatting**: Prettier 3
+
+### Deployment
+
+- **Platform**: Vercel
+- **Build Pipeline**: `prisma migrate deploy && next build` (`npm run vercel-build`)
 
 ## 🛠️ Setup Instructions
 
@@ -34,19 +62,23 @@ cp .env.example .env
 Then configure the following variables in `.env`:
 
 #### **Database** (Required)
+
 - `DATABASE_URL`: Pooled connection string from Neon (for API routes)
 - `DATABASE_URL_UNPOOLED`: Direct connection string (for migrations)
 
 #### **Authentication** (Required)
+
 - `AUTH_SECRET`: Generate with `openssl rand -base64 32`
 - `AUTH_TRUST_HOST`: Set to `true`
 - `OWNER_EMAIL`: Your email for admin access
 
 #### **OAuth** (Optional - for GitHub login)
+
 - `AUTH_GITHUB_ID`: GitHub OAuth App Client ID
 - `AUTH_GITHUB_SECRET`: GitHub OAuth App Client Secret
 
 #### **Application**
+
 - `NEXT_PUBLIC_SITE_URL`: Your site URL (localhost:3000 for dev)
 
 ### 3. Database Setup
@@ -146,6 +178,7 @@ The application uses the following main models:
 ## 🔐 Authentication
 
 The app uses Auth.js (NextAuth v4) with:
+
 - GitHub OAuth provider
 - Owner-based access control via `OWNER_EMAIL`
 
@@ -157,5 +190,3 @@ See the `docs/` directory for detailed planning and design documents.
 
 **Version**: 2.0.0  
 **Last Updated**: 2026-02-04t
-
-
