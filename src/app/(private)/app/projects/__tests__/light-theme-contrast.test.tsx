@@ -1,5 +1,7 @@
 /** @jest-environment jsdom */
 
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { render } from "@testing-library/react";
 import type {
   SerializedOwnerBlogPostListItemDto,
@@ -24,6 +26,12 @@ jest.mock("@/components/ui/useToast", () => ({
 }));
 
 const MIN_ACCESSIBLE_BLACK_TEXT_OPACITY = 55;
+const LOW_CONTRAST_WHITE_CLASS_NAMES = [
+  "text-white/50",
+  "text-white/55",
+  "text-white/60",
+  "text-white/65",
+];
 
 const INITIAL_PROJECTS: SerializedOwnerProjectDto[] = [
   {
@@ -120,6 +128,18 @@ function findLowContrastTextClasses(container: HTMLElement): string[] {
   return Array.from(tokens).sort();
 }
 
+function findForbiddenTextTokens(source: string): string[] {
+  const tokens = new Set<string>();
+
+  for (const token of LOW_CONTRAST_WHITE_CLASS_NAMES) {
+    if (source.includes(token)) {
+      tokens.add(token);
+    }
+  }
+
+  return Array.from(tokens).sort();
+}
+
 describe("Test-M6-04 Wave3 라이트 테마 대비", () => {
   beforeEach(() => {
     toast.info.mockReset();
@@ -147,4 +167,18 @@ describe("Test-M6-04 Wave3 라이트 테마 대비", () => {
       expect(findLowContrastTextClasses(container)).toEqual([]);
     },
   );
+});
+
+describe("Test-M6-11 Private 5개 화면 라이트 대비", () => {
+  it.each([
+    ["피드백", "src/app/(private)/app/feedback/page.tsx"],
+    ["경험 스토리", "src/app/(private)/app/experience-stories/page.tsx"],
+    ["기업 타겟", "src/app/(private)/app/company-targets/page.tsx"],
+    ["도메인 링크", "src/app/(private)/app/domain-links/page.tsx"],
+    ["감사 로그", "src/app/(private)/app/audit/page.tsx"],
+  ])("%s 화면은 라이트 테마에서 저대비 흰색 텍스트 토큰을 사용하지 않아야 한다", (_, filePath) => {
+    const source = readFileSync(path.join(process.cwd(), filePath), "utf8");
+
+    expect(findForbiddenTextTokens(source)).toEqual([]);
+  });
 });
