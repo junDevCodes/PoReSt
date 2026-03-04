@@ -105,7 +105,7 @@ export default function CompanyTargetsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [createForm, setCreateForm] = useState(DEFAULT_CREATE_FORM);
-  const [status, setStatus] = useState<CompanyTargetStatus | "">( "");
+  const [status, setStatus] = useState<CompanyTargetStatus | "">("");
   const [q, setQ] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [fields, setFields] = useState<Record<string, string> | null>(null);
@@ -121,7 +121,9 @@ export default function CompanyTargetsPage() {
     if (q.trim()) {
       params.set("q", q.trim());
     }
-    const response = await fetch(`/api/app/company-targets?${params.toString()}`, { method: "GET" });
+    const response = await fetch(`/api/app/company-targets?${params.toString()}`, {
+      method: "GET",
+    });
     return parseApiResponse<CompanyTargetsListResult>(response);
   }
 
@@ -268,14 +270,17 @@ export default function CompanyTargetsPage() {
     <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-6 py-12">
       <header className="flex flex-wrap items-start justify-between gap-6">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-white/50">Private</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-black/60">Private</p>
           <h1 className="text-3xl font-semibold">기업 분석 목록</h1>
-          <p className="mt-2 text-sm text-white/60">
+          <p className="mt-2 text-sm text-black/60">
             회사+직무 단위로 타겟 카드를 만들고 파이프라인 상태를 관리합니다.
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Link href="/app" className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/70 hover:text-white">
+          <Link
+            href="/app"
+            className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/70 hover:text-white"
+          >
             /app
           </Link>
         </div>
@@ -319,7 +324,7 @@ export default function CompanyTargetsPage() {
               </div>
             </label>
           </div>
-          <p className="mt-4 text-sm text-white/60">현재 필터: {statusLabel}</p>
+          <p className="mt-4 text-sm text-black/60">현재 필터: {statusLabel}</p>
         </div>
 
         <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
@@ -351,7 +356,10 @@ export default function CompanyTargetsPage() {
                   className="rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-white"
                   value={createForm.status}
                   onChange={(e) =>
-                    setCreateForm((prev) => ({ ...prev, status: e.target.value as CompanyTargetStatus }))
+                    setCreateForm((prev) => ({
+                      ...prev,
+                      status: e.target.value as CompanyTargetStatus,
+                    }))
                   }
                 >
                   {Object.keys(STATUS_LABELS).map((key) => (
@@ -428,22 +436,27 @@ export default function CompanyTargetsPage() {
         <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
           <h2 className="text-lg font-semibold">카드 목록</h2>
           {isLoading ? (
-            <p className="mt-4 text-sm text-white/60">로딩 중...</p>
+            <p className="mt-4 text-sm text-black/60">로딩 중...</p>
           ) : targets.length === 0 ? (
-            <p className="mt-4 text-sm text-white/60">아직 카드가 없습니다.</p>
+            <p className="mt-4 text-sm text-black/60">아직 카드가 없습니다.</p>
           ) : (
             <div className="mt-4 grid gap-4">
               {targets.map((target) => {
                 const editor = editors[target.id];
                 return (
-                  <div key={target.id} className="rounded-xl border border-white/10 bg-black/20 p-4">
+                  <div
+                    key={target.id}
+                    className="rounded-xl border border-white/10 bg-black/20 p-4"
+                  >
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
-                        <p className="text-sm text-white/60">updatedAt: {new Date(target.updatedAt).toLocaleString()}</p>
+                        <p className="text-sm text-black/60">
+                          updatedAt: {new Date(target.updatedAt).toLocaleString()}
+                        </p>
                         <h3 className="mt-1 text-base font-semibold">
                           {target.company} / {target.role}
                         </h3>
-                        <p className="mt-1 text-sm text-white/60">
+                        <p className="mt-1 text-sm text-black/60">
                           상태: {STATUS_LABELS[target.status]} | 우선순위: {target.priority}
                         </p>
                       </div>
@@ -505,7 +518,10 @@ export default function CompanyTargetsPage() {
                               onChange={(e) =>
                                 setEditors((prev) => ({
                                   ...prev,
-                                  [target.id]: { ...prev[target.id]!, status: e.target.value as CompanyTargetStatus },
+                                  [target.id]: {
+                                    ...prev[target.id]!,
+                                    status: e.target.value as CompanyTargetStatus,
+                                  },
                                 }))
                               }
                             >
@@ -525,7 +541,10 @@ export default function CompanyTargetsPage() {
                               onChange={(e) =>
                                 setEditors((prev) => ({
                                   ...prev,
-                                  [target.id]: { ...prev[target.id]!, priority: Number(e.target.value) },
+                                  [target.id]: {
+                                    ...prev[target.id]!,
+                                    priority: Number(e.target.value),
+                                  },
                                 }))
                               }
                             />
@@ -584,4 +603,3 @@ export default function CompanyTargetsPage() {
     </main>
   );
 }
-

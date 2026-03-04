@@ -284,17 +284,23 @@ export default function ExperienceStoriesPage() {
     <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-6 py-12">
       <header className="flex flex-wrap items-start justify-between gap-6">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-white/50">Private</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-black/60">Private</p>
           <h1 className="text-3xl font-semibold">경험 정리(STAR)</h1>
-          <p className="mt-2 text-sm text-white/60">
+          <p className="mt-2 text-sm text-black/60">
             경험(Experience) 아래에 STAR 스토리를 누적해 스토리 뱅크를 만듭니다.
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Link href="/app" className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/70 hover:text-white">
+          <Link
+            href="/app"
+            className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/70 hover:text-white"
+          >
             /app
           </Link>
-          <Link href="/app/experiences" className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/70 hover:text-white">
+          <Link
+            href="/app/experiences"
+            className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/70 hover:text-white"
+          >
             경험 관리로 이동
           </Link>
         </div>
@@ -339,7 +345,7 @@ export default function ExperienceStoriesPage() {
             </label>
           </div>
           {selectedExperience ? (
-            <p className="mt-4 text-sm text-white/60">
+            <p className="mt-4 text-sm text-black/60">
               선택된 경험: {selectedExperience.company} / {selectedExperience.role}
             </p>
           ) : null}
@@ -364,7 +370,9 @@ export default function ExperienceStoriesPage() {
                 <select
                   className="rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-white"
                   value={createForm.experienceId || selectedExperienceId}
-                  onChange={(e) => setCreateForm((prev) => ({ ...prev, experienceId: e.target.value }))}
+                  onChange={(e) =>
+                    setCreateForm((prev) => ({ ...prev, experienceId: e.target.value }))
+                  }
                 >
                   <option value="">(선택)</option>
                   {experiences.map((exp) => (
@@ -390,7 +398,9 @@ export default function ExperienceStoriesPage() {
                   <textarea
                     className="min-h-[120px] rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-white"
                     value={createForm.situation}
-                    onChange={(e) => setCreateForm((prev) => ({ ...prev, situation: e.target.value }))}
+                    onChange={(e) =>
+                      setCreateForm((prev) => ({ ...prev, situation: e.target.value }))
+                    }
                   />
                 </label>
                 <label className="grid gap-1 text-sm text-white/70">
@@ -457,9 +467,9 @@ export default function ExperienceStoriesPage() {
         <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
           <h2 className="text-lg font-semibold">스토리 목록</h2>
           {isLoading ? (
-            <p className="mt-4 text-sm text-white/60">로딩 중...</p>
+            <p className="mt-4 text-sm text-black/60">로딩 중...</p>
           ) : stories.length === 0 ? (
-            <p className="mt-4 text-sm text-white/60">아직 스토리가 없습니다.</p>
+            <p className="mt-4 text-sm text-black/60">아직 스토리가 없습니다.</p>
           ) : (
             <div className="mt-4 grid gap-4">
               {stories.map((story) => {
@@ -468,9 +478,11 @@ export default function ExperienceStoriesPage() {
                   <div key={story.id} className="rounded-xl border border-white/10 bg-black/20 p-4">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
-                        <p className="text-sm text-white/60">updatedAt: {new Date(story.updatedAt).toLocaleString()}</p>
+                        <p className="text-sm text-black/60">
+                          updatedAt: {new Date(story.updatedAt).toLocaleString()}
+                        </p>
                         <h3 className="mt-1 text-base font-semibold">{story.title}</h3>
-                        <p className="mt-1 text-sm text-white/60">
+                        <p className="mt-1 text-sm text-black/60">
                           tags: {story.tags.length > 0 ? story.tags.join(", ") : "(없음)"}
                         </p>
                       </div>
@@ -586,4 +598,3 @@ export default function ExperienceStoriesPage() {
     </main>
   );
 }
-

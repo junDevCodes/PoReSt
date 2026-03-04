@@ -72,19 +72,14 @@ export default function DomainLinksPage() {
     targetOptions.find((option) => option.id === targetId)?.id ?? targetOptions[0]?.id ?? "";
 
   async function loadEntityOptions() {
-    const [
-      projectResponse,
-      experienceResponse,
-      resumeResponse,
-      noteResponse,
-      blogResponse,
-    ] = await Promise.all([
-      fetch("/api/app/projects", { method: "GET" }),
-      fetch("/api/app/experiences", { method: "GET" }),
-      fetch("/api/app/resumes", { method: "GET" }),
-      fetch("/api/app/notes", { method: "GET" }),
-      fetch("/api/app/blog/posts", { method: "GET" }),
-    ]);
+    const [projectResponse, experienceResponse, resumeResponse, noteResponse, blogResponse] =
+      await Promise.all([
+        fetch("/api/app/projects", { method: "GET" }),
+        fetch("/api/app/experiences", { method: "GET" }),
+        fetch("/api/app/resumes", { method: "GET" }),
+        fetch("/api/app/notes", { method: "GET" }),
+        fetch("/api/app/blog/posts", { method: "GET" }),
+      ]);
 
     const [projects, experiences, resumes, notes, blogs] = await Promise.all([
       parseApiResponse<Array<{ id: string; title?: string }>>(projectResponse),
@@ -214,9 +209,9 @@ export default function DomainLinksPage() {
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6 py-12">
       <header>
-        <p className="text-xs uppercase tracking-[0.3em] text-white/50">Graph</p>
+        <p className="text-xs uppercase tracking-[0.3em] text-black/60">Graph</p>
         <h1 className="mt-2 text-3xl font-semibold">Cross-domain Links</h1>
-        <p className="mt-3 text-sm text-white/65">
+        <p className="mt-3 text-sm text-black/65">
           프로젝트/경력/이력서/노트/블로그 간 연결을 생성하고 관리합니다.
         </p>
       </header>
@@ -229,7 +224,10 @@ export default function DomainLinksPage() {
 
       <section className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-6">
         <h2 className="text-lg font-semibold text-white">링크 생성</h2>
-        <form className="mt-4 grid gap-4 md:grid-cols-2" onSubmit={(event) => void handleCreateLink(event)}>
+        <form
+          className="mt-4 grid gap-4 md:grid-cols-2"
+          onSubmit={(event) => void handleCreateLink(event)}
+        >
           <label className="flex flex-col gap-2 text-sm text-white/80">
             Source 타입
             <select
@@ -326,21 +324,23 @@ export default function DomainLinksPage() {
       <section className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-6">
         <h2 className="text-lg font-semibold text-white">링크 목록</h2>
         {isLoading ? (
-          <p className="mt-3 text-sm text-white/60">링크를 불러오는 중입니다.</p>
+          <p className="mt-3 text-sm text-black/60">링크를 불러오는 중입니다.</p>
         ) : links.length === 0 ? (
-          <p className="mt-3 text-sm text-white/60">등록된 링크가 없습니다.</p>
+          <p className="mt-3 text-sm text-black/60">등록된 링크가 없습니다.</p>
         ) : (
           <div className="mt-4 space-y-3">
             {links.map((link) => (
               <article key={link.id} className="rounded-lg border border-white/10 bg-black/20 p-4">
                 <p className="text-sm font-semibold text-white">
-                  {DOMAIN_TYPE_LABEL[link.sourceType]}: {findLabel(options, link.sourceType, link.sourceId)}
+                  {DOMAIN_TYPE_LABEL[link.sourceType]}:{" "}
+                  {findLabel(options, link.sourceType, link.sourceId)}
                 </p>
                 <p className="mt-1 text-sm text-white/75">
-                  → {DOMAIN_TYPE_LABEL[link.targetType]}: {findLabel(options, link.targetType, link.targetId)}
+                  → {DOMAIN_TYPE_LABEL[link.targetType]}:{" "}
+                  {findLabel(options, link.targetType, link.targetId)}
                 </p>
-                {link.context ? <p className="mt-2 text-xs text-white/65">{link.context}</p> : null}
-                <div className="mt-3 flex items-center justify-between text-xs text-white/50">
+                {link.context ? <p className="mt-2 text-xs text-black/65">{link.context}</p> : null}
+                <div className="mt-3 flex items-center justify-between text-xs text-black/55">
                   <span>수정: {formatDate(link.updatedAt)}</span>
                   <button
                     type="button"
