@@ -3,40 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
-type ApiErrorPayload =
-  | string
-  | {
-      message?: string;
-      fields?: Record<string, string>;
-    };
-
-type ApiEnvelope<T> = { data?: T; error?: ApiErrorPayload };
-
-type ApiResult<T> = { data: T | null; error: string | null; fields: Record<string, string> | null };
-
-async function parseApiResponse<T>(response: Response): Promise<ApiResult<T>> {
-  let payload: unknown = null;
-  try {
-    payload = await response.json();
-  } catch {
-    return { data: null, error: "응답 본문을 해석할 수 없습니다.", fields: null };
-  }
-
-  const envelope = (payload ?? {}) as ApiEnvelope<T>;
-  if (response.ok) {
-    return { data: envelope.data ?? null, error: null, fields: null };
-  }
-
-  if (typeof envelope.error === "string") {
-    return { data: null, error: envelope.error, fields: null };
-  }
-
-  return {
-    data: null,
-    error: envelope.error?.message ?? `요청 처리에 실패했습니다. (HTTP ${response.status})`,
-    fields: envelope.error?.fields ?? null,
-  };
-}
+import { parseApiResponse } from "@/app/(private)/app/_lib/admin-api";
 
 type CompanyTargetStatus =
   | "INTERESTED"
@@ -121,10 +88,15 @@ export default function CompanyTargetsPage() {
     if (q.trim()) {
       params.set("q", q.trim());
     }
-    const response = await fetch(`/api/app/company-targets?${params.toString()}`, {
-      method: "GET",
-    });
-    return parseApiResponse<CompanyTargetsListResult>(response);
+    // 네트워크 예외 포함 전체 오류를 공용 parseApiResponse로 처리
+    try {
+      const response = await fetch(`/api/app/company-targets?${params.toString()}`, {
+        method: "GET",
+      });
+      return await parseApiResponse<CompanyTargetsListResult>(response);
+    } catch (error) {
+      return parseApiResponse<CompanyTargetsListResult>(error);
+    }
   }
 
   function applyTargets(items: OwnerCompanyTargetDto[]) {
@@ -182,21 +154,27 @@ export default function CompanyTargetsPage() {
     setFields(null);
     setMessage(null);
 
-    const response = await fetch("/api/app/company-targets", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        company: createForm.company,
-        role: createForm.role,
-        status: createForm.status,
-        priority: createForm.priority,
-        summary: createForm.summary || null,
-        analysisMd: createForm.analysisMd || null,
-        tags: normalizeTags(createForm.tags),
-      }),
-    });
-
-    const parsed = await parseApiResponse<OwnerCompanyTargetDto>(response);
+    // 네트워크 예외 포함 전체 오류를 공용 parseApiResponse로 처리
+    const parsed = await (async () => {
+      try {
+        const response = await fetch("/api/app/company-targets", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            company: createForm.company,
+            role: createForm.role,
+            status: createForm.status,
+            priority: createForm.priority,
+            summary: createForm.summary || null,
+            analysisMd: createForm.analysisMd || null,
+            tags: normalizeTags(createForm.tags),
+          }),
+        });
+        return await parseApiResponse<OwnerCompanyTargetDto>(response);
+      } catch (error) {
+        return parseApiResponse<OwnerCompanyTargetDto>(error);
+      }
+    })();
     if (parsed.error) {
       setError(parsed.error);
       setFields(parsed.fields);
@@ -220,21 +198,27 @@ export default function CompanyTargetsPage() {
     setFields(null);
     setMessage(null);
 
-    const response = await fetch(`/api/app/company-targets/${id}`, {
-      method: "PUT",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        company: editor.company,
-        role: editor.role,
-        status: editor.status,
-        priority: editor.priority,
-        summary: editor.summary || null,
-        analysisMd: editor.analysisMd || null,
-        tags: normalizeTags(editor.tags),
-      }),
-    });
-
-    const parsed = await parseApiResponse<OwnerCompanyTargetDto>(response);
+    // 네트워크 예외 포함 전체 오류를 공용 parseApiResponse로 처리
+    const parsed = await (async () => {
+      try {
+        const response = await fetch(`/api/app/company-targets/${id}`, {
+          method: "PUT",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            company: editor.company,
+            role: editor.role,
+            status: editor.status,
+            priority: editor.priority,
+            summary: editor.summary || null,
+            analysisMd: editor.analysisMd || null,
+            tags: normalizeTags(editor.tags),
+          }),
+        });
+        return await parseApiResponse<OwnerCompanyTargetDto>(response);
+      } catch (error) {
+        return parseApiResponse<OwnerCompanyTargetDto>(error);
+      }
+    })();
     if (parsed.error) {
       setError(parsed.error);
       setFields(parsed.fields);
@@ -254,8 +238,15 @@ export default function CompanyTargetsPage() {
     setFields(null);
     setMessage(null);
 
-    const response = await fetch(`/api/app/company-targets/${id}`, { method: "DELETE" });
-    const parsed = await parseApiResponse<{ id: string }>(response);
+    // 네트워크 예외 포함 전체 오류를 공용 parseApiResponse로 처리
+    const parsed = await (async () => {
+      try {
+        const response = await fetch(`/api/app/company-targets/${id}`, { method: "DELETE" });
+        return await parseApiResponse<{ id: string }>(response);
+      } catch (error) {
+        return parseApiResponse<{ id: string }>(error);
+      }
+    })();
     if (parsed.error) {
       setError(parsed.error);
       setFields(parsed.fields);

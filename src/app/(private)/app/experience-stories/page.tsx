@@ -3,40 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
-type ApiErrorPayload =
-  | string
-  | {
-      message?: string;
-      fields?: Record<string, string>;
-    };
-
-type ApiEnvelope<T> = { data?: T; error?: ApiErrorPayload };
-
-type ApiResult<T> = { data: T | null; error: string | null; fields: Record<string, string> | null };
-
-async function parseApiResponse<T>(response: Response): Promise<ApiResult<T>> {
-  let payload: unknown = null;
-  try {
-    payload = await response.json();
-  } catch {
-    return { data: null, error: "응답 본문을 해석할 수 없습니다.", fields: null };
-  }
-
-  const envelope = (payload ?? {}) as ApiEnvelope<T>;
-  if (response.ok) {
-    return { data: envelope.data ?? null, error: null, fields: null };
-  }
-
-  if (typeof envelope.error === "string") {
-    return { data: null, error: envelope.error, fields: null };
-  }
-
-  return {
-    data: null,
-    error: envelope.error?.message ?? `요청 처리에 실패했습니다. (HTTP ${response.status})`,
-    fields: envelope.error?.fields ?? null,
-  };
-}
+import { parseApiResponse } from "@/app/(private)/app/_lib/admin-api";
 
 type OwnerExperienceDto = {
   id: string;
@@ -107,8 +74,13 @@ export default function ExperienceStoriesPage() {
   );
 
   async function requestExperiences() {
-    const response = await fetch("/api/app/experiences", { method: "GET" });
-    return parseApiResponse<OwnerExperienceDto[]>(response);
+    // 네트워크 예외 포함 전체 오류를 공용 parseApiResponse로 처리
+    try {
+      const response = await fetch("/api/app/experiences", { method: "GET" });
+      return await parseApiResponse<OwnerExperienceDto[]>(response);
+    } catch (error) {
+      return parseApiResponse<OwnerExperienceDto[]>(error);
+    }
   }
 
   async function requestStories() {
@@ -119,10 +91,15 @@ export default function ExperienceStoriesPage() {
     if (q.trim()) {
       params.set("q", q.trim());
     }
-    const response = await fetch(`/api/app/experience-stories?${params.toString()}`, {
-      method: "GET",
-    });
-    return parseApiResponse<ExperienceStoriesListResult>(response);
+    // 네트워크 예외 포함 전체 오류를 공용 parseApiResponse로 처리
+    try {
+      const response = await fetch(`/api/app/experience-stories?${params.toString()}`, {
+        method: "GET",
+      });
+      return await parseApiResponse<ExperienceStoriesListResult>(response);
+    } catch (error) {
+      return parseApiResponse<ExperienceStoriesListResult>(error);
+    }
   }
 
   function applyStories(items: OwnerExperienceStoryDto[]) {
@@ -208,12 +185,19 @@ export default function ExperienceStoriesPage() {
       tags: normalizeTags(createForm.tags),
     };
 
-    const response = await fetch("/api/app/experience-stories", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    const parsed = await parseApiResponse<OwnerExperienceStoryDto>(response);
+    // 네트워크 예외 포함 전체 오류를 공용 parseApiResponse로 처리
+    const parsed = await (async () => {
+      try {
+        const response = await fetch("/api/app/experience-stories", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        return await parseApiResponse<OwnerExperienceStoryDto>(response);
+      } catch (error) {
+        return parseApiResponse<OwnerExperienceStoryDto>(error);
+      }
+    })();
 
     if (parsed.error) {
       setError(parsed.error);
@@ -237,19 +221,26 @@ export default function ExperienceStoriesPage() {
       return;
     }
 
-    const response = await fetch(`/api/app/experience-stories/${storyId}`, {
-      method: "PUT",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        title: editor.title,
-        situation: editor.situation,
-        task: editor.task,
-        action: editor.action,
-        result: editor.result,
-        tags: normalizeTags(editor.tags),
-      }),
-    });
-    const parsed = await parseApiResponse<OwnerExperienceStoryDto>(response);
+    // 네트워크 예외 포함 전체 오류를 공용 parseApiResponse로 처리
+    const parsed = await (async () => {
+      try {
+        const response = await fetch(`/api/app/experience-stories/${storyId}`, {
+          method: "PUT",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            title: editor.title,
+            situation: editor.situation,
+            task: editor.task,
+            action: editor.action,
+            result: editor.result,
+            tags: normalizeTags(editor.tags),
+          }),
+        });
+        return await parseApiResponse<OwnerExperienceStoryDto>(response);
+      } catch (error) {
+        return parseApiResponse<OwnerExperienceStoryDto>(error);
+      }
+    })();
     if (parsed.error) {
       setError(parsed.error);
       setFields(parsed.fields);
@@ -268,8 +259,17 @@ export default function ExperienceStoriesPage() {
     setFields(null);
     setMessage(null);
 
-    const response = await fetch(`/api/app/experience-stories/${storyId}`, { method: "DELETE" });
-    const parsed = await parseApiResponse<{ id: string }>(response);
+    // 네트워크 예외 포함 전체 오류를 공용 parseApiResponse로 처리
+    const parsed = await (async () => {
+      try {
+        const response = await fetch(`/api/app/experience-stories/${storyId}`, {
+          method: "DELETE",
+        });
+        return await parseApiResponse<{ id: string }>(response);
+      } catch (error) {
+        return parseApiResponse<{ id: string }>(error);
+      }
+    })();
     if (parsed.error) {
       setError(parsed.error);
       setFields(parsed.fields);
