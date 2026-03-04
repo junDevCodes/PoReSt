@@ -1,7 +1,8 @@
-﻿import { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import type { NextAuthOptions } from "next-auth";
 import GitHub from "next-auth/providers/github";
+import { writeStructuredLog } from "@/lib/observability";
 import { prisma } from "@/lib/prisma";
 
 const isProd = process.env.NODE_ENV === "production";
@@ -10,6 +11,9 @@ const shouldDebug = process.env.NEXTAUTH_DEBUG === "true";
 const DEFAULT_PUBLIC_SLUG = "user";
 const PUBLIC_SLUG_MAX_LENGTH = 100;
 const MAX_PUBLIC_SLUG_RETRY = 100;
+const AUTH_SIGNIN_POSTPROCESS_FAILED_EVENT = "auth.signin.postprocess.failed";
+
+type SignInPostprocessStep = "ensureUserRecord" | "ensurePortfolioSettingsForUser";
 
 type SignInUser = {
   id?: string | null;
@@ -17,6 +21,36 @@ type SignInUser = {
   name?: string | null;
   isOwner?: boolean | null;
 };
+
+function readErrorPayload(error: unknown): { errorName: string; errorMessage: string } {
+  if (error instanceof Error) {
+    return {
+      errorName: error.name || "Error",
+      errorMessage: error.message || "알 수 없는 오류",
+    };
+  }
+
+  return {
+    errorName: "UnknownError",
+    errorMessage: String(error),
+  };
+}
+
+function recordSignInPostprocessFailure(args: {
+  step: SignInPostprocessStep;
+  user: SignInUser;
+  error: unknown;
+}) {
+  const { errorName, errorMessage } = readErrorPayload(args.error);
+
+  writeStructuredLog("error", AUTH_SIGNIN_POSTPROCESS_FAILED_EVENT, {
+    step: args.step,
+    userId: args.user.id ?? null,
+    userEmail: args.user.email?.toLowerCase() ?? null,
+    errorName,
+    errorMessage,
+  });
+}
 
 function normalizeSlugBase(value: string): string {
   const normalized = value
@@ -193,12 +227,19 @@ export const authOptions: NextAuthOptions = {
   },
   events: {
     async signIn({ user }) {
+      let step: SignInPostprocessStep = "ensureUserRecord";
+
       try {
         const nextOwner = isOwnerByRule(user);
         const userId = await ensureUserRecord(user, nextOwner);
+        step = "ensurePortfolioSettingsForUser";
         await ensurePortfolioSettingsForUser({ ...user, id: userId ?? user.id });
       } catch (error) {
-        console.error("로그인 후처리 오류:", error);
+        recordSignInPostprocessFailure({
+          step,
+          user,
+          error,
+        });
       }
     },
   },
