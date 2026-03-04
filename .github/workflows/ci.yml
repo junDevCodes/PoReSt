@@ -1,10 +1,11 @@
 # CI/CD 파이프라인
 # build 체크: 린트 + Next.js 빌드 + Jest 테스트
-# deploy 체크: Vercel 배포 (PR → Preview, main 푸시 → Production)
+# deploy 체크: build 통과 후 배포 준비 확인 게이트
+#   (실제 Vercel 배포는 Vercel GitHub 연동이 처리 → "Vercel" 체크)
 #
 # 브랜치 보호 규칙 필수 체크 이름:
-#   "CI / build"  ← 이 워크플로우의 build 잡
-#   "CI / deploy" ← 이 워크플로우의 deploy 잡
+#   "build"  ← 이 워크플로우의 build 잡
+#   "deploy" ← 이 워크플로우의 deploy 잡
 
 name: CI
 
@@ -15,7 +16,7 @@ on:
     branches: [main]
 
 jobs:
-  # 빌드 및 테스트 게이트
+  # 빌드 및 테스트 게이트 — 시크릿 불필요
   build:
     runs-on: ubuntu-latest
     steps:
@@ -38,24 +39,17 @@ jobs:
         run: npm run build
 
       - name: 테스트 실행
+        # DATABASE_URL 미설정 시 통합 테스트는 자동 skip됨
         run: npx jest --runInBand
 
-  # Vercel 배포 게이트
-  # 필수 시크릿: VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID
+  # 배포 준비 확인 게이트 — build 통과 후에만 실행
+  # 실제 Vercel 배포는 Vercel GitHub 연동이 별도 처리
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    env:
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
     steps:
-      - name: 코드 체크아웃
-        uses: actions/checkout@v4
-
-      - name: Vercel Production 배포 (main 브랜치 푸시 시)
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: npx vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }} --yes
-
-      - name: Vercel Preview 배포 (PR 또는 dev 브랜치 푸시 시)
-        if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref != 'refs/heads/main')
-        run: npx vercel deploy --token=${{ secrets.VERCEL_TOKEN }} --yes
+      - name: 배포 게이트 통과 확인
+        run: |
+          echo "빌드 게이트 통과 — Vercel GitHub 연동이 자동으로 배포를 처리합니다"
+          echo "브랜치: ${{ github.ref }}"
+          echo "이벤트: ${{ github.event_name }}"
