@@ -295,7 +295,7 @@ export default function ExperienceStoriesPage() {
             href="/app"
             className="rounded-lg border border-black/15 bg-white px-3 py-2 text-sm text-black/75 hover:text-black"
           >
-            /app
+            워크스페이스
           </Link>
           <Link
             href="/app/experiences"
@@ -336,7 +336,7 @@ export default function ExperienceStoriesPage() {
                 />
                 <button
                   type="button"
-                  className="rounded-lg border border-black/15 bg-black px-4 py-2 text-sm text-white hover:bg-black/90"
+                  className="whitespace-nowrap rounded-lg border border-black/15 bg-black px-4 py-2 text-sm text-white hover:bg-black/90"
                   onClick={() => void reloadAll()}
                 >
                   새로고침
