@@ -64,25 +64,28 @@ export default function NewResumePage() {
     <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-6 py-12">
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-white/50">관리</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-black/60">관리</p>
           <h1 className="mt-2 text-3xl font-semibold">이력서 생성</h1>
-          <p className="mt-3 text-sm text-white/65">
+          <p className="mt-3 text-sm text-black/60">
             회사/직무 컨텍스트를 포함한 이력서 버전을 생성합니다.
           </p>
         </div>
-        <Link href="/app/resumes" className="rounded-full border border-white/30 px-4 py-2 text-sm">
+        <Link
+          href="/app/resumes"
+          className="rounded-lg border border-black/15 bg-white px-3 py-2 text-sm text-black/75 hover:text-black"
+        >
           목록으로
         </Link>
       </header>
 
-      <section className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-6">
+      <section className="mt-8 rounded-2xl border border-black/10 bg-[#faf9f6] p-6">
         <form onSubmit={handleSubmit} className="grid gap-4">
           <label className="flex flex-col gap-2 text-sm">
             <span>제목</span>
             <input
               value={form.title}
               onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
-              className="rounded-lg border border-white/20 bg-black/20 px-3 py-2"
+              className="rounded-lg border border-black/15 bg-white px-3 py-2"
               placeholder="예: A사 백엔드 지원 v1"
             />
           </label>
@@ -95,7 +98,7 @@ export default function NewResumePage() {
                 onChange={(event) =>
                   setForm((prev) => ({ ...prev, targetCompany: event.target.value }))
                 }
-                className="rounded-lg border border-white/20 bg-black/20 px-3 py-2"
+                className="rounded-lg border border-black/15 bg-white px-3 py-2"
                 placeholder="지원 회사"
               />
             </label>
@@ -106,7 +109,7 @@ export default function NewResumePage() {
                 onChange={(event) =>
                   setForm((prev) => ({ ...prev, targetRole: event.target.value }))
                 }
-                className="rounded-lg border border-white/20 bg-black/20 px-3 py-2"
+                className="rounded-lg border border-black/15 bg-white px-3 py-2"
                 placeholder="지원 직무"
               />
             </label>
@@ -115,7 +118,7 @@ export default function NewResumePage() {
               <input
                 value={form.level}
                 onChange={(event) => setForm((prev) => ({ ...prev, level: event.target.value }))}
-                className="rounded-lg border border-white/20 bg-black/20 px-3 py-2"
+                className="rounded-lg border border-black/15 bg-white px-3 py-2"
                 placeholder="junior / mid / senior"
               />
             </label>
@@ -128,7 +131,7 @@ export default function NewResumePage() {
               onChange={(event) =>
                 setForm((prev) => ({ ...prev, status: event.target.value as ResumeStatus }))
               }
-              className="rounded-lg border border-white/20 bg-black/20 px-3 py-2"
+              className="rounded-lg border border-black/15 bg-white px-3 py-2"
             >
               <option value="DRAFT">DRAFT</option>
               <option value="SUBMITTED">SUBMITTED</option>
@@ -141,13 +144,13 @@ export default function NewResumePage() {
             <textarea
               value={form.summaryMd}
               onChange={(event) => setForm((prev) => ({ ...prev, summaryMd: event.target.value }))}
-              className="min-h-52 rounded-lg border border-white/20 bg-black/20 px-3 py-2"
+              className="min-h-52 rounded-lg border border-black/15 bg-white px-3 py-2"
               placeholder="지원 포지션에 맞춘 요약을 입력하세요."
             />
           </label>
 
           {error ? (
-            <p className="rounded-xl border border-rose-400/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+            <p className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
               {error}
             </p>
           ) : null}
@@ -155,7 +158,7 @@ export default function NewResumePage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-fit rounded-full bg-white px-5 py-2 text-sm font-semibold text-black disabled:opacity-60"
+            className="w-fit rounded-full bg-black px-5 py-2 text-sm font-semibold text-white disabled:opacity-60"
           >
             {isSubmitting ? "생성 중..." : "이력서 생성"}
           </button>

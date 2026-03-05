@@ -186,3 +186,25 @@ describe("Test-M6-11 Private 5개 화면 라이트 대비", () => {
     expect(findForbiddenTextTokens(source)).toEqual([]);
   });
 });
+
+describe("Test-M6-12 서브페이지 9개 라이트 대비", () => {
+  // T46-2에서 처리되지 않은 상세/편집/new 서브페이지의 저대비 다크 토큰 정리 검증
+  it.each([
+    ["피드백 생성", "src/app/(private)/app/feedback/new/page.tsx"],
+    ["피드백 상세", "src/app/(private)/app/feedback/[id]/page.tsx"],
+    ["노트 상세 클라이언트", "src/app/(private)/app/notes/[id]/NoteDetailClient.tsx"],
+    ["이력서 생성", "src/app/(private)/app/resumes/new/page.tsx"],
+    ["이력서 편집", "src/app/(private)/app/resumes/[id]/edit/page.tsx"],
+    ["프로젝트 생성", "src/app/(private)/app/projects/new/page.tsx"],
+    ["프로젝트 편집", "src/app/(private)/app/projects/[id]/edit/page.tsx"],
+    ["블로그 생성", "src/app/(private)/app/blog/new/page.tsx"],
+    ["블로그 편집", "src/app/(private)/app/blog/[id]/edit/page.tsx"],
+  ])(
+    "%s 서브페이지는 라이트 테마에서 저대비 흰색 텍스트 토큰을 사용하지 않아야 한다",
+    (_, filePath) => {
+      const source = readFileSync(path.join(process.cwd(), filePath), "utf8");
+
+      expect(findForbiddenTextTokens(source)).toEqual([]);
+    },
+  );
+});

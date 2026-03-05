@@ -141,21 +141,24 @@ export default function EditProjectPage() {
     <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-6 py-12">
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-white/50">관리</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-black/60">관리</p>
           <h1 className="mt-2 text-3xl font-semibold">프로젝트 편집</h1>
-          <p className="mt-3 text-sm text-white/65">
+          <p className="mt-3 text-sm text-black/60">
             제목, 공개 상태, 대표 노출 여부를 포함한 프로젝트 정보를 수정합니다.
           </p>
         </div>
         <div className="flex gap-2">
-          <Link href="/app/projects" className="rounded-full border border-white/30 px-4 py-2 text-sm">
+          <Link
+            href="/app/projects"
+            className="rounded-lg border border-black/15 bg-white px-3 py-2 text-sm text-black/75 hover:text-black"
+          >
             목록으로
           </Link>
           <button
             type="button"
             onClick={() => void handleDelete()}
             disabled={isDeleting || isLoading}
-            className="rounded-full border border-rose-400/50 px-4 py-2 text-sm text-rose-200 disabled:opacity-60"
+            className="rounded-lg border border-rose-300 px-4 py-2 text-sm text-rose-700 disabled:opacity-60"
           >
             {isDeleting ? "삭제 중..." : "삭제"}
           </button>
@@ -163,14 +166,14 @@ export default function EditProjectPage() {
       </header>
 
       {message ? (
-        <p className="mt-6 rounded-xl border border-emerald-400/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+        <p className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
           {message}
         </p>
       ) : null}
 
-      <section className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-6">
+      <section className="mt-8 rounded-2xl border border-black/10 bg-[#faf9f6] p-6">
         {isLoading ? (
-          <p className="text-sm text-white/60">프로젝트 정보를 불러오는 중입니다.</p>
+          <p className="text-sm text-black/60">프로젝트 정보를 불러오는 중입니다.</p>
         ) : initialValues ? (
           <ProjectForm
             initialValues={initialValues}
@@ -181,7 +184,7 @@ export default function EditProjectPage() {
             onSubmit={handleUpdate}
           />
         ) : (
-          <p className="text-sm text-rose-200">{error ?? "프로젝트를 불러올 수 없습니다."}</p>
+          <p className="text-sm text-rose-700">{error ?? "프로젝트를 불러올 수 없습니다."}</p>
         )}
       </section>
     </main>
