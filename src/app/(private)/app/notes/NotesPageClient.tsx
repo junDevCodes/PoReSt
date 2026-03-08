@@ -12,6 +12,7 @@ import {
   buildNotebookSections,
   type OwnerNoteListItemDto,
 } from "@/app/(private)/app/notes/_lib/list";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { EmptyBlock, ErrorBanner, LoadingBlock } from "@/components/ui/AsyncState";
 import { useToast } from "@/components/ui/useToast";
 
@@ -61,6 +62,8 @@ export function NotesPageClient({ initialNotes, initialNotebooks }: NotesPageCli
   const [isCreatingNotebook, setIsCreatingNotebook] = useState(false);
   const [isCreatingNote, setIsCreatingNote] = useState(false);
   const [deletingNotebookId, setDeletingNotebookId] = useState<string | null>(null);
+  const [deletingNoteId, setDeletingNoteId] = useState<string | null>(null);
+  const [pendingDeleteNote, setPendingDeleteNote] = useState<OwnerNoteListItemDto | null>(null);
   const [newNotebookName, setNewNotebookName] = useState("");
   const [newNotebookDescription, setNewNotebookDescription] = useState("");
   const [noteForm, setNoteForm] = useState<NoteCreateForm>(buildInitialForm(initialNotebooks));
@@ -162,6 +165,34 @@ export function NotesPageClient({ initialNotes, initialNotebooks }: NotesPageCli
     toast.success("노트북을 삭제했습니다.");
     await loadData();
     setDeletingNotebookId(null);
+  }
+
+  async function handleDeleteNoteConfirmed() {
+    if (!pendingDeleteNote) return;
+    setDeletingNoteId(pendingDeleteNote.id);
+
+    const parsed = await (async () => {
+      try {
+        const response = await fetch(`/api/app/notes/${pendingDeleteNote.id}`, {
+          method: "DELETE",
+        });
+        return await parseApiResponse<{ id: string }>(response);
+      } catch (error) {
+        return parseApiResponse<{ id: string }>(error);
+      }
+    })();
+
+    if (parsed.error) {
+      setError(parsed.error);
+      toast.error(parsed.error);
+      setDeletingNoteId(null);
+      return;
+    }
+
+    toast.success("노트를 삭제했습니다.");
+    setDeletingNoteId(null);
+    setPendingDeleteNote(null);
+    await loadData();
   }
 
   async function handleCreateNote(event: FormEvent<HTMLFormElement>) {
@@ -372,12 +403,23 @@ export function NotesPageClient({ initialNotes, initialNotebooks }: NotesPageCli
                             {note.visibility}
                           </p>
                         </div>
-                        <Link
-                          href={`/app/notes/${note.id}`}
-                          className="rounded-lg border border-emerald-300 px-3 py-2 text-xs text-emerald-800"
-                        >
-                          상세 보기
-                        </Link>
+                        <div className="flex gap-2">
+                          <Link
+                            href={`/app/notes/${note.id}`}
+                            className="rounded-lg border border-emerald-300 px-3 py-2 text-xs text-emerald-800"
+                          >
+                            상세 보기
+                          </Link>
+                          <button
+                            type="button"
+                            aria-label={`${note.title} 삭제`}
+                            onClick={() => setPendingDeleteNote(note)}
+                            disabled={deletingNoteId === note.id}
+                            className="rounded-lg border border-rose-300 px-3 py-2 text-xs text-rose-800 disabled:opacity-50"
+                          >
+                            {deletingNoteId === note.id ? "삭제 중..." : "삭제"}
+                          </button>
+                        </div>
                       </div>
                     </li>
                   ))}
@@ -387,6 +429,26 @@ export function NotesPageClient({ initialNotes, initialNotebooks }: NotesPageCli
           </div>
         )}
       </section>
+
+      <ConfirmDialog
+        open={Boolean(pendingDeleteNote)}
+        title="노트를 삭제할까요?"
+        description={
+          pendingDeleteNote
+            ? `"${pendingDeleteNote.title}"을 삭제합니다. 노트가 모두 삭제된 노트북은 이후 삭제할 수 있습니다.`
+            : ""
+        }
+        confirmText="삭제"
+        cancelText="취소"
+        isDanger
+        isLoading={Boolean(deletingNoteId)}
+        onCancel={() => {
+          if (!deletingNoteId) setPendingDeleteNote(null);
+        }}
+        onConfirm={() => {
+          void handleDeleteNoteConfirmed();
+        }}
+      />
     </div>
   );
 }
