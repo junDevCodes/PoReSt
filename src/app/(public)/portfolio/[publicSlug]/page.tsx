@@ -98,12 +98,12 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
             className="h-20 w-20 shrink-0 rounded-full object-cover"
           />
         ) : (
-          <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-black/10 text-2xl font-semibold text-black/50">
+          <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-black/10 text-2xl font-semibold text-black/65">
             {avatarInitial}
           </div>
         )}
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-black/50">Portfolio</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-black/65">Portfolio</p>
           <h1 className="mt-1 text-4xl font-semibold">{displayName}</h1>
           <p className="mt-2 text-lg text-black/75">
             {getProfileDescription(viewModel.profile.headline)}
@@ -145,7 +145,7 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
       <section className="mt-14">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-semibold">대표 프로젝트</h2>
-          <Link className="text-sm font-medium text-black/60 hover:text-black" href={userProjectsPath}>
+          <Link className="text-sm font-medium text-black/70 hover:text-black" href={userProjectsPath}>
             전체 보기
           </Link>
         </div>

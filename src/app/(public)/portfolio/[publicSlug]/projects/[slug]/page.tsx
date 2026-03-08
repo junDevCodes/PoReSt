@@ -88,11 +88,11 @@ export default async function PublicProjectDetailByUserPage({
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-6 py-14">
-      <p className="text-xs uppercase tracking-[0.3em] text-black/45">Case Study</p>
+      <p className="text-xs uppercase tracking-[0.3em] text-black/65">Case Study</p>
       <h1 className="mt-2 text-3xl font-semibold">{viewModel.title}</h1>
       {viewModel.subtitle ? <p className="mt-3 text-base text-black/70">{viewModel.subtitle}</p> : null}
 
-      <div className="mt-4 flex flex-wrap gap-2 text-xs text-black/60">
+      <div className="mt-4 flex flex-wrap gap-2 text-xs text-black/70">
         <span>업데이트: {viewModel.updatedAtLabel || "날짜 정보 없음"}</span>
         {viewModel.techStack.length > 0 ? <span>기술: {viewModel.techStack.join(" · ")}</span> : null}
       </div>
