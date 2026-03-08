@@ -33,10 +33,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "파일 크기는 5MB를 초과할 수 없습니다." }, { status: 413 });
   }
 
-  const blob = await put(`avatars/${authResult.session.user.id}/${file.name}`, file, {
-    access: "public",
-    token: process.env.BLOB_READ_WRITE_TOKEN,
-  });
-
-  return NextResponse.json({ data: { url: blob.url } });
+  try {
+    const blob = await put(`avatars/${authResult.session.user.id}/${file.name}`, file, {
+      access: "public",
+      token: process.env.BLOB_READ_WRITE_TOKEN,
+    });
+    return NextResponse.json({ data: { url: blob.url } });
+  } catch (error) {
+    console.error("[avatar-upload] blob put failed:", error);
+    return NextResponse.json({ error: "파일 업로드에 실패했습니다. 잠시 후 다시 시도해주세요." }, { status: 500 });
+  }
 }
