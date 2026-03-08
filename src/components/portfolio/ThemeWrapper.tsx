@@ -1,0 +1,90 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import Link from "next/link";
+
+type ThemeWrapperProps = {
+  publicSlug: string;
+  children: React.ReactNode;
+};
+
+export function ThemeWrapper({ publicSlug, children }: ThemeWrapperProps) {
+  const [dark, setDark] = useState(false);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setDark(localStorage.getItem("portfolio-theme") === "dark");
+  }, []);
+
+  function toggle() {
+    const next = !dark;
+    setDark(next);
+    localStorage.setItem("portfolio-theme", next ? "dark" : "light");
+  }
+
+  return (
+    <div
+      data-theme={dark ? "dark" : "light"}
+      className="min-h-screen bg-[#f6f5f2] text-black dark:bg-[#111111] dark:text-white"
+    >
+      <header className="border-b border-black/8 bg-[#f6f5f2] dark:border-white/8 dark:bg-[#111111]">
+        <div className="mx-auto flex h-12 w-full max-w-5xl items-center gap-2 px-6 text-sm">
+          <Link
+            href="/"
+            className="font-semibold text-black/70 hover:text-black dark:text-white/70 dark:hover:text-white"
+          >
+            PoReSt
+          </Link>
+          <span className="text-black/30 dark:text-white/30">/</span>
+          <span className="text-black/55 dark:text-white/55">{publicSlug}</span>
+          <button
+            type="button"
+            onClick={toggle}
+            className="ml-auto rounded-lg p-1.5 text-black/50 hover:bg-black/5 hover:text-black dark:text-white/50 dark:hover:bg-white/5 dark:hover:text-white"
+            aria-label={dark ? "라이트 모드로 전환" : "다크 모드로 전환"}
+          >
+            {dark ? <SunIcon /> : <MoonIcon />}
+          </button>
+        </div>
+      </header>
+      {children}
+    </div>
+  );
+}
+
+function SunIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+    </svg>
+  );
+}
+
+function MoonIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+    </svg>
+  );
+}

@@ -63,32 +63,32 @@ export default async function PublicProjectsByUserPage({ params }: PublicProject
     <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-6 py-14">
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-3xl font-semibold">프로젝트</h1>
-        <Link href={profilePath} className="text-sm text-black/70 hover:text-black">
+        <Link href={profilePath} className="text-sm text-black/70 hover:text-black dark:text-white/70 dark:hover:text-white">
           프로필로 이동
         </Link>
       </div>
 
       {viewModels.length === 0 ? (
-        <section className="mt-8 rounded-2xl border border-black/10 bg-white p-6 text-sm text-black/65">
+        <section className="mt-8 rounded-2xl border border-black/10 bg-white p-6 text-sm text-black/65 dark:border-white/10 dark:bg-[#1e1e1e] dark:text-white/65">
           공개 프로젝트가 없습니다.
         </section>
       ) : (
         <section className="mt-8 grid gap-5 md:grid-cols-2">
           {viewModels.map((project) => (
-            <article key={project.id} className="rounded-2xl border border-black/10 bg-white p-5">
+            <article key={project.id} className="rounded-2xl border border-black/10 bg-white p-5 dark:border-white/10 dark:bg-[#1e1e1e]">
               <h2 className="text-xl font-semibold">{project.title}</h2>
-              <p className="mt-2 line-clamp-3 text-sm text-black/65">
+              <p className="mt-2 line-clamp-3 text-sm text-black/65 dark:text-white/65">
                 {project.description ?? "설명 정보가 없습니다."}
               </p>
-              <p className="mt-3 text-xs text-black/55">
+              <p className="mt-3 text-xs text-black/55 dark:text-white/55">
                 업데이트: {project.updatedAtLabel || "날짜 정보 없음"}
               </p>
-              <p className="mt-3 text-xs text-black/60">
+              <p className="mt-3 text-xs text-black/60 dark:text-white/60">
                 {project.techStack.length > 0 ? project.techStack.join(" · ") : "기술 스택 정보 없음"}
               </p>
               <Link
                 href={project.publicPath}
-                className="mt-4 inline-flex text-sm font-semibold text-black/80 hover:text-black"
+                className="mt-4 inline-flex text-sm font-semibold text-black/80 hover:text-black dark:text-white/80 dark:hover:text-white"
               >
                 상세 보기
               </Link>

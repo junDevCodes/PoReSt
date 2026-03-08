@@ -98,21 +98,21 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
             className="h-20 w-20 shrink-0 rounded-full object-cover"
           />
         ) : (
-          <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-black/10 text-2xl font-semibold text-black/65">
+          <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-black/10 text-2xl font-semibold text-black/65 dark:bg-white/10 dark:text-white/65">
             {avatarInitial}
           </div>
         )}
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-black/65">Portfolio</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-black/65 dark:text-white/65">Portfolio</p>
           <h1 className="mt-1 text-4xl font-semibold">{displayName}</h1>
-          <p className="mt-2 text-lg text-black/75">
+          <p className="mt-2 text-lg text-black/75 dark:text-white/75">
             {getProfileDescription(viewModel.profile.headline)}
           </p>
         </div>
       </div>
 
       {viewModel.profile.bio ? (
-        <p className="mt-6 max-w-3xl whitespace-pre-wrap text-sm leading-7 text-black/70">
+        <p className="mt-6 max-w-3xl whitespace-pre-wrap text-sm leading-7 text-black/70 dark:text-white/70">
           {viewModel.profile.bio}
         </p>
       ) : null}
@@ -120,7 +120,7 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
       <div className="mt-8 flex flex-wrap gap-3">
         <Link
           href={userProjectsPath}
-          className="rounded-full bg-black px-5 py-3 text-sm font-semibold text-white"
+          className="rounded-full bg-black px-5 py-3 text-sm font-semibold text-white dark:bg-white dark:text-black"
         >
           프로젝트 보기
         </Link>
@@ -134,7 +134,7 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
               href={link.url}
               target="_blank"
               rel="noreferrer"
-              className="rounded-full border border-black/20 px-4 py-2 text-sm text-black/75 hover:text-black"
+              className="rounded-full border border-black/20 px-4 py-2 text-sm text-black/75 hover:text-black dark:border-white/20 dark:text-white/75 dark:hover:text-white"
             >
               {link.label}
             </a>
@@ -145,27 +145,27 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
       <section className="mt-14">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-semibold">대표 프로젝트</h2>
-          <Link className="text-sm font-medium text-black/70 hover:text-black" href={userProjectsPath}>
+          <Link className="text-sm font-medium text-black/70 hover:text-black dark:text-white/70 dark:hover:text-white" href={userProjectsPath}>
             전체 보기
           </Link>
         </div>
 
         {viewModel.featuredProjects.length === 0 ? (
-          <div className="mt-6 rounded-2xl border border-black/10 bg-white p-6 text-sm text-black/65">
+          <div className="mt-6 rounded-2xl border border-black/10 bg-white p-6 text-sm text-black/65 dark:border-white/10 dark:bg-[#1e1e1e] dark:text-white/65">
             공개된 대표 프로젝트가 없습니다.
           </div>
         ) : (
           <div className="mt-6 grid gap-4 md:grid-cols-3">
             {viewModel.featuredProjects.map((project) => (
-              <article key={project.id} className="rounded-2xl border border-black/10 bg-white p-5">
+              <article key={project.id} className="rounded-2xl border border-black/10 bg-white p-5 dark:border-white/10 dark:bg-[#1e1e1e]">
                 <h3 className="text-lg font-semibold">{project.title}</h3>
-                <p className="mt-2 line-clamp-3 text-sm text-black/65">
+                <p className="mt-2 line-clamp-3 text-sm text-black/65 dark:text-white/65">
                   {project.description ?? "설명 정보가 없습니다."}
                 </p>
-                <p className="mt-3 text-xs text-black/60">
+                <p className="mt-3 text-xs text-black/60 dark:text-white/60">
                   {project.techStack.length > 0 ? project.techStack.join(" · ") : "기술 스택 정보 없음"}
                 </p>
-                <Link href={project.publicPath} className="mt-4 inline-flex text-sm font-semibold text-black/80 hover:text-black">
+                <Link href={project.publicPath} className="mt-4 inline-flex text-sm font-semibold text-black/80 hover:text-black dark:text-white/80 dark:hover:text-white">
                   상세 보기
                 </Link>
               </article>
