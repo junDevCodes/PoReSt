@@ -1,7 +1,7 @@
 import { revalidatePath } from "next/cache";
 
 const DEFAULT_REVALIDATE_PATHS = ["/", "/projects"] as const;
-const DYNAMIC_REVALIDATE_PAGES = [
+export const DYNAMIC_REVALIDATE_PAGES = [
   "/projects/[slug]",
   "/u/[publicSlug]",
   "/u/[publicSlug]/projects",
