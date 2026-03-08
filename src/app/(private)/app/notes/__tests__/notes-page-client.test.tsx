@@ -53,6 +53,88 @@ function buildMockFetchResponse(payload: unknown): Response {
   } as Response;
 }
 
+describe("Test-M6-10 NotesPageClient 노트 삭제", () => {
+  beforeEach(() => {
+    toast.info.mockReset();
+    toast.success.mockReset();
+    toast.error.mockReset();
+  });
+
+  it("노트 삭제 버튼 클릭 시 ConfirmDialog가 열린다", async () => {
+    global.fetch = jest.fn() as unknown as typeof fetch;
+
+    render(<NotesPageClient initialNotes={INITIAL_NOTES} initialNotebooks={INITIAL_NOTEBOOKS} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "노트 1 삭제" }));
+
+    await waitFor(() => {
+      expect(screen.getByText("노트를 삭제할까요?")).toBeInTheDocument();
+    });
+  });
+
+  it("ConfirmDialog에서 취소 클릭 시 다이얼로그가 닫힌다", async () => {
+    global.fetch = jest.fn() as unknown as typeof fetch;
+
+    render(<NotesPageClient initialNotes={INITIAL_NOTES} initialNotebooks={INITIAL_NOTEBOOKS} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "노트 1 삭제" }));
+    await waitFor(() => {
+      expect(screen.getByText("노트를 삭제할까요?")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "취소" }));
+
+    await waitFor(() => {
+      expect(screen.queryByText("노트를 삭제할까요?")).not.toBeInTheDocument();
+    });
+  });
+
+  it("노트 삭제 API 실패 시 처리 상태를 해제하고 오류 배너를 표시해야 한다", async () => {
+    const fetchMock = jest.fn().mockRejectedValue(new TypeError("fetch failed"));
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    render(<NotesPageClient initialNotes={INITIAL_NOTES} initialNotebooks={INITIAL_NOTEBOOKS} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "노트 1 삭제" }));
+    await waitFor(() => {
+      expect(screen.getByText("노트를 삭제할까요?")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getAllByRole("button", { name: "삭제" }).at(-1) as HTMLButtonElement);
+
+    await waitFor(() => {
+      expect(screen.getByText(NETWORK_ERROR_MESSAGE)).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText("삭제 중...")).not.toBeInTheDocument();
+  });
+
+  it("노트 삭제 성공 후 목록 재조회 API 실패 시 로딩을 해제하고 오류 배너를 표시해야 한다", async () => {
+    const fetchMock = jest
+      .fn()
+      .mockResolvedValueOnce(buildMockFetchResponse({ data: { id: "note-1" } }))
+      .mockRejectedValueOnce(new TypeError("fetch failed"))
+      .mockResolvedValueOnce(buildMockFetchResponse({ data: INITIAL_NOTEBOOKS }));
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    render(<NotesPageClient initialNotes={INITIAL_NOTES} initialNotebooks={INITIAL_NOTEBOOKS} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "노트 1 삭제" }));
+    await waitFor(() => {
+      expect(screen.getByText("노트를 삭제할까요?")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getAllByRole("button", { name: "삭제" }).at(-1) as HTMLButtonElement);
+
+    await waitFor(() => {
+      expect(screen.getByText(NETWORK_ERROR_MESSAGE)).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText("노트 목록을 불러오는 중입니다.")).not.toBeInTheDocument();
+    expect(screen.queryByText("삭제 중...")).not.toBeInTheDocument();
+  });
+});
+
 describe("Test-M6-03 NotesPageClient", () => {
   beforeEach(() => {
     toast.info.mockReset();

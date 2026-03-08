@@ -52,7 +52,12 @@ export function PublicPortfolioPreview({
       <div className="mt-4 rounded-xl border border-black/10 bg-[#faf9f6] p-4">
         <div className="flex items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-black/10 text-xs text-black/60">
-            {avatarUrl.trim().length > 0 ? "IMG" : "NO IMG"}
+            {avatarUrl.trim().length > 0 ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={avatarUrl} alt={displayName || "아바타"} className="h-full w-full object-cover" />
+            ) : (
+              "NO IMG"
+            )}
           </div>
           <div>
             <p className="text-base font-semibold">{displayName.trim() || "표시 이름 미설정"}</p>

@@ -42,6 +42,9 @@ AUTH_SECRET="<아래 명령으로 생성>"
 AUTH_TRUST_HOST="true"
 OWNER_EMAIL="your-email@example.com"
 NEXT_PUBLIC_SITE_URL="http://localhost:3000"
+
+# 아바타 이미지 업로드 기능 사용 시 필요 (Vercel Blob)
+BLOB_READ_WRITE_TOKEN="<Vercel Dashboard > Storage > Blob > Token에서 발급>"
 ```
 
 환경변수 운영 원칙:
@@ -229,6 +232,16 @@ taskkill /PID <PID> /F
 lsof -ti:3000 | xargs kill
 ```
 
+### CI/CD 환경에서 `prisma generate` 실패
+
+CI/CD 환경(GitHub Actions 등)에서는 실제 DB 연결이 없어도 `prisma generate`가
+동작하도록 워크플로우의 `env`에 더미 `DATABASE_URL`을 설정해야 합니다.
+
+```yaml
+env:
+  DATABASE_URL: "postgresql://dummy:dummy@localhost:5432/dummy"
+```
+
 ---
 
 ## 📚 More Info
@@ -247,4 +260,4 @@ lsof -ti:3000 | xargs kill
 
 ---
 
-**Last Updated**: 2026-02-27
+**Last Updated**: 2026-03-09
