@@ -1,5 +1,6 @@
 "use client";
 
+import { Fragment } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -44,25 +45,27 @@ export function AppSidebar() {
   return (
     <nav className="flex flex-col gap-1">
       {NAV_GROUPS.map((group, groupIndex) => (
-        <div key={groupIndex}>
+        <Fragment key={groupIndex}>
           {groupIndex > 0 && <div className="my-2 border-t border-black/10" />}
-          {group.map((item) => {
-            const active = isActivePath(pathname, item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
-                  active
-                    ? "bg-black text-white"
-                    : "text-black/70 hover:bg-black/5 hover:text-black"
-                }`}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
-        </div>
+          <div className="flex flex-col gap-1">
+            {group.map((item) => {
+              const active = isActivePath(pathname, item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
+                    active
+                      ? "bg-black text-white"
+                      : "text-black/70 hover:bg-black/5 hover:text-black"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
+        </Fragment>
       ))}
     </nav>
   );
