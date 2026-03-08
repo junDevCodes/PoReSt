@@ -84,15 +84,37 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
 
   const viewModel = toPublicHomeViewModel(portfolio);
 
+  const displayName = getProfileTitle(viewModel.profile.displayName, resolvedParams.publicSlug);
+  const avatarInitial = displayName.charAt(0).toUpperCase();
+
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-6 py-16">
-      <p className="text-xs uppercase tracking-[0.3em] text-black/50">Portfolio</p>
-      <h1 className="mt-3 text-4xl font-semibold">
-        {getProfileTitle(viewModel.profile.displayName, resolvedParams.publicSlug)}
-      </h1>
-      <p className="mt-2 text-lg text-black/70">{getProfileDescription(viewModel.profile.headline)}</p>
+    <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-6 py-14">
+      <div className="flex items-start gap-5">
+        {viewModel.profile.avatarUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={viewModel.profile.avatarUrl}
+            alt={`${displayName} 프로필 이미지`}
+            className="h-20 w-20 shrink-0 rounded-full object-cover"
+          />
+        ) : (
+          <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-black/10 text-2xl font-semibold text-black/50">
+            {avatarInitial}
+          </div>
+        )}
+        <div>
+          <p className="text-xs uppercase tracking-[0.3em] text-black/50">Portfolio</p>
+          <h1 className="mt-1 text-4xl font-semibold">{displayName}</h1>
+          <p className="mt-2 text-lg text-black/75">
+            {getProfileDescription(viewModel.profile.headline)}
+          </p>
+        </div>
+      </div>
+
       {viewModel.profile.bio ? (
-        <p className="mt-4 max-w-3xl whitespace-pre-wrap text-sm leading-7 text-black/65">{viewModel.profile.bio}</p>
+        <p className="mt-6 max-w-3xl whitespace-pre-wrap text-sm leading-7 text-black/70">
+          {viewModel.profile.bio}
+        </p>
       ) : null}
 
       <div className="mt-8 flex flex-wrap gap-3">
@@ -112,7 +134,7 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
               href={link.url}
               target="_blank"
               rel="noreferrer"
-              className="rounded-full border border-black/15 px-4 py-2 text-sm text-black/70"
+              className="rounded-full border border-black/20 px-4 py-2 text-sm text-black/75 hover:text-black"
             >
               {link.label}
             </a>
@@ -129,7 +151,7 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
         </div>
 
         {viewModel.featuredProjects.length === 0 ? (
-          <div className="mt-6 rounded-2xl border border-black/10 bg-white p-6 text-sm text-black/60">
+          <div className="mt-6 rounded-2xl border border-black/10 bg-white p-6 text-sm text-black/65">
             공개된 대표 프로젝트가 없습니다.
           </div>
         ) : (
@@ -137,13 +159,13 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
             {viewModel.featuredProjects.map((project) => (
               <article key={project.id} className="rounded-2xl border border-black/10 bg-white p-5">
                 <h3 className="text-lg font-semibold">{project.title}</h3>
-                <p className="mt-2 line-clamp-3 text-sm text-black/60">
+                <p className="mt-2 line-clamp-3 text-sm text-black/65">
                   {project.description ?? "설명 정보가 없습니다."}
                 </p>
-                <p className="mt-3 text-xs text-black/55">
+                <p className="mt-3 text-xs text-black/60">
                   {project.techStack.length > 0 ? project.techStack.join(" · ") : "기술 스택 정보 없음"}
                 </p>
-                <Link href={project.publicPath} className="mt-4 inline-flex text-sm font-semibold text-black/80">
+                <Link href={project.publicPath} className="mt-4 inline-flex text-sm font-semibold text-black/80 hover:text-black">
                   상세 보기
                 </Link>
               </article>

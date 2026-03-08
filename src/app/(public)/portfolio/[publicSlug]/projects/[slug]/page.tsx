@@ -87,12 +87,12 @@ export default async function PublicProjectDetailByUserPage({
   }
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-6 py-16">
-      <p className="text-xs uppercase tracking-[0.3em] text-black/40">Case Study</p>
+    <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-6 py-14">
+      <p className="text-xs uppercase tracking-[0.3em] text-black/45">Case Study</p>
       <h1 className="mt-2 text-3xl font-semibold">{viewModel.title}</h1>
-      {viewModel.subtitle ? <p className="mt-3 text-base text-black/65">{viewModel.subtitle}</p> : null}
+      {viewModel.subtitle ? <p className="mt-3 text-base text-black/70">{viewModel.subtitle}</p> : null}
 
-      <div className="mt-4 flex flex-wrap gap-2 text-xs text-black/55">
+      <div className="mt-4 flex flex-wrap gap-2 text-xs text-black/60">
         <span>업데이트: {viewModel.updatedAtLabel || "날짜 정보 없음"}</span>
         {viewModel.techStack.length > 0 ? <span>기술: {viewModel.techStack.join(" · ")}</span> : null}
       </div>
@@ -100,28 +100,28 @@ export default async function PublicProjectDetailByUserPage({
       <section className="mt-10 grid gap-6">
         <article className="rounded-2xl border border-black/10 bg-white p-6">
           <h2 className="text-xl font-semibold">Problem</h2>
-          <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-black/70">
+          <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-black/75">
             {viewModel.sections.problem || "문제 정의를 준비 중입니다."}
           </p>
         </article>
 
         <article className="rounded-2xl border border-black/10 bg-white p-6">
           <h2 className="text-xl font-semibold">Approach</h2>
-          <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-black/70">
+          <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-black/75">
             {viewModel.sections.approach || "해결 방법을 준비 중입니다."}
           </p>
         </article>
 
         <article className="rounded-2xl border border-black/10 bg-white p-6">
           <h2 className="text-xl font-semibold">Architecture</h2>
-          <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-black/70">
+          <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-black/75">
             {viewModel.sections.architecture || "아키텍처 설명을 준비 중입니다."}
           </p>
         </article>
 
         <article className="rounded-2xl border border-black/10 bg-white p-6">
           <h2 className="text-xl font-semibold">Results</h2>
-          <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-black/70">
+          <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-black/75">
             {viewModel.sections.results || "결과 설명을 준비 중입니다."}
           </p>
         </article>
@@ -150,11 +150,11 @@ export default async function PublicProjectDetailByUserPage({
               </a>
             ) : null}
             {!viewModel.repoUrl && !viewModel.demoUrl ? (
-              <p className="text-sm text-black/60">등록된 링크가 없습니다.</p>
+              <p className="text-sm text-black/65">등록된 링크가 없습니다.</p>
             ) : null}
           </div>
           {viewModel.sections.links ? (
-            <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-black/65">
+            <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-black/70">
               {viewModel.sections.links}
             </p>
           ) : null}
@@ -164,9 +164,9 @@ export default async function PublicProjectDetailByUserPage({
       <div className="mt-10">
         <Link
           href={`/portfolio/${encodeURIComponent(resolvedParams.publicSlug)}/projects`}
-          className="text-sm font-semibold text-black/70 hover:text-black"
+          className="inline-flex items-center gap-1 text-sm font-semibold text-black/70 hover:text-black"
         >
-          프로젝트 목록으로 이동
+          ← 프로젝트 목록
         </Link>
       </div>
     </main>
