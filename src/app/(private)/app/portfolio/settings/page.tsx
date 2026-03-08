@@ -74,6 +74,8 @@ export default function PortfolioSettingsPage() {
   const [originalPublicSlug, setOriginalPublicSlug] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [avatarUploadError, setAvatarUploadError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -153,6 +155,34 @@ export default function PortfolioSettingsPage() {
       ...prev,
       links: prev.links.filter((_, currentIndex) => currentIndex !== index),
     }));
+  }
+
+  async function handleAvatarUpload(file: File) {
+    setIsUploadingAvatar(true);
+    setAvatarUploadError(null);
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const parsed = await (async () => {
+      try {
+        const response = await fetch("/api/app/portfolio/avatar", {
+          method: "POST",
+          body: formData,
+        });
+        return await parseApiResponse<{ url: string }>(response);
+      } catch (err) {
+        return parseApiResponse<{ url: string }>(err);
+      }
+    })();
+
+    if (parsed.error) {
+      setAvatarUploadError(parsed.error);
+    } else if (parsed.data?.url) {
+      setForm((prev) => ({ ...prev, avatarUrl: parsed.data!.url }));
+    }
+
+    setIsUploadingAvatar(false);
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -294,17 +324,52 @@ export default function PortfolioSettingsPage() {
                 />
               </label>
 
-              <label className="flex flex-col gap-2 text-sm md:col-span-2">
-                <span>아바타 URL</span>
-                <input
-                  value={form.avatarUrl}
-                  onChange={(event) =>
-                    setForm((prev) => ({ ...prev, avatarUrl: event.target.value }))
-                  }
-                  className="rounded-lg border border-black/15 bg-white px-3 py-2"
-                  placeholder="https://example.com/avatar.png"
-                />
-              </label>
+              <div className="flex flex-col gap-2 text-sm md:col-span-2">
+                <span>아바타 이미지</span>
+                <div className="flex items-center gap-4">
+                  <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-black/10">
+                    {form.avatarUrl.trim().length > 0 ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={form.avatarUrl}
+                        alt="아바타 미리보기"
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-xs text-black/50">없음</span>
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label className="cursor-pointer rounded-full border border-black/20 px-4 py-2 text-sm hover:bg-black/5">
+                      {isUploadingAvatar ? "업로드 중..." : "파일 선택"}
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,image/gif"
+                        className="sr-only"
+                        disabled={isUploadingAvatar}
+                        onChange={(event) => {
+                          const file = event.target.files?.[0];
+                          if (file) void handleAvatarUpload(file);
+                          event.target.value = "";
+                        }}
+                      />
+                    </label>
+                    {avatarUploadError ? (
+                      <p className="text-xs text-rose-700">{avatarUploadError}</p>
+                    ) : null}
+                    {form.avatarUrl.trim().length > 0 ? (
+                      <button
+                        type="button"
+                        onClick={() => setForm((prev) => ({ ...prev, avatarUrl: "" }))}
+                        className="text-xs text-black/50 hover:text-black/70"
+                      >
+                        이미지 제거
+                      </button>
+                    ) : null}
+                  </div>
+                </div>
+                <p className="text-xs text-black/45">JPEG, PNG, WebP, GIF · 최대 5MB</p>
+              </div>
             </section>
 
             <section className="rounded-2xl border border-black/10 bg-white p-6">
