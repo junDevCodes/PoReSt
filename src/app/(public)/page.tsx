@@ -145,7 +145,7 @@ export default async function HomePage() {
                         </p>
                       </div>
                       <Link
-                        href={`/u/${encodeURIComponent(item.publicSlug)}`}
+                        href={`/portfolio/${encodeURIComponent(item.publicSlug)}`}
                         className="rounded-lg border border-black/20 px-3 py-1.5 text-xs font-semibold text-black/80"
                       >
                         보기
@@ -187,7 +187,7 @@ export default async function HomePage() {
                         </p>
                       </div>
                       <Link
-                        href={`/u/${encodeURIComponent(item.publicSlug)}/projects`}
+                        href={`/portfolio/${encodeURIComponent(item.publicSlug)}/projects`}
                         className="rounded-lg border border-black/20 px-3 py-1.5 text-xs font-semibold text-black/80"
                       >
                         프로젝트
@@ -210,7 +210,7 @@ export default async function HomePage() {
               2. 워크스페이스에서 포트폴리오/프로젝트 작성
             </li>
             <li className="rounded-xl border border-black/10 bg-[#faf9f6] p-4">
-              3. 공개 URL(`/u/[publicSlug]`) 발행 후 공유
+              3. 공개 URL(`/portfolio/[publicSlug]`) 발행 후 공유
             </li>
           </ol>
         </section>

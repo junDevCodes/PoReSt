@@ -46,7 +46,7 @@ export default async function AppHome() {
     {
       done: Boolean(workspace?.isPublic && workspace?.publicSlug),
       label: "공개 포트폴리오 확인",
-      href: workspace?.publicSlug ? `/u/${encodeURIComponent(workspace.publicSlug)}` : "/app/portfolio/settings",
+      href: workspace?.publicSlug ? `/portfolio/${encodeURIComponent(workspace.publicSlug)}` : "/app/portfolio/settings",
     },
   ];
 

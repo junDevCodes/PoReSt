@@ -21,7 +21,7 @@ function toProfilePath(publicSlug: string) {
   if (normalized.length === 0) {
     return null;
   }
-  return `/u/${encodeURIComponent(normalized)}`;
+  return `/portfolio/${encodeURIComponent(normalized)}`;
 }
 
 export function PublicPortfolioPreview({

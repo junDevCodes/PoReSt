@@ -15,7 +15,7 @@ export default async function LegacyProjectDetailPage({ params }: LegacyProjectD
 
   try {
     const path = await projectsService.resolvePublicProjectPathBySlug(resolvedParams.slug);
-    redirect(`/u/${encodeURIComponent(path.publicSlug)}/projects/${encodeURIComponent(path.slug)}`);
+    redirect(`/portfolio/${encodeURIComponent(path.publicSlug)}/projects/${encodeURIComponent(path.slug)}`);
   } catch (error) {
     if (isProjectServiceError(error) && error.status === 404) {
       notFound();

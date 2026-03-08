@@ -112,8 +112,8 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
       ) : (
         <section className="mt-8 grid gap-5 md:grid-cols-2">
           {items.map((item) => {
-            const profilePath = `/u/${encodeURIComponent(item.publicSlug)}`;
-            const projectsPath = `/u/${encodeURIComponent(item.publicSlug)}/projects`;
+            const profilePath = `/portfolio/${encodeURIComponent(item.publicSlug)}`;
+            const projectsPath = `/portfolio/${encodeURIComponent(item.publicSlug)}/projects`;
             return (
               <article
                 key={item.publicSlug}

@@ -3,9 +3,9 @@ import { revalidatePath } from "next/cache";
 const DEFAULT_REVALIDATE_PATHS = ["/", "/projects"] as const;
 export const DYNAMIC_REVALIDATE_PAGES = [
   "/projects/[slug]",
-  "/u/[publicSlug]",
-  "/u/[publicSlug]/projects",
-  "/u/[publicSlug]/projects/[slug]",
+  "/portfolio/[publicSlug]",
+  "/portfolio/[publicSlug]/projects",
+  "/portfolio/[publicSlug]/projects/[slug]",
 ] as const;
 
 function normalizePath(path: string): string | null {

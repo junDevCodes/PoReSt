@@ -191,7 +191,7 @@ export function toPublicHomeViewModel(input: unknown): PublicHomeViewModel {
         }
 
         const publicSlug = toNullableString(record.publicSlug) ?? rootPublicSlug ?? "owner";
-        const publicPath = `/u/${encodeURIComponent(publicSlug)}/projects/${encodeURIComponent(slug)}`;
+        const publicPath = `/portfolio/${encodeURIComponent(publicSlug)}/projects/${encodeURIComponent(slug)}`;
 
         return {
           id,
@@ -253,7 +253,7 @@ export function toPublicProjectsListViewModel(input: unknown): PublicProjectsLis
       return {
         id,
         publicSlug,
-        publicPath: `/u/${encodeURIComponent(publicSlug)}/projects/${encodeURIComponent(slug)}`,
+        publicPath: `/portfolio/${encodeURIComponent(publicSlug)}/projects/${encodeURIComponent(slug)}`,
         slug,
         title,
         description: toNullableString(record.description),
