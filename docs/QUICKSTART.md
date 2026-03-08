@@ -42,6 +42,9 @@ AUTH_SECRET="<아래 명령으로 생성>"
 AUTH_TRUST_HOST="true"
 OWNER_EMAIL="your-email@example.com"
 NEXT_PUBLIC_SITE_URL="http://localhost:3000"
+
+# 아바타 이미지 업로드 기능 사용 시 필요 (Vercel Blob)
+BLOB_READ_WRITE_TOKEN="<Vercel Dashboard > Storage > Blob > Token에서 발급>"
 ```
 
 환경변수 운영 원칙:
@@ -257,4 +260,4 @@ env:
 
 ---
 
-**Last Updated**: 2026-03-08
+**Last Updated**: 2026-03-09
