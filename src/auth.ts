@@ -192,6 +192,8 @@ export const authOptions: NextAuthOptions = {
   debug: process.env.NEXTAUTH_DEBUG === "true",
   session: {
     strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60,
+    updateAge: 5 * 60,
   },
   pages: {
     signIn: "/login",
@@ -214,6 +216,19 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.isOwner = isOwnerByRule(user);
+        token.isOwnerRefreshedAt = Date.now();
+      } else {
+        const lastCheck = token.isOwnerRefreshedAt ?? 0;
+        if (Date.now() - lastCheck > 5 * 60 * 1000) {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: token.sub },
+            select: { isOwner: true, email: true },
+          });
+          if (dbUser) {
+            token.isOwner = isOwnerByRule(dbUser);
+            token.isOwnerRefreshedAt = Date.now();
+          }
+        }
       }
       return token;
     },
