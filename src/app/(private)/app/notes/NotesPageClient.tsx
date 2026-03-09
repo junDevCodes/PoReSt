@@ -410,6 +410,12 @@ export function NotesPageClient({ initialNotes, initialNotebooks }: NotesPageCli
                           >
                             상세 보기
                           </Link>
+                          <Link
+                            href={`/app/notes/${note.id}/edit`}
+                            className="rounded-lg border border-black/20 px-3 py-2 text-xs text-black/70"
+                          >
+                            수정
+                          </Link>
                           <button
                             type="button"
                             aria-label={`${note.title} 삭제`}

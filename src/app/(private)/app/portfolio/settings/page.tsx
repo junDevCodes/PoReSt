@@ -344,12 +344,18 @@ export default function PortfolioSettingsPage() {
                       {isUploadingAvatar ? "업로드 중..." : "파일 선택"}
                       <input
                         type="file"
-                        accept="image/jpeg,image/png,image/webp,image/gif"
                         className="sr-only"
                         disabled={isUploadingAvatar}
                         onChange={(event) => {
                           const file = event.target.files?.[0];
-                          if (file) void handleAvatarUpload(file);
+                          if (!file) return;
+                          const ALLOWED = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+                          if (!ALLOWED.includes(file.type)) {
+                            setAvatarUploadError("JPEG, PNG, WebP, GIF 형식만 업로드할 수 있습니다.");
+                            event.target.value = "";
+                            return;
+                          }
+                          void handleAvatarUpload(file);
                           event.target.value = "";
                         }}
                       />

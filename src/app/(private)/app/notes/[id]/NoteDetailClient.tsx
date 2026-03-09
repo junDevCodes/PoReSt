@@ -109,7 +109,23 @@ export function NoteDetailClient({ note, initialEdges }: NoteDetailClientProps) 
       ) : null}
 
       <header className="rounded-2xl border border-black/10 bg-[#faf9f6] p-6">
-        <p className="text-xs uppercase tracking-[0.3em] text-black/60">노트 상세</p>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <p className="text-xs uppercase tracking-[0.3em] text-black/60">노트 상세</p>
+          <div className="flex gap-2">
+            <Link
+              href="/app/notes"
+              className="rounded-lg border border-black/15 px-3 py-1 text-xs text-black/60 hover:text-black"
+            >
+              목록으로
+            </Link>
+            <Link
+              href={`/app/notes/${note.id}/edit`}
+              className="rounded-lg border border-black/20 bg-black px-3 py-1 text-xs text-white hover:bg-black/80"
+            >
+              수정
+            </Link>
+          </div>
+        </div>
         <h1 className="mt-2 text-3xl font-semibold">{note.title}</h1>
         <p className="mt-2 text-sm text-black/60">
           노트북: {note.notebook.name} · 수정일: {formatUpdatedAtLabel(note.updatedAt)} · 공개상태:{" "}
