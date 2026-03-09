@@ -58,6 +58,7 @@ body {
 /* 텍스트 */
 [data-theme="dark"] .text-black        { color: #ededed; }
 [data-theme="dark"] .text-black\/45    { color: rgb(255 255 255 / 0.45); }
+[data-theme="dark"] .text-black\/50    { color: rgb(255 255 255 / 0.50); }
 [data-theme="dark"] .text-black\/55    { color: rgb(255 255 255 / 0.55); }
 [data-theme="dark"] .text-black\/60    { color: rgb(255 255 255 / 0.60); }
 [data-theme="dark"] .text-black\/65    { color: rgb(255 255 255 / 0.65); }
