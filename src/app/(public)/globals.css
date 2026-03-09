@@ -70,3 +70,13 @@ body {
 [data-theme="dark"] .hover\:bg-black\/5:hover      { background-color: rgb(255 255 255 / 0.05); }
 [data-theme="dark"] .hover\:border-black\/40:hover  { border-color: rgb(255 255 255 / 0.40); }
 [data-theme="dark"] .hover\:text-black:hover        { color: #ededed; }
+
+/* bg-black CTA 버튼: 배경색 유지 + ring으로 경계 표현 */
+[data-theme="dark"] .bg-black { box-shadow: 0 0 0 1px rgb(255 255 255 / 0.15); }
+
+/* 반투명 검정 overlay → 반투명 흰색으로 전환 */
+[data-theme="dark"] .bg-black\/5  { background-color: rgb(255 255 255 / 0.05); }
+[data-theme="dark"] .bg-black\/10 { background-color: rgb(255 255 255 / 0.10); }
+
+/* hover bg-black/90 → 다크 hover */
+[data-theme="dark"] .hover\:bg-black\/90:hover { background-color: rgb(255 255 255 / 0.12); }
