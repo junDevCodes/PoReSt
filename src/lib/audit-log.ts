@@ -1,4 +1,5 @@
 import type { Prisma } from "@prisma/client";
+import { writeStructuredLog } from "@/lib/observability";
 
 export type AuditLogWriteInput = {
   actorId: string;
@@ -22,6 +23,12 @@ export async function writeAuditLog(prisma: AuditLogPrismaClient, input: AuditLo
       },
     });
   } catch (error) {
-    console.error("감사 로그 저장 실패:", error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    writeStructuredLog("error", "audit.write.failed", {
+      action: input.action,
+      entityType: input.entityType,
+      entityId: input.entityId,
+      errorMessage,
+    });
   }
 }

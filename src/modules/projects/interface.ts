@@ -171,7 +171,7 @@ export function isProjectServiceError(error: unknown): error is ProjectServiceEr
 
 export type ProjectServicePrismaClient = Pick<
   Prisma.TransactionClient,
-  "project" | "portfolioSettings" | "experience"
+  "project" | "portfolioSettings" | "experience" | "auditLog"
 >;
 
 export interface ProjectsService {

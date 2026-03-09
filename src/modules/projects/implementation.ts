@@ -11,6 +11,7 @@ import {
   type PublicUserDirectoryItemDto,
   type ProjectsService,
 } from "@/modules/projects/interface";
+import { writeAuditLog } from "@/lib/audit-log";
 
 const MIN_TITLE_LENGTH = 2;
 const MAX_TITLE_LENGTH = 80;
@@ -659,7 +660,7 @@ export function createProjectsService(deps: { prisma: ProjectServicePrismaClient
       const parsed = parseProjectCreateInput(input);
 
       try {
-        return await prisma.project.create({
+        const created = await prisma.project.create({
           data: {
             ownerId,
             slug: parsed.slug!,
@@ -680,6 +681,15 @@ export function createProjectsService(deps: { prisma: ProjectServicePrismaClient
           },
           select: ownerProjectSelect,
         });
+
+        void writeAuditLog(prisma, {
+          actorId: ownerId,
+          action: "PROJECT_CREATED",
+          entityType: "Project",
+          entityId: created.id,
+        });
+
+        return created;
       } catch (error) {
         handleKnownPrismaError(error);
       }
@@ -710,11 +720,20 @@ export function createProjectsService(deps: { prisma: ProjectServicePrismaClient
       validateFeaturedRule(nextVisibility, nextFeatured);
 
       try {
-        return await prisma.project.update({
+        const updated = await prisma.project.update({
           where: { id: existing.id },
           data: parsed,
           select: ownerProjectSelect,
         });
+
+        void writeAuditLog(prisma, {
+          actorId: ownerId,
+          action: "PROJECT_UPDATED",
+          entityType: "Project",
+          entityId: existing.id,
+        });
+
+        return updated;
       } catch (error) {
         handleKnownPrismaError(error);
       }
@@ -739,6 +758,13 @@ export function createProjectsService(deps: { prisma: ProjectServicePrismaClient
 
       await prisma.project.delete({
         where: { id: existing.id },
+      });
+
+      void writeAuditLog(prisma, {
+        actorId: ownerId,
+        action: "PROJECT_DELETED",
+        entityType: "Project",
+        entityId: existing.id,
       });
 
       return { id: existing.id };

@@ -107,7 +107,7 @@ export function isNoteServiceError(error: unknown): error is NoteServiceError {
   return error instanceof NoteServiceError;
 }
 
-export type NotesServicePrismaClient = Pick<Prisma.TransactionClient, "notebook" | "note" | "noteEdge">;
+export type NotesServicePrismaClient = Pick<Prisma.TransactionClient, "notebook" | "note" | "noteEdge" | "auditLog">;
 
 export interface NotesService {
   listNotebooksForOwner(ownerId: string): Promise<OwnerNotebookDto[]>;

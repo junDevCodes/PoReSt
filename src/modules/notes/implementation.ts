@@ -12,6 +12,7 @@ import {
   NoteServiceError,
   type NotesService,
 } from "@/modules/notes/interface";
+import { writeAuditLog } from "@/lib/audit-log";
 
 const MIN_TEXT_LENGTH = 1;
 const MAX_NOTEBOOK_ID_LENGTH = 191;
@@ -719,6 +720,13 @@ export function createNotesService(deps: { prisma: NotesServicePrismaClient }): 
           select: { id: true },
         });
 
+        void writeAuditLog(prisma, {
+          actorId: ownerId,
+          action: "NOTE_CREATED",
+          entityType: "Note",
+          entityId: created.id,
+        });
+
         return this.getNoteForOwner(ownerId, created.id);
       } catch (error) {
         handleKnownPrismaError(error);
@@ -740,6 +748,13 @@ export function createNotesService(deps: { prisma: NotesServicePrismaClient }): 
           select: { id: true },
         });
 
+        void writeAuditLog(prisma, {
+          actorId: ownerId,
+          action: "NOTE_UPDATED",
+          entityType: "Note",
+          entityId: noteId,
+        });
+
         return this.getNoteForOwner(ownerId, noteId);
       } catch (error) {
         handleKnownPrismaError(error);
@@ -755,6 +770,13 @@ export function createNotesService(deps: { prisma: NotesServicePrismaClient }): 
           deletedAt: new Date(),
         },
         select: { id: true },
+      });
+
+      void writeAuditLog(prisma, {
+        actorId: ownerId,
+        action: "NOTE_DELETED",
+        entityType: "Note",
+        entityId: noteId,
       });
 
       return { id: noteId };

@@ -29,39 +29,46 @@ export async function GET(request: Request) {
   const limit = parseLimit(url.searchParams.get("limit"));
   const cursor = url.searchParams.get("cursor");
 
-  const logs = await prisma.auditLog.findMany({
-    where: { actorId },
-    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-    take: limit + 1,
-    ...(cursor
-      ? {
-          cursor: { id: cursor },
-          skip: 1,
-        }
-      : {}),
-    select: {
-      id: true,
-      actorId: true,
-      action: true,
-      entityType: true,
-      entityId: true,
-      metaJson: true,
-      createdAt: true,
-    },
-  });
-
-  const hasNext = logs.length > limit;
-  const data = hasNext ? logs.slice(0, limit) : logs;
-  const nextCursor = hasNext ? data[data.length - 1]?.id ?? null : null;
-
-  return NextResponse.json({
-    data: {
-      items: data,
-      meta: {
-        nextCursor,
-        hasNext,
-        limit,
+  try {
+    const logs = await prisma.auditLog.findMany({
+      where: { actorId },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      take: limit + 1,
+      ...(cursor
+        ? {
+            cursor: { id: cursor },
+            skip: 1,
+          }
+        : {}),
+      select: {
+        id: true,
+        actorId: true,
+        action: true,
+        entityType: true,
+        entityId: true,
+        metaJson: true,
+        createdAt: true,
       },
-    },
-  });
+    });
+
+    const hasNext = logs.length > limit;
+    const data = hasNext ? logs.slice(0, limit) : logs;
+    const nextCursor = hasNext ? data[data.length - 1]?.id ?? null : null;
+
+    return NextResponse.json({
+      data: {
+        items: data,
+        meta: {
+          nextCursor,
+          hasNext,
+          limit,
+        },
+      },
+    });
+  } catch {
+    return NextResponse.json(
+      { error: { code: "INTERNAL_ERROR", message: "감사 로그 조회 중 오류가 발생했습니다." } },
+      { status: 500 },
+    );
+  }
 }
