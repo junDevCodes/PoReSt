@@ -56,7 +56,7 @@ export function AppSidebar() {
                   href={item.href}
                   className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
                     active
-                      ? "bg-black text-white"
+                      ? "bg-black text-white dark:bg-white/15"
                       : "text-black/70 hover:bg-black/5 hover:text-black"
                   }`}
                 >
