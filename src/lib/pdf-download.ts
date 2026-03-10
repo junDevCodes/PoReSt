@@ -102,7 +102,11 @@ export async function downloadElementAsPdf(
  * HTML 문자열을 임시 DOM에 주입하여 PDF로 다운로드
  * buildResumePdfHtml() 등 HTML 빌더 결과를 직접 사용할 때 활용
  */
-export async function downloadHtmlAsPdf(html: string, filename: string): Promise<void> {
+export async function downloadHtmlAsPdf(
+  html: string,
+  filename: string,
+  backgroundColor = "#ffffff",
+): Promise<void> {
   if (typeof window === "undefined") return;
 
   // HTML 파싱 후 스타일 + 본문 추출
@@ -114,8 +118,7 @@ export async function downloadHtmlAsPdf(html: string, filename: string): Promise
 
   // 임시 컨테이너 생성 (A4 너비 794px 고정, 화면 밖으로)
   const container = document.createElement("div");
-  container.style.cssText =
-    "position:fixed;left:-9999px;top:0;width:794px;background:#fff;";
+  container.style.cssText = `position:fixed;left:-9999px;top:0;width:794px;background:${backgroundColor};`;
 
   const styleEl = document.createElement("style");
   styleEl.textContent = styleText;
@@ -131,7 +134,7 @@ export async function downloadHtmlAsPdf(html: string, filename: string): Promise
 
   try {
     const targetEl = (container.querySelector("main") ?? bodyEl) as HTMLElement;
-    await downloadElementAsPdf(targetEl, filename, "#ffffff");
+    await downloadElementAsPdf(targetEl, filename, backgroundColor);
   } finally {
     document.body.removeChild(container);
   }

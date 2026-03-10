@@ -27,30 +27,31 @@ export function ThemeWrapper({ publicSlug, children }: ThemeWrapperProps) {
     try {
       const mainEl = document.querySelector("main");
       if (!mainEl) return;
-      const { downloadElementAsPdf } = await import("@/lib/pdf-download");
+      const { downloadHtmlAsPdf } = await import("@/lib/pdf-download");
 
-      // 이력서 PDF 방식 참고: 라이브 DOM 대신 클론을 숨김 컨테이너에서 캡처
-      const container = document.createElement("div");
-      container.style.cssText =
-        "position:fixed;left:-9999px;top:0;width:794px;background:#f6f5f2;";
-      const clone = mainEl.cloneNode(true) as HTMLElement;
-      container.appendChild(clone);
-      document.body.appendChild(container);
-      await new Promise<void>((r) =>
-        requestAnimationFrame(() => requestAnimationFrame(() => r())),
-      );
-
-      try {
-        await downloadElementAsPdf(
-          clone,
-          `portfolio-${publicSlug}.pdf`,
-          "#f6f5f2",
-        );
-      } finally {
-        document.body.removeChild(container);
+      // 이력서 PDF 동일 방식: DOM HTML + CSS 직렬화 → 임시 컨테이너 캡처
+      const cssChunks: string[] = [];
+      for (const sheet of Array.from(document.styleSheets)) {
+        try {
+          for (const rule of Array.from(sheet.cssRules)) {
+            cssChunks.push(rule.cssText);
+          }
+        } catch {
+          // 크로스오리진 스타일시트 — 스킵
+        }
       }
-    } catch {
-      // PDF 생성 실패 — 조용히 무시 (UX 혼선 방지)
+
+      const html = [
+        '<!doctype html><html lang="ko"><head><meta charset="utf-8"><style>',
+        cssChunks.join("\n"),
+        "</style></head><body>",
+        mainEl.outerHTML,
+        "</body></html>",
+      ].join("");
+
+      await downloadHtmlAsPdf(html, `portfolio-${publicSlug}.pdf`, "#f6f5f2");
+    } catch (err) {
+      console.error("Portfolio PDF generation failed:", err);
     } finally {
       setIsDownloadingPdf(false);
     }
