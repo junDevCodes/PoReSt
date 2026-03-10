@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { getMetadataBase } from "@/lib/site-url";
+import { getMetadataBase, getSiteUrl } from "@/lib/site-url";
 import { createProjectsService, isProjectServiceError } from "@/modules/projects";
 import { toPublicHomeViewModel } from "@/view-models/public-portfolio";
 import { PrivatePortfolioPage } from "@/components/portfolio/PrivatePortfolioPage";
+import { JsonLd } from "@/components/seo/JsonLd";
 
 function SocialIcon({ type }: { type: string }) {
   switch (type) {
@@ -52,7 +53,6 @@ type PublicPortfolioPageProps = {
 };
 
 const projectsService = createProjectsService({ prisma });
-const DEFAULT_OG_IMAGE_PATH = "/og-default.png";
 
 function getProfileTitle(displayName: string | null, publicSlug: string) {
   return displayName ?? publicSlug;
@@ -86,13 +86,11 @@ export async function generateMetadata({ params }: PublicPortfolioPageProps): Pr
         url: canonicalPath,
         title: socialTitle,
         description,
-        images: [{ url: DEFAULT_OG_IMAGE_PATH }],
       },
       twitter: {
         card: "summary_large_image",
         title: socialTitle,
         description,
-        images: [DEFAULT_OG_IMAGE_PATH],
       },
     };
   } catch {
@@ -131,8 +129,23 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
   const displayName = getProfileTitle(viewModel.profile.displayName, resolvedParams.publicSlug);
   const avatarInitial = displayName.charAt(0).toUpperCase();
 
+  const siteUrl = getSiteUrl();
+  const portfolioUrl = `${siteUrl}/portfolio/${encodeURIComponent(resolvedParams.publicSlug)}`;
+  const personJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: displayName,
+    description: getProfileDescription(viewModel.profile.headline),
+    url: portfolioUrl,
+    ...(viewModel.profile.avatarUrl ? { image: viewModel.profile.avatarUrl } : {}),
+    ...(viewModel.profile.links.length > 0
+      ? { sameAs: viewModel.profile.links.map((l) => l.url) }
+      : {}),
+  };
+
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-6 py-14">
+      <JsonLd data={personJsonLd} />
       <div className="flex items-start gap-5">
         {viewModel.profile.avatarUrl ? (
           // eslint-disable-next-line @next/next/no-img-element

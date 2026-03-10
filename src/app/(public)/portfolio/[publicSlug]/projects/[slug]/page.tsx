@@ -2,16 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { getMetadataBase } from "@/lib/site-url";
+import { getMetadataBase, getSiteUrl } from "@/lib/site-url";
 import { createProjectsService, isProjectServiceError } from "@/modules/projects";
 import { toPublicProjectDetailViewModel } from "@/view-models/public-portfolio";
+import { JsonLd } from "@/components/seo/JsonLd";
 
 type PublicProjectDetailByUserProps = {
   params: Promise<{ publicSlug: string; slug: string }> | { publicSlug: string; slug: string };
 };
 
 const projectsService = createProjectsService({ prisma });
-const DEFAULT_OG_IMAGE_PATH = "/og-default.png";
 
 export async function generateMetadata({
   params,
@@ -40,13 +40,11 @@ export async function generateMetadata({
         url: canonicalPath,
         title: socialTitle,
         description,
-        images: [{ url: DEFAULT_OG_IMAGE_PATH }],
       },
       twitter: {
         card: "summary_large_image",
         title: socialTitle,
         description,
-        images: [DEFAULT_OG_IMAGE_PATH],
       },
     };
   } catch {
@@ -86,8 +84,23 @@ export default async function PublicProjectDetailByUserPage({
     notFound();
   }
 
+  const siteUrl = getSiteUrl();
+  const articleJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: viewModel.title,
+    ...(viewModel.subtitle ? { description: viewModel.subtitle } : {}),
+    author: {
+      "@type": "Person",
+      url: `${siteUrl}/portfolio/${encodeURIComponent(detail.publicSlug)}`,
+    },
+    dateModified: detail.updatedAt.toISOString(),
+    url: `${siteUrl}/portfolio/${encodeURIComponent(detail.publicSlug)}/projects/${encodeURIComponent(detail.slug)}`,
+  };
+
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-6 py-14">
+      <JsonLd data={articleJsonLd} />
       <p className="text-xs uppercase tracking-[0.3em] text-black/65 dark:text-white/65">Case Study</p>
       <h1 className="mt-2 text-3xl font-semibold">{viewModel.title}</h1>
       {viewModel.subtitle ? <p className="mt-3 text-base text-black/70 dark:text-white/70">{viewModel.subtitle}</p> : null}

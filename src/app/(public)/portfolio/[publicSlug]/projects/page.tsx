@@ -11,7 +11,6 @@ type PublicProjectsPageProps = {
 };
 
 const projectsService = createProjectsService({ prisma });
-const DEFAULT_OG_IMAGE_PATH = "/og-default.png";
 
 export async function generateMetadata({ params }: PublicProjectsPageProps): Promise<Metadata> {
   const resolvedParams = await params;
@@ -30,13 +29,11 @@ export async function generateMetadata({ params }: PublicProjectsPageProps): Pro
       url: canonicalPath,
       title: "프로젝트 목록 | PoReSt",
       description: "사용자의 공개 프로젝트 목록",
-      images: [{ url: DEFAULT_OG_IMAGE_PATH }],
     },
     twitter: {
       card: "summary_large_image",
       title: "프로젝트 목록 | PoReSt",
       description: "사용자의 공개 프로젝트 목록",
-      images: [DEFAULT_OG_IMAGE_PATH],
     },
   };
 }
