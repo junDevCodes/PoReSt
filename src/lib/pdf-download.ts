@@ -71,14 +71,14 @@ export async function downloadElementAsPdf(
   await resolveImages(element);
 
   const canvas = await html2canvas(element, {
-    scale: 2,
+    scale: 3,
     useCORS: true,
     logging: false,
     backgroundColor,
     allowTaint: false,
   });
 
-  const imgData = canvas.toDataURL("image/jpeg", 0.92);
+  const imgData = canvas.toDataURL("image/png");
   const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
 
   const pdfW = pdf.internal.pageSize.getWidth();
@@ -86,12 +86,12 @@ export async function downloadElementAsPdf(
   const imgH = (canvas.height * pdfW) / canvas.width;
 
   // 멀티페이지 처리
-  pdf.addImage(imgData, "JPEG", 0, 0, pdfW, imgH);
+  pdf.addImage(imgData, "PNG", 0, 0, pdfW, imgH);
   let remaining = imgH - pdfH;
   let offsetY = pdfH;
   while (remaining > 0) {
     pdf.addPage();
-    pdf.addImage(imgData, "JPEG", 0, -offsetY, pdfW, imgH);
+    pdf.addImage(imgData, "PNG", 0, -offsetY, pdfW, imgH);
     remaining -= pdfH;
     offsetY += pdfH;
   }
@@ -122,7 +122,8 @@ export async function downloadHtmlAsPdf(
   container.style.cssText = `position:fixed;left:-9999px;top:0;width:794px;background:${backgroundColor};`;
 
   const styleEl = document.createElement("style");
-  styleEl.textContent = styleText;
+  // min-h-screen 제거: 콘텐츠 높이만큼만 캡처하여 빈 페이지 방지
+  styleEl.textContent = styleText + "\n* { min-height: auto !important; }";
   container.appendChild(styleEl);
 
   const bodyEl = document.createElement("div");
