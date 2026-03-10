@@ -38,6 +38,8 @@ type PortfolioSettingsDto = {
   location: string | null;
   availabilityStatus: string | null;
   resumeUrl: string | null;
+  featuredResumeId: string | null;
+  featuredResumeTitle: string | null;
   links: Array<{
     id: string;
     label: string;
@@ -45,6 +47,12 @@ type PortfolioSettingsDto = {
     order: number;
     type: string;
   }>;
+};
+
+type ResumeListItem = {
+  id: string;
+  title: string;
+  status: string;
 };
 
 type PortfolioSettingsFormState = {
@@ -59,6 +67,7 @@ type PortfolioSettingsFormState = {
   location: string;
   availabilityStatus: string;
   resumeUrl: string;
+  featuredResumeId: string;
   links: PortfolioLinkFormItem[];
 };
 
@@ -74,6 +83,7 @@ const DEFAULT_FORM: PortfolioSettingsFormState = {
   location: "",
   availabilityStatus: "",
   resumeUrl: "",
+  featuredResumeId: "",
   links: [],
 };
 
@@ -94,6 +104,7 @@ function toFormState(dto: PortfolioSettingsDto | null): PortfolioSettingsFormSta
     location: dto.location ?? "",
     availabilityStatus: dto.availabilityStatus ?? "",
     resumeUrl: dto.resumeUrl ?? "",
+    featuredResumeId: dto.featuredResumeId ?? "",
     links: dto.links.map((link) => ({
       id: link.id,
       label: link.label,
@@ -113,6 +124,8 @@ export default function PortfolioSettingsPage() {
   const [avatarUploadError, setAvatarUploadError] = useState<string | null>(null);
   const [isUploadingResume, setIsUploadingResume] = useState(false);
   const [resumeUploadError, setResumeUploadError] = useState<string | null>(null);
+  const [resumeMode, setResumeMode] = useState<"upload" | "internal">("upload");
+  const [availableResumes, setAvailableResumes] = useState<ResumeListItem[]>([]);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -145,6 +158,20 @@ export default function PortfolioSettingsPage() {
         const nextForm = toFormState(parsed.data);
         setForm(nextForm);
         setOriginalPublicSlug(nextForm.publicSlug);
+        if (parsed.data?.featuredResumeId) {
+          setResumeMode("internal");
+        }
+      }
+
+      // 이력서 목록 병렬 로드
+      try {
+        const resumeResponse = await fetch("/api/app/resumes", { method: "GET" });
+        const resumeParsed = await parseApiResponse<ResumeListItem[]>(resumeResponse);
+        if (!resumeParsed.error && resumeParsed.data) {
+          setAvailableResumes(resumeParsed.data);
+        }
+      } catch {
+        // 이력서 목록 로드 실패는 설정 로딩 실패로 처리하지 않음
       }
 
       setIsLoading(false);
@@ -279,7 +306,8 @@ export default function PortfolioSettingsPage() {
       isEmailPublic: form.isEmailPublic,
       location: form.location || null,
       availabilityStatus: form.availabilityStatus || null,
-      resumeUrl: form.resumeUrl || null,
+      resumeUrl: resumeMode === "upload" ? (form.resumeUrl || null) : null,
+      featuredResumeId: resumeMode === "internal" ? (form.featuredResumeId || null) : null,
       links: form.links.map((link) => ({
         label: link.label,
         url: link.url,
@@ -524,30 +552,57 @@ export default function PortfolioSettingsPage() {
             </section>
 
             <section className="rounded-2xl border border-black/10 bg-white p-6">
-              <h2 className="mb-4 text-lg font-semibold">이력서 PDF</h2>
-              <div className="flex flex-col gap-3">
-                {form.resumeUrl ? (
-                  <div className="flex items-center gap-3 rounded-lg border border-black/10 bg-black/5 px-4 py-3">
-                    <span className="flex-1 truncate text-sm text-black/70">{form.resumeUrl}</span>
-                    <a
-                      href={form.resumeUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-xs text-black/60 hover:text-black"
-                    >
-                      보기
-                    </a>
-                    <button
-                      type="button"
-                      onClick={() => setForm((prev) => ({ ...prev, resumeUrl: "" }))}
-                      className="text-xs text-rose-700 hover:text-rose-900"
-                    >
-                      삭제
-                    </button>
-                  </div>
-                ) : null}
-                <div className="flex items-center gap-3">
-                  <label className="cursor-pointer rounded-full border border-black/20 px-4 py-2 text-sm hover:bg-black/5">
+              <h2 className="mb-4 text-lg font-semibold">포트폴리오 이력서</h2>
+
+              {/* 탭 선택 */}
+              <div className="mb-4 flex gap-2 rounded-xl border border-black/10 bg-black/5 p-1">
+                <button
+                  type="button"
+                  onClick={() => setResumeMode("upload")}
+                  className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                    resumeMode === "upload"
+                      ? "bg-white text-black shadow-sm"
+                      : "text-black/60 hover:text-black"
+                  }`}
+                >
+                  PDF 파일 업로드
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setResumeMode("internal")}
+                  className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                    resumeMode === "internal"
+                      ? "bg-white text-black shadow-sm"
+                      : "text-black/60 hover:text-black"
+                  }`}
+                >
+                  내 이력서 선택
+                </button>
+              </div>
+
+              {resumeMode === "upload" ? (
+                <div className="flex flex-col gap-3">
+                  {form.resumeUrl ? (
+                    <div className="flex items-center gap-3 rounded-lg border border-black/10 bg-black/5 px-4 py-3">
+                      <span className="flex-1 truncate text-sm text-black/70">{form.resumeUrl}</span>
+                      <a
+                        href={form.resumeUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-xs text-black/60 hover:text-black"
+                      >
+                        보기
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => setForm((prev) => ({ ...prev, resumeUrl: "" }))}
+                        className="text-xs text-rose-700 hover:text-rose-900"
+                      >
+                        삭제
+                      </button>
+                    </div>
+                  ) : null}
+                  <label className="cursor-pointer rounded-full border border-black/20 px-4 py-2 text-sm hover:bg-black/5 w-fit">
                     {isUploadingResume ? "업로드 중..." : "PDF 파일 선택"}
                     <input
                       type="file"
@@ -566,12 +621,53 @@ export default function PortfolioSettingsPage() {
                       }}
                     />
                   </label>
+                  {resumeUploadError ? (
+                    <p className="text-xs text-rose-700">{resumeUploadError}</p>
+                  ) : null}
+                  <p className="text-xs text-black/45">PDF · 최대 10MB</p>
                 </div>
-                {resumeUploadError ? (
-                  <p className="text-xs text-rose-700">{resumeUploadError}</p>
-                ) : null}
-                <p className="text-xs text-black/45">PDF · 최대 10MB</p>
-              </div>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  {availableResumes.length === 0 ? (
+                    <p className="text-sm text-black/60">
+                      등록된 이력서가 없습니다.{" "}
+                      <a href="/app/resumes/new" className="underline">
+                        이력서 만들기
+                      </a>
+                    </p>
+                  ) : (
+                    <div className="flex flex-col gap-2">
+                      {availableResumes.map((resume) => (
+                        <label key={resume.id} className="flex items-center gap-3 rounded-lg border border-black/10 px-4 py-3 cursor-pointer hover:bg-black/5">
+                          <input
+                            type="radio"
+                            name="featuredResumeId"
+                            value={resume.id}
+                            checked={form.featuredResumeId === resume.id}
+                            onChange={() =>
+                              setForm((prev) => ({ ...prev, featuredResumeId: resume.id }))
+                            }
+                          />
+                          <span className="flex-1 text-sm">{resume.title}</span>
+                          <span className="text-xs text-black/50">{resume.status}</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                  {form.featuredResumeId ? (
+                    <button
+                      type="button"
+                      onClick={() => setForm((prev) => ({ ...prev, featuredResumeId: "" }))}
+                      className="text-xs text-black/50 hover:text-black/70 w-fit"
+                    >
+                      선택 해제
+                    </button>
+                  ) : null}
+                  <p className="text-xs text-black/45">
+                    선택한 이력서는 포트폴리오에서 공유 링크로 제공됩니다.
+                  </p>
+                </div>
+              )}
             </section>
 
             <section className="rounded-2xl border border-black/10 bg-white p-6">

@@ -567,6 +567,7 @@ export function createProjectsService(deps: { prisma: ProjectServicePrismaClient
         location: true,
         availabilityStatus: true,
         resumeUrl: true,
+        featuredResumeId: true,
         links: {
           orderBy: { order: "asc" },
           select: {
@@ -577,6 +578,26 @@ export function createProjectsService(deps: { prisma: ProjectServicePrismaClient
         },
       },
     });
+  }
+
+  async function resolveFeaturedResumeShareToken(
+    featuredResumeId: string,
+  ): Promise<string | null> {
+    const existing = await prisma.resumeShareLink.findFirst({
+      where: { resumeId: featuredResumeId, isRevoked: false },
+      orderBy: { createdAt: "asc" },
+      select: { token: true },
+    });
+    if (existing) {
+      return existing.token;
+    }
+    // 공유 링크가 없으면 자동 생성
+    const { randomBytes } = await import("crypto");
+    const token = randomBytes(9).toString("base64url");
+    await prisma.resumeShareLink.create({
+      data: { resumeId: featuredResumeId, token },
+    });
+    return token;
   }
 
   async function buildPublicPortfolioBySettings(settings: {
@@ -591,13 +612,14 @@ export function createProjectsService(deps: { prisma: ProjectServicePrismaClient
     location: string | null;
     availabilityStatus: string | null;
     resumeUrl: string | null;
+    featuredResumeId: string | null;
     links: Array<{
       label: string;
       url: string;
       type: string;
     }>;
   }) {
-    const [featuredProjects, featuredExperiences] = await Promise.all([
+    const [featuredProjects, featuredExperiences, featuredResumeShareToken] = await Promise.all([
       prisma.project.findMany({
         where: {
           ownerId: settings.ownerId,
@@ -618,6 +640,9 @@ export function createProjectsService(deps: { prisma: ProjectServicePrismaClient
         take: 3,
         select: featuredExperienceSelect,
       }),
+      settings.featuredResumeId
+        ? resolveFeaturedResumeShareToken(settings.featuredResumeId)
+        : Promise.resolve(null),
     ]);
 
     return {
@@ -632,6 +657,7 @@ export function createProjectsService(deps: { prisma: ProjectServicePrismaClient
         location: settings.location,
         availabilityStatus: settings.availabilityStatus,
         resumeUrl: settings.resumeUrl,
+        featuredResumeShareToken,
         links: settings.links,
       },
       featuredProjects: featuredProjects.map((project) => ({
@@ -1153,6 +1179,7 @@ export function createProjectsService(deps: { prisma: ProjectServicePrismaClient
               location: true,
               availabilityStatus: true,
               resumeUrl: true,
+              featuredResumeId: true,
               links: {
                 orderBy: { order: "asc" },
                 select: {

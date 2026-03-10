@@ -39,8 +39,16 @@ export function ThemeWrapper({ publicSlug, children }: ThemeWrapperProps) {
           <span className="text-black/55 dark:text-white/55">{publicSlug}</span>
           <button
             type="button"
+            onClick={() => window.print()}
+            className="ml-auto rounded-lg p-1.5 text-black/50 hover:bg-black/5 hover:text-black dark:text-white/50 dark:hover:bg-white/5 dark:hover:text-white print:hidden"
+            aria-label="인쇄 / PDF 저장"
+          >
+            <PrintIcon />
+          </button>
+          <button
+            type="button"
             onClick={toggle}
-            className="ml-auto rounded-lg p-1.5 text-black/50 hover:bg-black/5 hover:text-black dark:text-white/50 dark:hover:bg-white/5 dark:hover:text-white"
+            className="rounded-lg p-1.5 text-black/50 hover:bg-black/5 hover:text-black dark:text-white/50 dark:hover:bg-white/5 dark:hover:text-white print:hidden"
             aria-label={dark ? "라이트 모드로 전환" : "다크 모드로 전환"}
           >
             {dark ? <SunIcon /> : <MoonIcon />}
@@ -49,6 +57,26 @@ export function ThemeWrapper({ publicSlug, children }: ThemeWrapperProps) {
       </header>
       {children}
     </div>
+  );
+}
+
+function PrintIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <polyline points="6 9 6 2 18 2 18 9" />
+      <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+      <rect x="6" y="14" width="12" height="8" />
+    </svg>
   );
 }
 

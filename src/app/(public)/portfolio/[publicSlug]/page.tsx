@@ -192,7 +192,16 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
         >
           프로젝트 보기
         </Link>
-        {viewModel.profile.resumeUrl ? (
+        {viewModel.profile.featuredResumeShareToken ? (
+          <a
+            href={`/resume/share/${viewModel.profile.featuredResumeShareToken}`}
+            target="_blank"
+            rel="noreferrer"
+            className="rounded-full border border-black/20 px-5 py-3 text-sm font-semibold text-black/80 hover:bg-black/5 dark:border-white/20 dark:text-white/80 dark:hover:bg-white/5"
+          >
+            이력서 보기
+          </a>
+        ) : viewModel.profile.resumeUrl ? (
           <a
             href={viewModel.profile.resumeUrl}
             target="_blank"

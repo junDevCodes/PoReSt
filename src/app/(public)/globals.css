@@ -81,3 +81,40 @@ body {
 
 /* hover bg-black/90 → 다크 hover */
 [data-theme="dark"] .hover\:bg-black\/90:hover { background-color: rgb(255 255 255 / 0.12); }
+
+/* ===== @media print — 포트폴리오 인쇄/PDF 최적화 ===== */
+@media print {
+  /* 헤더 숨김 */
+  header { display: none !important; }
+
+  /* 인쇄 시 배경 흰색, 텍스트 검정 */
+  body, [data-theme="dark"], [data-theme="light"] {
+    background: white !important;
+    color: black !important;
+  }
+
+  /* 배경색 제거 */
+  [data-theme="dark"] .dark\:bg-\[\#111111\],
+  [data-theme="dark"] .dark\:bg-\[\#1e1e1e\] {
+    background: white !important;
+  }
+
+  /* 텍스트 명도 강제 */
+  [class*="text-black/"],
+  [class*="text-white/"] {
+    color: black !important;
+  }
+
+  /* 링크 URL 표시 */
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 10px;
+    color: #555;
+  }
+
+  /* A4 페이지 설정 */
+  @page {
+    size: A4;
+    margin: 18mm 15mm;
+  }
+}

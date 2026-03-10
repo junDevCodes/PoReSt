@@ -104,6 +104,7 @@ export type PublicHomeViewModel = {
     location: string | null;
     availabilityStatus: string | null;
     resumeUrl: string | null;
+    featuredResumeShareToken: string | null;
     links: Array<{
       label: string;
       url: string;
@@ -178,6 +179,7 @@ export function toPublicHomeViewModel(input: unknown): PublicHomeViewModel {
       location: toNullableString(profileRaw.location),
       availabilityStatus: toNullableString(profileRaw.availabilityStatus),
       resumeUrl: sanitizeExternalUrl(profileRaw.resumeUrl),
+      featuredResumeShareToken: toNullableString(profileRaw.featuredResumeShareToken),
       links: profileLinks
         .map((link) => {
           const record = isRecord(link) ? link : {};

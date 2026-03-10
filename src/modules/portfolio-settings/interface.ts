@@ -26,6 +26,7 @@ export type PortfolioSettingsUpsertInput = {
   location?: string | null;
   availabilityStatus?: string | null; // "OPEN"|"CONSIDERING"|"NOT_OPEN"|"HIDDEN"
   resumeUrl?: string | null;
+  featuredResumeId?: string | null;
 };
 
 export type OwnerPortfolioSettingsDto = {
@@ -42,6 +43,8 @@ export type OwnerPortfolioSettingsDto = {
   location: string | null;
   availabilityStatus: string | null;
   resumeUrl: string | null;
+  featuredResumeId: string | null;
+  featuredResumeTitle: string | null;
   links: Array<{
     id: string;
     label: string;
@@ -80,7 +83,7 @@ export function isPortfolioSettingsServiceError(
 
 export type PortfolioSettingsServicePrismaClient = Pick<
   Prisma.TransactionClient,
-  "portfolioSettings" | "portfolioLink"
+  "portfolioSettings" | "portfolioLink" | "resume"
 >;
 
 export interface PortfolioSettingsService {

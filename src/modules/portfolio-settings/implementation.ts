@@ -41,6 +41,7 @@ type NormalizedPortfolioSettingsUpsertInput = {
   location?: string | null;
   availabilityStatus?: string | null;
   resumeUrl?: string | null;
+  featuredResumeId?: string | null;
 };
 
 const portfolioLinkSchema = z.object({
@@ -102,6 +103,7 @@ const portfolioSettingsUpsertSchema = z
     location: z.string().trim().max(MAX_LOCATION_LENGTH, "위치는 100자 이하로 입력해주세요.").optional().nullable(),
     availabilityStatus: z.enum(["OPEN", "CONSIDERING", "NOT_OPEN", "HIDDEN"]).optional().nullable(),
     resumeUrl: z.string().trim().url("이력서 URL 형식이 올바르지 않습니다.").max(MAX_RESUME_URL_LENGTH, "이력서 URL은 500자 이하여야 합니다.").optional().nullable(),
+    featuredResumeId: z.string().optional().nullable(),
   })
   .refine((input) => Object.keys(input).length > EMPTY_LENGTH, {
     message: "수정할 필드를 최소 1개 이상 입력해주세요.",
@@ -122,6 +124,8 @@ const ownerPortfolioSettingsSelect = {
   location: true,
   availabilityStatus: true,
   resumeUrl: true,
+  featuredResumeId: true,
+  featuredResume: { select: { id: true, title: true } },
   updatedAt: true,
 } as const;
 
@@ -187,6 +191,7 @@ function normalizeUpsertInput(
     location: toNullableString(input.location),
     availabilityStatus: input.availabilityStatus ?? undefined,
     resumeUrl: toNullableString(input.resumeUrl),
+    featuredResumeId: input.featuredResumeId === undefined ? undefined : (input.featuredResumeId ?? null),
   };
 }
 
@@ -251,6 +256,7 @@ export function createPortfolioSettingsService(deps: {
 
     return {
       ...settings,
+      featuredResumeTitle: settings.featuredResume?.title ?? null,
       links,
     };
   }
@@ -278,6 +284,21 @@ export function createPortfolioSettingsService(deps: {
         );
       }
 
+      if (parsed.featuredResumeId !== undefined && parsed.featuredResumeId !== null) {
+        const resume = await prisma.resume.findUnique({
+          where: { id: parsed.featuredResumeId },
+          select: { ownerId: true },
+        });
+        if (!resume || resume.ownerId !== ownerId) {
+          throw new PortfolioSettingsServiceError(
+            "VALIDATION_ERROR",
+            422,
+            "선택한 이력서를 찾을 수 없거나 접근 권한이 없습니다.",
+            { featuredResumeId: "본인 소유의 이력서만 선택할 수 있습니다." },
+          );
+        }
+      }
+
       if (!existing) {
         try {
           await prisma.portfolioSettings.create({
@@ -295,6 +316,7 @@ export function createPortfolioSettingsService(deps: {
               location: parsed.location ?? null,
               availabilityStatus: parsed.availabilityStatus ?? null,
               resumeUrl: parsed.resumeUrl ?? null,
+              featuredResumeId: parsed.featuredResumeId ?? null,
               links: parsed.links
                 ? {
                     create: parsed.links.map((link) => ({
@@ -353,6 +375,9 @@ export function createPortfolioSettingsService(deps: {
       }
       if (parsed.resumeUrl !== undefined) {
         data.resumeUrl = parsed.resumeUrl;
+      }
+      if (parsed.featuredResumeId !== undefined) {
+        (data as Record<string, unknown>).featuredResumeId = parsed.featuredResumeId;
       }
       if (parsed.links !== undefined) {
         data.links = {

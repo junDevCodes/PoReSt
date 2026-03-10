@@ -109,6 +109,7 @@ export type PublicPortfolioProfileDto = {
   location: string | null;
   availabilityStatus: string | null;
   resumeUrl: string | null;
+  featuredResumeShareToken: string | null;
   links: Array<{
     label: string;
     url: string;
@@ -177,7 +178,7 @@ export function isProjectServiceError(error: unknown): error is ProjectServiceEr
 
 export type ProjectServicePrismaClient = Pick<
   Prisma.TransactionClient,
-  "project" | "portfolioSettings" | "experience" | "auditLog"
+  "project" | "portfolioSettings" | "experience" | "auditLog" | "resumeShareLink"
 >;
 
 export interface ProjectsService {
