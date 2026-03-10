@@ -1,6 +1,8 @@
 import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 const DEFAULT_SITE_URL = "http://localhost:3000";
 
 function getBaseUrl() {
