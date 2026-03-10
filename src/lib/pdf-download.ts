@@ -33,17 +33,68 @@ function triggerPdfDownload(pdfInstance: { output(type: "arraybuffer"): ArrayBuf
  * html2canvas가 지원하지 않는 현대 CSS 색상 함수(oklab, oklch)를 rgba()로 변환.
  * Tailwind v4가 oklab()을 기본 출력하므로 PDF 캡처 전 반드시 적용 필요.
  */
+
+/** linear sRGB → sRGB 감마 보정 */
+function linearToGamma(c: number): number {
+  return c <= 0.0031308 ? 12.92 * c : 1.055 * Math.pow(c, 1 / 2.4) - 0.055;
+}
+
+function clamp255(v: number): number {
+  return Math.round(Math.min(255, Math.max(0, v * 255)));
+}
+
+/** oklab(L, a, b) → [r, g, b] (0-255) */
+function oklabToRgb(L: number, a: number, b: number): [number, number, number] {
+  // OKLab → LMS (cube root domain)
+  const l_ = L + 0.3963377774 * a + 0.2158037573 * b;
+  const m_ = L - 0.1055613458 * a - 0.0638541728 * b;
+  const s_ = L - 0.0894841775 * a - 1.2914855480 * b;
+
+  // LMS cube root → LMS linear
+  const l = l_ * l_ * l_;
+  const m = m_ * m_ * m_;
+  const s = s_ * s_ * s_;
+
+  // LMS linear → linear sRGB
+  const rl = +4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s;
+  const gl = -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s;
+  const bl = -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s;
+
+  return [clamp255(linearToGamma(rl)), clamp255(linearToGamma(gl)), clamp255(linearToGamma(bl))];
+}
+
+/** oklch(L, C, H) → [r, g, b] (0-255) */
+function oklchToRgb(L: number, C: number, H: number): [number, number, number] {
+  const hRad = (H * Math.PI) / 180;
+  return oklabToRgb(L, C * Math.cos(hRad), C * Math.sin(hRad));
+}
+
 function sanitizeCssForCanvas(css: string): string {
-  return css.replace(/ok(?:lab|lch)\(([^)]+)\)/g, (_match, inner: string) => {
-    const [channels, alphaPart] = inner.split("/");
-    const parts = (channels ?? "").trim().split(/\s+/).map(parseFloat);
-    const L = Number.isFinite(parts[0]) ? parts[0] : 0;
-    const alpha = alphaPart != null ? parseFloat(alphaPart.trim()) : 1;
-    const v = Math.round(Math.min(1, Math.max(0, L)) * 255);
-    return Number.isFinite(alpha) && alpha < 1
-      ? `rgba(${v},${v},${v},${alpha})`
-      : `rgb(${v},${v},${v})`;
-  });
+  return css
+    .replace(/oklab\(([^)]+)\)/g, (_match, inner: string) => {
+      const [channels, alphaPart] = inner.split("/");
+      const parts = (channels ?? "").trim().split(/\s+/).map(parseFloat);
+      const L = Number.isFinite(parts[0]) ? parts[0] : 0;
+      const a = Number.isFinite(parts[1]) ? parts[1] : 0;
+      const b = Number.isFinite(parts[2]) ? parts[2] : 0;
+      const alpha = alphaPart != null ? parseFloat(alphaPart.trim()) : 1;
+      const [r, g, bl] = oklabToRgb(L, a, b);
+      return Number.isFinite(alpha) && alpha < 1
+        ? `rgba(${r},${g},${bl},${alpha})`
+        : `rgb(${r},${g},${bl})`;
+    })
+    .replace(/oklch\(([^)]+)\)/g, (_match, inner: string) => {
+      const [channels, alphaPart] = inner.split("/");
+      const parts = (channels ?? "").trim().split(/\s+/).map(parseFloat);
+      const L = Number.isFinite(parts[0]) ? parts[0] : 0;
+      const C = Number.isFinite(parts[1]) ? parts[1] : 0;
+      const H = Number.isFinite(parts[2]) ? parts[2] : 0;
+      const alpha = alphaPart != null ? parseFloat(alphaPart.trim()) : 1;
+      const [r, g, b] = oklchToRgb(L, C, H);
+      return Number.isFinite(alpha) && alpha < 1
+        ? `rgba(${r},${g},${b},${alpha})`
+        : `rgb(${r},${g},${b})`;
+    });
 }
 
 /**
