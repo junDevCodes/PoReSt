@@ -28,7 +28,27 @@ export function ThemeWrapper({ publicSlug, children }: ThemeWrapperProps) {
       const mainEl = document.querySelector("main");
       if (!mainEl) return;
       const { downloadElementAsPdf } = await import("@/lib/pdf-download");
-      await downloadElementAsPdf(mainEl as HTMLElement, `portfolio-${publicSlug}.pdf`, "#f6f5f2");
+
+      // 이력서 PDF 방식 참고: 라이브 DOM 대신 클론을 숨김 컨테이너에서 캡처
+      const container = document.createElement("div");
+      container.style.cssText =
+        "position:fixed;left:-9999px;top:0;width:794px;background:#f6f5f2;";
+      const clone = mainEl.cloneNode(true) as HTMLElement;
+      container.appendChild(clone);
+      document.body.appendChild(container);
+      await new Promise<void>((r) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => r())),
+      );
+
+      try {
+        await downloadElementAsPdf(
+          clone,
+          `portfolio-${publicSlug}.pdf`,
+          "#f6f5f2",
+        );
+      } finally {
+        document.body.removeChild(container);
+      }
     } catch {
       // PDF 생성 실패 — 조용히 무시 (UX 혼선 방지)
     } finally {

@@ -396,13 +396,25 @@ export default function PortfolioSettingsPage() {
             공개 포트폴리오의 기본 정보, 공개 여부, 링크를 관리합니다.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setShowPreview(true)}
-          className="mt-6 rounded-full border border-black/20 px-5 py-2 text-sm font-semibold hover:bg-black/5"
-        >
-          미리보기
-        </button>
+        <div className="mt-6 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setShowPreview(true)}
+            className="rounded-full border border-black/20 px-5 py-2 text-sm font-semibold hover:bg-black/5"
+          >
+            미리보기
+          </button>
+          {form.isPublic && form.publicSlug ? (
+            <a
+              href={`/portfolio/${encodeURIComponent(form.publicSlug)}`}
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-full border border-black/20 px-5 py-2 text-sm font-semibold text-black/70 hover:bg-black/5"
+            >
+              포트폴리오 보기 ↗
+            </a>
+          ) : null}
+        </div>
       </header>
 
       {isLoading ? (
@@ -809,13 +821,17 @@ export default function PortfolioSettingsPage() {
 
         </div>
 
-        {/* 미리보기 — 전체 화면 오버레이 */}
+        {/* 미리보기 — 전체 화면 오버레이 (공백 클릭 시 닫기) */}
         {showPreview ? (
-          <div className="fixed inset-0 z-50 overflow-y-auto bg-[#f6f5f2]">
+          <div
+            className="fixed inset-0 z-50 overflow-y-auto bg-[#f6f5f2]"
+            onClick={handleModalClose}
+          >
             {/* 미리보기 툴바 */}
             <div
               ref={modalRef}
               className="sticky top-0 z-10 flex items-center justify-between border-b border-black/10 bg-[#f6f5f2]/95 px-6 py-3 backdrop-blur-sm"
+              onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center gap-3">
                 <span className="text-sm font-semibold text-black/80">미리보기</span>
@@ -832,6 +848,7 @@ export default function PortfolioSettingsPage() {
               </button>
             </div>
             {/* 실제 크기 포트폴리오 렌더링 */}
+            <div onClick={(e) => e.stopPropagation()}>
             <PortfolioFullPreview
               publicSlug={form.publicSlug}
               displayName={form.displayName}
@@ -846,6 +863,7 @@ export default function PortfolioSettingsPage() {
               featuredResumeTitle={resumeMode === "internal" ? featuredResumeTitle : ""}
               links={form.links}
             />
+            </div>
           </div>
         ) : null}
         </>
