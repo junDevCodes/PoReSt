@@ -30,6 +30,23 @@ function triggerPdfDownload(pdfInstance: { output(type: "arraybuffer"): ArrayBuf
 }
 
 /**
+ * html2canvas가 지원하지 않는 현대 CSS 색상 함수(oklab, oklch)를 rgba()로 변환.
+ * Tailwind v4가 oklab()을 기본 출력하므로 PDF 캡처 전 반드시 적용 필요.
+ */
+function sanitizeCssForCanvas(css: string): string {
+  return css.replace(/ok(?:lab|lch)\(([^)]+)\)/g, (_match, inner: string) => {
+    const [channels, alphaPart] = inner.split("/");
+    const parts = (channels ?? "").trim().split(/\s+/).map(parseFloat);
+    const L = Number.isFinite(parts[0]) ? parts[0] : 0;
+    const alpha = alphaPart != null ? parseFloat(alphaPart.trim()) : 1;
+    const v = Math.round(Math.min(1, Math.max(0, L)) * 255);
+    return Number.isFinite(alpha) && alpha < 1
+      ? `rgba(${v},${v},${v},${alpha})`
+      : `rgb(${v},${v},${v})`;
+  });
+}
+
+/**
  * 크로스오리진 이미지를 Data URL로 변환하여 html2canvas CORS 문제 회피.
  * 변환 실패 시 이미지를 조용히 숨김.
  */
@@ -121,7 +138,7 @@ export async function downloadHtmlAsPdf(
   container.style.cssText = `position:fixed;left:-9999px;top:0;width:794px;background:${backgroundColor};`;
 
   const styleEl = document.createElement("style");
-  styleEl.textContent = styleText;
+  styleEl.textContent = sanitizeCssForCanvas(styleText);
   container.appendChild(styleEl);
 
   const bodyEl = document.createElement("div");
