@@ -30,8 +30,7 @@ export function ThemeWrapper({ publicSlug, children }: ThemeWrapperProps) {
       const { downloadElementAsPdf } = await import("@/lib/pdf-download");
       await downloadElementAsPdf(mainEl as HTMLElement, `portfolio-${publicSlug}.pdf`, "#f6f5f2");
     } catch {
-      // 실패 시 print fallback
-      window.print();
+      // PDF 생성 실패 — 조용히 무시 (UX 혼선 방지)
     } finally {
       setIsDownloadingPdf(false);
     }

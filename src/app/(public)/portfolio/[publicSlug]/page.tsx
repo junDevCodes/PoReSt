@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { getMetadataBase } from "@/lib/site-url";
 import { createProjectsService, isProjectServiceError } from "@/modules/projects";
 import { toPublicHomeViewModel } from "@/view-models/public-portfolio";
+import { PrivatePortfolioPage } from "@/components/portfolio/PrivatePortfolioPage";
 
 function SocialIcon({ type }: { type: string }) {
   switch (type) {
@@ -116,8 +117,11 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
   try {
     portfolio = await projectsService.getPublicPortfolioBySlug(resolvedParams.publicSlug);
   } catch (error) {
-    if (isProjectServiceError(error) && error.status === 404) {
-      notFound();
+    if (isProjectServiceError(error)) {
+      if (error.status === 404) notFound();
+      if (error.status === 403) {
+        return <PrivatePortfolioPage publicSlug={resolvedParams.publicSlug} />;
+      }
     }
     throw error;
   }

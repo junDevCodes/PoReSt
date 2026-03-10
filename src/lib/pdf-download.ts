@@ -11,6 +11,51 @@ async function loadDeps() {
   return { jsPDF, html2canvas };
 }
 
+/**
+ * jsPDF의 pdf.save()는 일부 환경에서 window.open(blobUrl)으로 fallback되어
+ * 새 탭만 열리고 다운로드가 안 된다. <a download> 트리거 방식으로 강제 다운로드.
+ */
+function triggerPdfDownload(pdfInstance: { output(type: "arraybuffer"): ArrayBuffer }, filename: string): void {
+  const arrayBuffer = pdfInstance.output("arraybuffer");
+  const blob = new Blob([arrayBuffer], { type: "application/pdf" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.style.display = "none";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
+
+/**
+ * 크로스오리진 이미지를 Data URL로 변환하여 html2canvas CORS 문제 회피.
+ * 변환 실패 시 이미지를 조용히 숨김.
+ */
+async function resolveImages(element: HTMLElement): Promise<void> {
+  const imgs = Array.from(element.querySelectorAll("img")) as HTMLImageElement[];
+  await Promise.allSettled(
+    imgs.map(async (img) => {
+      if (!img.src || img.src.startsWith("data:") || img.src.startsWith("blob:")) return;
+      try {
+        const res = await fetch(img.src);
+        if (!res.ok) throw new Error("fetch failed");
+        const blob = await res.blob();
+        const dataUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+        img.src = dataUrl;
+      } catch {
+        img.style.display = "none";
+      }
+    }),
+  );
+}
+
 /** HTMLElement를 캡처하여 A4 PDF로 다운로드 */
 export async function downloadElementAsPdf(
   element: HTMLElement,
@@ -21,12 +66,15 @@ export async function downloadElementAsPdf(
 
   const { jsPDF, html2canvas } = await loadDeps();
 
+  // 크로스오리진 이미지를 Data URL로 사전 변환
+  await resolveImages(element);
+
   const canvas = await html2canvas(element, {
     scale: 2,
     useCORS: true,
     logging: false,
     backgroundColor,
-    allowTaint: true,
+    allowTaint: false,
   });
 
   const imgData = canvas.toDataURL("image/jpeg", 0.92);
@@ -47,7 +95,7 @@ export async function downloadElementAsPdf(
     offsetY += pdfH;
   }
 
-  pdf.save(filename);
+  triggerPdfDownload(pdf, filename);
 }
 
 /**

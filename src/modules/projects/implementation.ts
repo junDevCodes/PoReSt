@@ -550,6 +550,15 @@ export function createProjectsService(deps: { prisma: ProjectServicePrismaClient
   const { prisma } = deps;
 
   async function findPublicSettingsBySlug(publicSlug: string) {
+    // 1단계: isPublic 무관하게 존재 여부 확인
+    const exists = await prisma.portfolioSettings.findFirst({
+      where: { publicSlug },
+      select: { isPublic: true },
+    });
+    if (!exists) return null;           // 미생성 → 진짜 404
+    if (!exists.isPublic) return false as const; // 생성됐지만 비공개 → 403
+
+    // 2단계: 공개 포트폴리오 전체 데이터 조회
     return prisma.portfolioSettings.findFirst({
       where: {
         publicSlug,
@@ -1150,8 +1159,11 @@ export function createProjectsService(deps: { prisma: ProjectServicePrismaClient
 
     async getPublicPortfolioBySlug(publicSlug) {
       const settings = await findPublicSettingsBySlug(publicSlug);
-      if (!settings) {
-        throw new ProjectServiceError("NOT_FOUND", 404, "공개 포트폴리오를 찾을 수 없습니다.");
+      if (settings === null) {
+        throw new ProjectServiceError("NOT_FOUND", 404, "포트폴리오를 찾을 수 없습니다.");
+      }
+      if (settings === false) {
+        throw new ProjectServiceError("FORBIDDEN", 403, "비공개 포트폴리오입니다.");
       }
 
       return buildPublicPortfolioBySettings(settings);
