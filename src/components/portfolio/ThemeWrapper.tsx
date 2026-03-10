@@ -37,22 +37,34 @@ export function ThemeWrapper({ publicSlug, children }: ThemeWrapperProps) {
           </Link>
           <span className="text-black/30 dark:text-white/30">/</span>
           <span className="text-black/55 dark:text-white/55">{publicSlug}</span>
-          <button
-            type="button"
-            onClick={() => window.print()}
-            className="ml-auto rounded-lg p-1.5 text-black/50 hover:bg-black/5 hover:text-black dark:text-white/50 dark:hover:bg-white/5 dark:hover:text-white print:hidden"
-            aria-label="인쇄 / PDF 저장"
-          >
-            <PrintIcon />
-          </button>
-          <button
-            type="button"
-            onClick={toggle}
-            className="rounded-lg p-1.5 text-black/50 hover:bg-black/5 hover:text-black dark:text-white/50 dark:hover:bg-white/5 dark:hover:text-white print:hidden"
-            aria-label={dark ? "라이트 모드로 전환" : "다크 모드로 전환"}
-          >
-            {dark ? <SunIcon /> : <MoonIcon />}
-          </button>
+          <div className="ml-auto flex items-center gap-1 print:hidden">
+            <button
+              type="button"
+              onClick={() => window.print()}
+              className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs text-black/50 hover:bg-black/5 hover:text-black dark:text-white/50 dark:hover:bg-white/5 dark:hover:text-white"
+              aria-label="인쇄"
+            >
+              <PrintIcon />
+              <span>인쇄</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => window.print()}
+              className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs text-black/50 hover:bg-black/5 hover:text-black dark:text-white/50 dark:hover:bg-white/5 dark:hover:text-white"
+              aria-label="PDF 저장"
+            >
+              <DownloadIcon />
+              <span>PDF 저장</span>
+            </button>
+            <button
+              type="button"
+              onClick={toggle}
+              className="rounded-lg p-1.5 text-black/50 hover:bg-black/5 hover:text-black dark:text-white/50 dark:hover:bg-white/5 dark:hover:text-white"
+              aria-label={dark ? "라이트 모드로 전환" : "다크 모드로 전환"}
+            >
+              {dark ? <SunIcon /> : <MoonIcon />}
+            </button>
+          </div>
         </div>
       </header>
       {children}
@@ -76,6 +88,26 @@ function PrintIcon() {
       <polyline points="6 9 6 2 18 2 18 9" />
       <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
       <rect x="6" y="14" width="12" height="8" />
+    </svg>
+  );
+}
+
+function DownloadIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <polyline points="7 10 12 15 17 10" />
+      <line x1="12" y1="15" x2="12" y2="3" />
     </svg>
   );
 }

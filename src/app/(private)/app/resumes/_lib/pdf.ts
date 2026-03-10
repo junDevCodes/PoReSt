@@ -138,26 +138,42 @@ export function openResumePdfPrintWindow(preview: ResumePdfPreview): PdfOpenResu
     return { ok: false, reason: "UNAVAILABLE_WINDOW" };
   }
 
-  const printWindow = window.open("", "_blank", "noopener,noreferrer");
-  if (!printWindow) {
-    return { ok: false, reason: "POPUP_BLOCKED" };
-  }
-
   const html = buildResumePdfHtml(preview);
   const fileName = createResumePdfFileName(preview.resume.title);
-  printWindow.document.open();
-  printWindow.document.write(html);
-  printWindow.document.close();
-  printWindow.document.title = fileName;
-  printWindow.focus();
 
-  window.setTimeout(() => {
-    try {
-      printWindow.print();
-    } catch {
-      // 인쇄 다이얼로그 실패 시 사용자가 수동 저장 가능
+  // 1차 시도: 빈 탭 열기
+  const printWindow = window.open("", "_blank", "noopener,noreferrer");
+  if (printWindow) {
+    printWindow.document.open();
+    printWindow.document.write(html);
+    printWindow.document.close();
+    printWindow.document.title = fileName;
+    printWindow.focus();
+    window.setTimeout(() => {
+      try {
+        printWindow.print();
+      } catch {
+        // 인쇄 다이얼로그 실패 시 사용자가 수동 저장 가능
+      }
+    }, 250);
+    return { ok: true };
+  }
+
+  // 2차 시도 (팝업 차단 우회): Blob URL
+  try {
+    const blob = new Blob([html], { type: "text/html" });
+    const blobUrl = URL.createObjectURL(blob);
+    const fallbackWindow = window.open(blobUrl, "_blank", "noopener,noreferrer");
+    if (fallbackWindow) {
+      fallbackWindow.focus();
+      // Blob URL은 탭이 열린 후 해제
+      window.setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
+      return { ok: true };
     }
-  }, 250);
+    URL.revokeObjectURL(blobUrl);
+  } catch {
+    // Blob API 미지원 환경
+  }
 
-  return { ok: true };
+  return { ok: false, reason: "POPUP_BLOCKED" };
 }

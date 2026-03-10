@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { parseApiResponse } from "@/app/(private)/app/_lib/admin-api";
 import { ErrorBanner, LoadingBlock } from "@/components/ui/AsyncState";
 import { PublicPortfolioPreview } from "@/components/portfolio/PublicPortfolioPreview";
@@ -15,6 +15,23 @@ const PORTFOLIO_LINK_TYPES = [
   { value: "TISTORY", label: "Tistory" },
   { value: "WEBSITE", label: "개인 웹사이트" },
   { value: "CUSTOM", label: "기타" },
+] as const;
+
+const LOCATION_PRESETS = [
+  "서울, 대한민국",
+  "부산, 대한민국",
+  "대구, 대한민국",
+  "인천, 대한민국",
+  "광주, 대한민국",
+  "대전, 대한민국",
+  "울산, 대한민국",
+  "수원, 대한민국",
+  "성남, 대한민국",
+  "고양, 대한민국",
+  "용인, 대한민국",
+  "창원, 대한민국",
+  "Remote (원격 근무)",
+  "Seoul, South Korea",
 ] as const;
 
 type PortfolioLinkFormItem = {
@@ -126,8 +143,11 @@ export default function PortfolioSettingsPage() {
   const [resumeUploadError, setResumeUploadError] = useState<string | null>(null);
   const [resumeMode, setResumeMode] = useState<"upload" | "internal">("upload");
   const [availableResumes, setAvailableResumes] = useState<ResumeListItem[]>([]);
+  const [featuredResumeTitle, setFeaturedResumeTitle] = useState("");
+  const [showPreview, setShowPreview] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -160,6 +180,7 @@ export default function PortfolioSettingsPage() {
         setOriginalPublicSlug(nextForm.publicSlug);
         if (parsed.data?.featuredResumeId) {
           setResumeMode("internal");
+          setFeaturedResumeTitle(parsed.data.featuredResumeTitle ?? "");
         }
       }
 
@@ -190,6 +211,27 @@ export default function PortfolioSettingsPage() {
     }
     return form.publicSlug.trim() !== originalPublicSlug.trim();
   }, [form.publicSlug, originalPublicSlug]);
+
+  const handleModalClose = useCallback(() => setShowPreview(false), []);
+
+  useEffect(() => {
+    if (!showPreview) return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") handleModalClose();
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [showPreview, handleModalClose]);
+
+  function selectFeaturedResume(resume: ResumeListItem) {
+    setForm((prev) => ({ ...prev, featuredResumeId: resume.id }));
+    setFeaturedResumeTitle(resume.title);
+  }
+
+  function clearFeaturedResume() {
+    setForm((prev) => ({ ...prev, featuredResumeId: "" }));
+    setFeaturedResumeTitle("");
+  }
 
   function updateLink(index: number, next: Partial<PortfolioLinkFormItem>) {
     setForm((prev) => {
@@ -345,20 +387,29 @@ export default function PortfolioSettingsPage() {
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-col px-2 py-2">
-      <header>
-        <p className="text-xs uppercase tracking-[0.3em] text-black/45">관리</p>
-        <h1 className="mt-2 text-3xl font-semibold">포트폴리오 설정</h1>
-        <p className="mt-3 text-sm text-black/65">
-          공개 포트폴리오의 기본 정보, 공개 여부, 링크를 관리하고 실시간 미리보기를 확인할 수
-          있습니다.
-        </p>
+    <main className="mx-auto flex w-full max-w-3xl flex-col px-2 py-2">
+      <header className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p className="text-xs uppercase tracking-[0.3em] text-black/45">관리</p>
+          <h1 className="mt-2 text-3xl font-semibold">포트폴리오 설정</h1>
+          <p className="mt-3 text-sm text-black/65">
+            공개 포트폴리오의 기본 정보, 공개 여부, 링크를 관리합니다.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowPreview(true)}
+          className="mt-6 rounded-full border border-black/20 px-5 py-2 text-sm font-semibold hover:bg-black/5"
+        >
+          미리보기
+        </button>
       </header>
 
       {isLoading ? (
         <LoadingBlock message="설정 정보를 불러오는 중입니다." className="mt-6" />
       ) : (
-        <div className="mt-8 grid gap-6 lg:grid-cols-[1.2fr_1fr]">
+        <>
+        <div className="mt-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             {hasSlugChanged ? (
               <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
@@ -499,7 +550,13 @@ export default function PortfolioSettingsPage() {
                   onChange={(event) => setForm((prev) => ({ ...prev, location: event.target.value }))}
                   className="rounded-lg border border-black/15 bg-white px-3 py-2"
                   placeholder="서울, 대한민국"
+                  list="location-presets"
                 />
+                <datalist id="location-presets">
+                  {LOCATION_PRESETS.map((preset) => (
+                    <option key={preset} value={preset} />
+                  ))}
+                </datalist>
               </label>
 
               <label className="flex items-center gap-2 text-sm md:col-span-2">
@@ -644,9 +701,7 @@ export default function PortfolioSettingsPage() {
                             name="featuredResumeId"
                             value={resume.id}
                             checked={form.featuredResumeId === resume.id}
-                            onChange={() =>
-                              setForm((prev) => ({ ...prev, featuredResumeId: resume.id }))
-                            }
+                            onChange={() => selectFeaturedResume(resume)}
                           />
                           <span className="flex-1 text-sm">{resume.title}</span>
                           <span className="text-xs text-black/50">{resume.status}</span>
@@ -657,7 +712,7 @@ export default function PortfolioSettingsPage() {
                   {form.featuredResumeId ? (
                     <button
                       type="button"
-                      onClick={() => setForm((prev) => ({ ...prev, featuredResumeId: "" }))}
+                      onClick={clearFeaturedResume}
                       className="text-xs text-black/50 hover:text-black/70 w-fit"
                     >
                       선택 해제
@@ -752,18 +807,52 @@ export default function PortfolioSettingsPage() {
             </button>
           </form>
 
-          <div className="lg:sticky lg:top-6 lg:h-fit">
-            <PublicPortfolioPreview
-              publicSlug={form.publicSlug}
-              isPublic={form.isPublic}
-              displayName={form.displayName}
-              headline={form.headline}
-              bio={form.bio}
-              avatarUrl={form.avatarUrl}
-              links={form.links}
-            />
-          </div>
         </div>
+
+        {/* 미리보기 모달 */}
+        {showPreview ? (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) handleModalClose();
+            }}
+          >
+            <div
+              ref={modalRef}
+              className="w-full max-w-lg rounded-2xl bg-[#faf9f6] shadow-2xl"
+            >
+              <div className="flex items-center justify-between border-b border-black/10 px-6 py-4">
+                <span className="text-sm font-semibold">포트폴리오 미리보기</span>
+                <button
+                  type="button"
+                  onClick={handleModalClose}
+                  className="rounded-full p-1.5 hover:bg-black/10 text-black/60"
+                  aria-label="닫기"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="p-6">
+                <PublicPortfolioPreview
+                  publicSlug={form.publicSlug}
+                  isPublic={form.isPublic}
+                  displayName={form.displayName}
+                  headline={form.headline}
+                  bio={form.bio}
+                  avatarUrl={form.avatarUrl}
+                  email={form.email}
+                  isEmailPublic={form.isEmailPublic}
+                  location={form.location}
+                  availabilityStatus={form.availabilityStatus}
+                  resumeUrl={resumeMode === "upload" ? form.resumeUrl : ""}
+                  featuredResumeTitle={resumeMode === "internal" ? featuredResumeTitle : ""}
+                  links={form.links}
+                />
+              </div>
+            </div>
+          </div>
+        ) : null}
+        </>
       )}
     </main>
   );
