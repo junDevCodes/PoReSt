@@ -184,26 +184,28 @@ export async function downloadHtmlAsPdf(
     .map((s) => s.textContent ?? "")
     .join("\n");
 
-  // 임시 컨테이너 생성 (A4 너비 794px 고정, 화면 밖으로)
-  const container = document.createElement("div");
-  container.style.cssText = `position:fixed;left:-9999px;top:0;width:794px;background:${backgroundColor};`;
-
-  const styleEl = document.createElement("style");
-  styleEl.textContent = sanitizeCssForCanvas(styleText);
-  container.appendChild(styleEl);
-
-  const bodyEl = document.createElement("div");
-  bodyEl.innerHTML = doc.body.innerHTML;
-  container.appendChild(bodyEl);
-
-  document.body.appendChild(container);
-  // CSS 렌더링 대기
-  await new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())));
+  // iframe으로 완전 격리 — html2canvas가 원본 페이지의 oklab() 스타일시트에 접근하지 않음
+  const iframe = document.createElement("iframe");
+  iframe.style.cssText = "position:fixed;left:-9999px;top:0;width:794px;height:0;border:none;";
+  document.body.appendChild(iframe);
 
   try {
-    const targetEl = (container.querySelector("main") ?? bodyEl) as HTMLElement;
+    const iframeDoc = iframe.contentDocument!;
+    iframeDoc.open();
+    iframeDoc.write(
+      `<!doctype html><html lang="ko"><head><meta charset="utf-8">` +
+      `<style>${sanitizeCssForCanvas(styleText)}</style></head>` +
+      `<body style="margin:0;background:${backgroundColor};">${doc.body.innerHTML}</body></html>`,
+    );
+    iframeDoc.close();
+
+    // CSS 렌더링 대기
+    await new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())));
+    iframe.style.height = `${iframeDoc.body.scrollHeight}px`;
+
+    const targetEl = (iframeDoc.querySelector("main") ?? iframeDoc.body) as HTMLElement;
     await downloadElementAsPdf(targetEl, filename, backgroundColor);
   } finally {
-    document.body.removeChild(container);
+    document.body.removeChild(iframe);
   }
 }
