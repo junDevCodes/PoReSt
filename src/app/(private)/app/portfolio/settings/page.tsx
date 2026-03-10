@@ -135,6 +135,8 @@ function toFormState(dto: PortfolioSettingsDto | null): PortfolioSettingsFormSta
 export default function PortfolioSettingsPage() {
   const [form, setForm] = useState<PortfolioSettingsFormState>(DEFAULT_FORM);
   const [originalPublicSlug, setOriginalPublicSlug] = useState<string | null>(null);
+  const [savedIsPublic, setSavedIsPublic] = useState(false);
+  const [savedPublicSlug, setSavedPublicSlug] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
@@ -178,6 +180,8 @@ export default function PortfolioSettingsPage() {
         const nextForm = toFormState(parsed.data);
         setForm(nextForm);
         setOriginalPublicSlug(nextForm.publicSlug);
+        setSavedIsPublic(nextForm.isPublic);
+        setSavedPublicSlug(nextForm.publicSlug);
         if (parsed.data?.featuredResumeId) {
           setResumeMode("internal");
           setFeaturedResumeTitle(parsed.data.featuredResumeTitle ?? "");
@@ -382,6 +386,8 @@ export default function PortfolioSettingsPage() {
     const nextForm = toFormState(parsed.data);
     setForm(nextForm);
     setOriginalPublicSlug(nextForm.publicSlug);
+    setSavedIsPublic(nextForm.isPublic);
+    setSavedPublicSlug(nextForm.publicSlug);
     setMessage("포트폴리오 설정이 저장되었습니다.");
     setIsSaving(false);
   }
@@ -404,9 +410,9 @@ export default function PortfolioSettingsPage() {
           >
             미리보기
           </button>
-          {form.isPublic && form.publicSlug ? (
+          {savedIsPublic && savedPublicSlug ? (
             <a
-              href={`/portfolio/${encodeURIComponent(form.publicSlug)}`}
+              href={`/portfolio/${encodeURIComponent(savedPublicSlug)}`}
               target="_blank"
               rel="noreferrer"
               className="rounded-full border border-black/20 px-5 py-2 text-sm font-semibold text-black/70 hover:bg-black/5"
@@ -821,48 +827,50 @@ export default function PortfolioSettingsPage() {
 
         </div>
 
-        {/* 미리보기 — 전체 화면 오버레이 (공백 클릭 시 닫기) */}
+        {/* 미리보기 — 다크 배경 오버레이 + 제한된 너비 카드 (공백 클릭 시 닫기) */}
         {showPreview ? (
           <div
-            className="fixed inset-0 z-50 overflow-y-auto bg-[#f6f5f2]"
+            className="fixed inset-0 z-50 overflow-y-auto bg-black/50 p-4 md:p-8"
             onClick={handleModalClose}
           >
-            {/* 미리보기 툴바 */}
             <div
-              ref={modalRef}
-              className="sticky top-0 z-10 flex items-center justify-between border-b border-black/10 bg-[#f6f5f2]/95 px-6 py-3 backdrop-blur-sm"
+              className="mx-auto max-w-5xl overflow-hidden rounded-2xl bg-[#f6f5f2] shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center gap-3">
-                <span className="text-sm font-semibold text-black/80">미리보기</span>
-                <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">
-                  저장 전
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={handleModalClose}
-                className="flex items-center gap-1.5 rounded-full border border-black/20 px-4 py-1.5 text-sm font-medium hover:bg-black/5"
+              {/* 미리보기 툴바 */}
+              <div
+                ref={modalRef}
+                className="sticky top-0 z-10 flex items-center justify-between border-b border-black/10 bg-[#f6f5f2]/95 px-6 py-3 backdrop-blur-sm"
               >
-                ✕ 닫기
-              </button>
-            </div>
-            {/* 실제 크기 포트폴리오 렌더링 */}
-            <div onClick={(e) => e.stopPropagation()}>
-            <PortfolioFullPreview
-              publicSlug={form.publicSlug}
-              displayName={form.displayName}
-              headline={form.headline}
-              bio={form.bio}
-              avatarUrl={form.avatarUrl}
-              email={form.email}
-              isEmailPublic={form.isEmailPublic}
-              location={form.location}
-              availabilityStatus={form.availabilityStatus}
-              resumeUrl={resumeMode === "upload" ? form.resumeUrl : ""}
-              featuredResumeTitle={resumeMode === "internal" ? featuredResumeTitle : ""}
-              links={form.links}
-            />
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-semibold text-black/80">미리보기</span>
+                  <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">
+                    저장 전
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleModalClose}
+                  className="flex items-center gap-1.5 rounded-full border border-black/20 px-4 py-1.5 text-sm font-medium hover:bg-black/5"
+                >
+                  ✕ 닫기
+                </button>
+              </div>
+              {/* 실제 크기 포트폴리오 렌더링 */}
+              <PortfolioFullPreview
+                publicSlug={form.publicSlug}
+                displayName={form.displayName}
+                headline={form.headline}
+                bio={form.bio}
+                avatarUrl={form.avatarUrl}
+                email={form.email}
+                isEmailPublic={form.isEmailPublic}
+                location={form.location}
+                availabilityStatus={form.availabilityStatus}
+                resumeUrl={resumeMode === "upload" ? form.resumeUrl : ""}
+                featuredResumeTitle={resumeMode === "internal" ? featuredResumeTitle : ""}
+                links={form.links}
+              />
             </div>
           </div>
         ) : null}
