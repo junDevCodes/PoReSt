@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Prisma, PortfolioLinkType } from "@prisma/client";
 import { z } from "zod";
 import {
   MAX_PORTFOLIO_PUBLIC_SLUG_LENGTH,
@@ -18,6 +18,9 @@ const MAX_LINK_COUNT = 20;
 const MIN_ORDER = 0;
 const MAX_ORDER = 9999;
 const EMPTY_LENGTH = 0;
+const MAX_LOCATION_LENGTH = 100;
+const MAX_EMAIL_LENGTH = 200;
+const MAX_RESUME_URL_LENGTH = 500;
 
 type NormalizedPortfolioSettingsUpsertInput = {
   publicSlug?: string;
@@ -31,7 +34,13 @@ type NormalizedPortfolioSettingsUpsertInput = {
     label: string;
     url: string;
     order: number;
+    type: PortfolioLinkType;
   }>;
+  email?: string | null;
+  isEmailPublic?: boolean;
+  location?: string | null;
+  availabilityStatus?: string | null;
+  resumeUrl?: string | null;
 };
 
 const portfolioLinkSchema = z.object({
@@ -48,6 +57,7 @@ const portfolioLinkSchema = z.object({
     .max(MAX_ORDER, "링크 순서는 9999 이하여야 합니다.")
     .optional()
     .default(0),
+  type: z.nativeEnum(PortfolioLinkType).optional().default(PortfolioLinkType.CUSTOM),
 });
 
 const portfolioSettingsUpsertSchema = z
@@ -87,6 +97,11 @@ const portfolioSettingsUpsertSchema = z
       .array(portfolioLinkSchema)
       .max(MAX_LINK_COUNT, "링크는 최대 20개까지 입력할 수 있습니다.")
       .optional(),
+    email: z.string().trim().email("이메일 형식이 올바르지 않습니다.").max(MAX_EMAIL_LENGTH, "이메일은 200자 이하로 입력해주세요.").optional().nullable(),
+    isEmailPublic: z.boolean().optional(),
+    location: z.string().trim().max(MAX_LOCATION_LENGTH, "위치는 100자 이하로 입력해주세요.").optional().nullable(),
+    availabilityStatus: z.enum(["OPEN", "CONSIDERING", "NOT_OPEN", "HIDDEN"]).optional().nullable(),
+    resumeUrl: z.string().trim().url("이력서 URL 형식이 올바르지 않습니다.").max(MAX_RESUME_URL_LENGTH, "이력서 URL은 500자 이하여야 합니다.").optional().nullable(),
   })
   .refine((input) => Object.keys(input).length > EMPTY_LENGTH, {
     message: "수정할 필드를 최소 1개 이상 입력해주세요.",
@@ -102,6 +117,11 @@ const ownerPortfolioSettingsSelect = {
   bio: true,
   avatarUrl: true,
   layoutJson: true,
+  email: true,
+  isEmailPublic: true,
+  location: true,
+  availabilityStatus: true,
+  resumeUrl: true,
   updatedAt: true,
 } as const;
 
@@ -160,7 +180,13 @@ function normalizeUpsertInput(
       label: link.label.trim(),
       url: link.url.trim(),
       order: link.order,
+      type: link.type,
     })),
+    email: toNullableString(input.email),
+    isEmailPublic: input.isEmailPublic,
+    location: toNullableString(input.location),
+    availabilityStatus: input.availabilityStatus ?? undefined,
+    resumeUrl: toNullableString(input.resumeUrl),
   };
 }
 
@@ -219,6 +245,7 @@ export function createPortfolioSettingsService(deps: {
         label: true,
         url: true,
         order: true,
+        type: true,
       },
     });
 
@@ -263,12 +290,18 @@ export function createPortfolioSettingsService(deps: {
               bio: parsed.bio ?? null,
               avatarUrl: parsed.avatarUrl ?? null,
               layoutJson: toNullableJsonInput(parsed.layoutJson),
+              email: parsed.email ?? null,
+              isEmailPublic: parsed.isEmailPublic ?? false,
+              location: parsed.location ?? null,
+              availabilityStatus: parsed.availabilityStatus ?? null,
+              resumeUrl: parsed.resumeUrl ?? null,
               links: parsed.links
                 ? {
                     create: parsed.links.map((link) => ({
                       label: link.label,
                       url: link.url,
                       order: link.order,
+                      type: (link.type as PortfolioLinkType | undefined) ?? PortfolioLinkType.CUSTOM,
                     })),
                   }
                 : undefined,
@@ -306,6 +339,21 @@ export function createPortfolioSettingsService(deps: {
       if (parsed.layoutJson !== undefined) {
         data.layoutJson = toNullableJsonInput(parsed.layoutJson);
       }
+      if (parsed.email !== undefined) {
+        data.email = parsed.email;
+      }
+      if (parsed.isEmailPublic !== undefined) {
+        data.isEmailPublic = parsed.isEmailPublic;
+      }
+      if (parsed.location !== undefined) {
+        data.location = parsed.location;
+      }
+      if (parsed.availabilityStatus !== undefined) {
+        data.availabilityStatus = parsed.availabilityStatus;
+      }
+      if (parsed.resumeUrl !== undefined) {
+        data.resumeUrl = parsed.resumeUrl;
+      }
       if (parsed.links !== undefined) {
         data.links = {
           deleteMany: {},
@@ -313,6 +361,7 @@ export function createPortfolioSettingsService(deps: {
             label: link.label,
             url: link.url,
             order: link.order,
+            type: (link.type as PortfolioLinkType | undefined) ?? PortfolioLinkType.CUSTOM,
           })),
         };
       }

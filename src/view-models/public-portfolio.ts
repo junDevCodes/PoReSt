@@ -99,9 +99,15 @@ export type PublicHomeViewModel = {
     headline: string | null;
     bio: string | null;
     avatarUrl: string | null;
+    email: string | null;
+    isEmailPublic: boolean;
+    location: string | null;
+    availabilityStatus: string | null;
+    resumeUrl: string | null;
     links: Array<{
       label: string;
       url: string;
+      type: string;
     }>;
   };
   featuredProjects: Array<{
@@ -167,6 +173,11 @@ export function toPublicHomeViewModel(input: unknown): PublicHomeViewModel {
       headline: toNullableString(profileRaw.headline),
       bio: toNullableString(profileRaw.bio),
       avatarUrl: sanitizeExternalUrl(profileRaw.avatarUrl),
+      email: toNullableString(profileRaw.email),
+      isEmailPublic: typeof profileRaw.isEmailPublic === "boolean" ? profileRaw.isEmailPublic : false,
+      location: toNullableString(profileRaw.location),
+      availabilityStatus: toNullableString(profileRaw.availabilityStatus),
+      resumeUrl: sanitizeExternalUrl(profileRaw.resumeUrl),
       links: profileLinks
         .map((link) => {
           const record = isRecord(link) ? link : {};
@@ -176,9 +187,10 @@ export function toPublicHomeViewModel(input: unknown): PublicHomeViewModel {
             return null;
           }
 
-          return { label, url };
+          const type = toNullableString(record.type) ?? "CUSTOM";
+          return { label, url, type };
         })
-        .filter((link): link is { label: string; url: string } => link !== null),
+        .filter((link): link is { label: string; url: string; type: string } => link !== null),
     },
     featuredProjects: featuredProjectsRaw
       .map((project) => {

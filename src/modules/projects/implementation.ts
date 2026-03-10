@@ -562,11 +562,17 @@ export function createProjectsService(deps: { prisma: ProjectServicePrismaClient
         headline: true,
         bio: true,
         avatarUrl: true,
+        email: true,
+        isEmailPublic: true,
+        location: true,
+        availabilityStatus: true,
+        resumeUrl: true,
         links: {
           orderBy: { order: "asc" },
           select: {
             label: true,
             url: true,
+            type: true,
           },
         },
       },
@@ -580,9 +586,15 @@ export function createProjectsService(deps: { prisma: ProjectServicePrismaClient
     headline: string | null;
     bio: string | null;
     avatarUrl: string | null;
+    email: string | null;
+    isEmailPublic: boolean;
+    location: string | null;
+    availabilityStatus: string | null;
+    resumeUrl: string | null;
     links: Array<{
       label: string;
       url: string;
+      type: string;
     }>;
   }) {
     const [featuredProjects, featuredExperiences] = await Promise.all([
@@ -615,6 +627,11 @@ export function createProjectsService(deps: { prisma: ProjectServicePrismaClient
         headline: settings.headline,
         bio: settings.bio,
         avatarUrl: settings.avatarUrl,
+        email: settings.email,
+        isEmailPublic: settings.isEmailPublic,
+        location: settings.location,
+        availabilityStatus: settings.availabilityStatus,
+        resumeUrl: settings.resumeUrl,
         links: settings.links,
       },
       featuredProjects: featuredProjects.map((project) => ({
@@ -1131,11 +1148,17 @@ export function createProjectsService(deps: { prisma: ProjectServicePrismaClient
               headline: true,
               bio: true,
               avatarUrl: true,
+              email: true,
+              isEmailPublic: true,
+              location: true,
+              availabilityStatus: true,
+              resumeUrl: true,
               links: {
                 orderBy: { order: "asc" },
                 select: {
                   label: true,
                   url: true,
+                  type: true,
                 },
               },
             },

@@ -9,6 +9,7 @@ export type PortfolioLinkInput = {
   label: string;
   url: string;
   order?: number;
+  type?: string; // "GITHUB"|"LINKEDIN"|...|"CUSTOM"
 };
 
 export type PortfolioSettingsUpsertInput = {
@@ -20,6 +21,11 @@ export type PortfolioSettingsUpsertInput = {
   avatarUrl?: string | null;
   layoutJson?: Prisma.InputJsonValue | null;
   links?: PortfolioLinkInput[];
+  email?: string | null;
+  isEmailPublic?: boolean;
+  location?: string | null;
+  availabilityStatus?: string | null; // "OPEN"|"CONSIDERING"|"NOT_OPEN"|"HIDDEN"
+  resumeUrl?: string | null;
 };
 
 export type OwnerPortfolioSettingsDto = {
@@ -31,11 +37,17 @@ export type OwnerPortfolioSettingsDto = {
   bio: string | null;
   avatarUrl: string | null;
   layoutJson: unknown;
+  email: string | null;
+  isEmailPublic: boolean;
+  location: string | null;
+  availabilityStatus: string | null;
+  resumeUrl: string | null;
   links: Array<{
     id: string;
     label: string;
     url: string;
     order: number;
+    type: string;
   }>;
   updatedAt: Date;
 };

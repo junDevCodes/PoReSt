@@ -104,9 +104,15 @@ export type PublicPortfolioProfileDto = {
   headline: string | null;
   bio: string | null;
   avatarUrl: string | null;
+  email: string | null;
+  isEmailPublic: boolean;
+  location: string | null;
+  availabilityStatus: string | null;
+  resumeUrl: string | null;
   links: Array<{
     label: string;
     url: string;
+    type: string;
   }>;
 };
 

@@ -5,11 +5,24 @@ import { parseApiResponse } from "@/app/(private)/app/_lib/admin-api";
 import { ErrorBanner, LoadingBlock } from "@/components/ui/AsyncState";
 import { PublicPortfolioPreview } from "@/components/portfolio/PublicPortfolioPreview";
 
+const PORTFOLIO_LINK_TYPES = [
+  { value: "GITHUB", label: "GitHub" },
+  { value: "LINKEDIN", label: "LinkedIn" },
+  { value: "INSTAGRAM", label: "Instagram" },
+  { value: "TWITTER", label: "Twitter / X" },
+  { value: "YOUTUBE", label: "YouTube" },
+  { value: "VELOG", label: "Velog" },
+  { value: "TISTORY", label: "Tistory" },
+  { value: "WEBSITE", label: "개인 웹사이트" },
+  { value: "CUSTOM", label: "기타" },
+] as const;
+
 type PortfolioLinkFormItem = {
   id?: string;
   label: string;
   url: string;
   order: number;
+  type: string;
 };
 
 type PortfolioSettingsDto = {
@@ -20,11 +33,17 @@ type PortfolioSettingsDto = {
   headline: string | null;
   bio: string | null;
   avatarUrl: string | null;
+  email: string | null;
+  isEmailPublic: boolean;
+  location: string | null;
+  availabilityStatus: string | null;
+  resumeUrl: string | null;
   links: Array<{
     id: string;
     label: string;
     url: string;
     order: number;
+    type: string;
   }>;
 };
 
@@ -35,6 +54,11 @@ type PortfolioSettingsFormState = {
   headline: string;
   bio: string;
   avatarUrl: string;
+  email: string;
+  isEmailPublic: boolean;
+  location: string;
+  availabilityStatus: string;
+  resumeUrl: string;
   links: PortfolioLinkFormItem[];
 };
 
@@ -45,6 +69,11 @@ const DEFAULT_FORM: PortfolioSettingsFormState = {
   headline: "",
   bio: "",
   avatarUrl: "",
+  email: "",
+  isEmailPublic: false,
+  location: "",
+  availabilityStatus: "",
+  resumeUrl: "",
   links: [],
 };
 
@@ -60,11 +89,17 @@ function toFormState(dto: PortfolioSettingsDto | null): PortfolioSettingsFormSta
     headline: dto.headline ?? "",
     bio: dto.bio ?? "",
     avatarUrl: dto.avatarUrl ?? "",
+    email: dto.email ?? "",
+    isEmailPublic: dto.isEmailPublic,
+    location: dto.location ?? "",
+    availabilityStatus: dto.availabilityStatus ?? "",
+    resumeUrl: dto.resumeUrl ?? "",
     links: dto.links.map((link) => ({
       id: link.id,
       label: link.label,
       url: link.url,
       order: link.order,
+      type: link.type ?? "CUSTOM",
     })),
   };
 }
@@ -76,6 +111,8 @@ export default function PortfolioSettingsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [avatarUploadError, setAvatarUploadError] = useState<string | null>(null);
+  const [isUploadingResume, setIsUploadingResume] = useState(false);
+  const [resumeUploadError, setResumeUploadError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -145,9 +182,38 @@ export default function PortfolioSettingsPage() {
           label: "",
           url: "",
           order: prev.links.length,
+          type: "CUSTOM",
         },
       ],
     }));
+  }
+
+  async function handleResumeUpload(file: File) {
+    setIsUploadingResume(true);
+    setResumeUploadError(null);
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const parsed = await (async () => {
+      try {
+        const response = await fetch("/api/app/portfolio/resume", {
+          method: "POST",
+          body: formData,
+        });
+        return await parseApiResponse<{ url: string }>(response);
+      } catch (err) {
+        return parseApiResponse<{ url: string }>(err);
+      }
+    })();
+
+    if (parsed.error) {
+      setResumeUploadError(parsed.error);
+    } else if (parsed.data?.url) {
+      setForm((prev) => ({ ...prev, resumeUrl: parsed.data!.url }));
+    }
+
+    setIsUploadingResume(false);
   }
 
   function removeLink(index: number) {
@@ -209,10 +275,16 @@ export default function PortfolioSettingsPage() {
       headline: form.headline || null,
       bio: form.bio || null,
       avatarUrl: form.avatarUrl || null,
+      email: form.email || null,
+      isEmailPublic: form.isEmailPublic,
+      location: form.location || null,
+      availabilityStatus: form.availabilityStatus || null,
+      resumeUrl: form.resumeUrl || null,
       links: form.links.map((link) => ({
         label: link.label,
         url: link.url,
         order: link.order,
+        type: link.type || "CUSTOM",
       })),
     };
 
@@ -378,9 +450,133 @@ export default function PortfolioSettingsPage() {
               </div>
             </section>
 
+            <section className="grid gap-4 rounded-2xl border border-black/10 bg-white p-6 md:grid-cols-2">
+              <h2 className="text-lg font-semibold md:col-span-2">연락처</h2>
+
+              <label className="flex flex-col gap-2 text-sm">
+                <span>이메일</span>
+                <input
+                  type="email"
+                  value={form.email}
+                  onChange={(event) => setForm((prev) => ({ ...prev, email: event.target.value }))}
+                  className="rounded-lg border border-black/15 bg-white px-3 py-2"
+                  placeholder="me@example.com"
+                />
+              </label>
+
+              <label className="flex flex-col gap-2 text-sm">
+                <span>위치</span>
+                <input
+                  value={form.location}
+                  onChange={(event) => setForm((prev) => ({ ...prev, location: event.target.value }))}
+                  className="rounded-lg border border-black/15 bg-white px-3 py-2"
+                  placeholder="서울, 대한민국"
+                />
+              </label>
+
+              <label className="flex items-center gap-2 text-sm md:col-span-2">
+                <input
+                  type="checkbox"
+                  checked={form.isEmailPublic}
+                  onChange={(event) =>
+                    setForm((prev) => ({ ...prev, isEmailPublic: event.target.checked }))
+                  }
+                />
+                <span>포트폴리오에 이메일 공개</span>
+              </label>
+            </section>
+
+            <section className="rounded-2xl border border-black/10 bg-white p-6">
+              <h2 className="mb-4 text-lg font-semibold">구직 상태</h2>
+              <div className="flex flex-wrap gap-3">
+                {(
+                  [
+                    { value: "OPEN", label: "채용 제안 환영" },
+                    { value: "CONSIDERING", label: "검토 중" },
+                    { value: "NOT_OPEN", label: "구직 중 아님" },
+                    { value: "HIDDEN", label: "표시 안 함" },
+                  ] as const
+                ).map((option) => (
+                  <label key={option.value} className="flex items-center gap-2 text-sm">
+                    <input
+                      type="radio"
+                      name="availabilityStatus"
+                      value={option.value}
+                      checked={form.availabilityStatus === option.value}
+                      onChange={() =>
+                        setForm((prev) => ({ ...prev, availabilityStatus: option.value }))
+                      }
+                    />
+                    {option.label}
+                  </label>
+                ))}
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="radio"
+                    name="availabilityStatus"
+                    value=""
+                    checked={form.availabilityStatus === ""}
+                    onChange={() => setForm((prev) => ({ ...prev, availabilityStatus: "" }))}
+                  />
+                  미설정
+                </label>
+              </div>
+            </section>
+
+            <section className="rounded-2xl border border-black/10 bg-white p-6">
+              <h2 className="mb-4 text-lg font-semibold">이력서 PDF</h2>
+              <div className="flex flex-col gap-3">
+                {form.resumeUrl ? (
+                  <div className="flex items-center gap-3 rounded-lg border border-black/10 bg-black/5 px-4 py-3">
+                    <span className="flex-1 truncate text-sm text-black/70">{form.resumeUrl}</span>
+                    <a
+                      href={form.resumeUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs text-black/60 hover:text-black"
+                    >
+                      보기
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => setForm((prev) => ({ ...prev, resumeUrl: "" }))}
+                      className="text-xs text-rose-700 hover:text-rose-900"
+                    >
+                      삭제
+                    </button>
+                  </div>
+                ) : null}
+                <div className="flex items-center gap-3">
+                  <label className="cursor-pointer rounded-full border border-black/20 px-4 py-2 text-sm hover:bg-black/5">
+                    {isUploadingResume ? "업로드 중..." : "PDF 파일 선택"}
+                    <input
+                      type="file"
+                      className="sr-only"
+                      disabled={isUploadingResume}
+                      onChange={(event) => {
+                        const file = event.target.files?.[0];
+                        if (!file) return;
+                        if (file.type !== "application/pdf") {
+                          setResumeUploadError("PDF 형식만 업로드할 수 있습니다.");
+                          event.target.value = "";
+                          return;
+                        }
+                        void handleResumeUpload(file);
+                        event.target.value = "";
+                      }}
+                    />
+                  </label>
+                </div>
+                {resumeUploadError ? (
+                  <p className="text-xs text-rose-700">{resumeUploadError}</p>
+                ) : null}
+                <p className="text-xs text-black/45">PDF · 최대 10MB</p>
+              </div>
+            </section>
+
             <section className="rounded-2xl border border-black/10 bg-white p-6">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold">외부 링크</h2>
+                <h2 className="text-lg font-semibold">소셜 링크</h2>
                 <button
                   type="button"
                   onClick={addLink}
@@ -397,8 +593,19 @@ export default function PortfolioSettingsPage() {
                   {form.links.map((link, index) => (
                     <div
                       key={`${link.id ?? "new"}-${index}`}
-                      className="grid gap-2 md:grid-cols-[1fr_2fr_96px_96px]"
+                      className="grid gap-2 md:grid-cols-[140px_1fr_2fr_80px_80px]"
                     >
+                      <select
+                        value={link.type}
+                        onChange={(event) => updateLink(index, { type: event.target.value })}
+                        className="rounded-lg border border-black/15 bg-white px-3 py-2 text-sm"
+                      >
+                        {PORTFOLIO_LINK_TYPES.map((t) => (
+                          <option key={t.value} value={t.value}>
+                            {t.label}
+                          </option>
+                        ))}
+                      </select>
                       <input
                         value={link.label}
                         onChange={(event) => updateLink(index, { label: event.target.value })}

@@ -107,7 +107,7 @@ describe("public portfolio view models", () => {
     });
 
     // Assert: 허용 URL만 유지
-    expect(home.profile.links).toEqual([{ label: "safe", url: "https://example.com/" }]);
+    expect(home.profile.links).toEqual([{ label: "safe", url: "https://example.com/", type: "CUSTOM" }]);
     expect(home.featuredProjects[0]?.repoUrl).toBeNull();
     expect(home.featuredProjects[0]?.demoUrl).toBe("https://demo.example.com/");
     expect(detail?.repoUrl).toBeNull();

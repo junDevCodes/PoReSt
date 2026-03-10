@@ -51,6 +51,18 @@ enum NoteEmbeddingStatus {
   FAILED
 }
 
+enum PortfolioLinkType {
+  GITHUB
+  LINKEDIN
+  INSTAGRAM
+  TWITTER
+  YOUTUBE
+  VELOG
+  TISTORY
+  WEBSITE
+  CUSTOM
+}
+
 enum BlogPlatform {
   NAVER
   TISTORY
@@ -180,6 +192,13 @@ model PortfolioSettings {
   // 홈 구성(섹션 순서/대표 프로젝트 등) - v1은 JSON으로 유연하게
   layoutJson  Json?
 
+  // T76 신규 추가 — HR 직결 정보
+  email              String?
+  isEmailPublic      Boolean  @default(false)
+  location           String?
+  availabilityStatus String?  // "OPEN" | "CONSIDERING" | "NOT_OPEN" | "HIDDEN"
+  resumeUrl          String?
+
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
@@ -195,7 +214,8 @@ model PortfolioLink {
 
   label       String
   url         String
-  order       Int      @default(0)
+  order       Int              @default(0)
+  type        PortfolioLinkType @default(CUSTOM)
 
   @@index([settingsId, order])
   @@map("portfolio_links")
