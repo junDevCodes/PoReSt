@@ -10,9 +10,9 @@ type ThemeWrapperProps = {
 
 export function ThemeWrapper({ publicSlug, children }: ThemeWrapperProps) {
   const [dark, setDark] = useState(false);
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setDark(localStorage.getItem("portfolio-theme") === "dark");
   }, []);
 
@@ -20,6 +20,21 @@ export function ThemeWrapper({ publicSlug, children }: ThemeWrapperProps) {
     const next = !dark;
     setDark(next);
     localStorage.setItem("portfolio-theme", next ? "dark" : "light");
+  }
+
+  async function handleDownloadPdf() {
+    setIsDownloadingPdf(true);
+    try {
+      const mainEl = document.querySelector("main");
+      if (!mainEl) return;
+      const { downloadElementAsPdf } = await import("@/lib/pdf-download");
+      await downloadElementAsPdf(mainEl as HTMLElement, `portfolio-${publicSlug}.pdf`, "#f6f5f2");
+    } catch {
+      // 실패 시 print fallback
+      window.print();
+    } finally {
+      setIsDownloadingPdf(false);
+    }
   }
 
   return (
@@ -49,12 +64,13 @@ export function ThemeWrapper({ publicSlug, children }: ThemeWrapperProps) {
             </button>
             <button
               type="button"
-              onClick={() => window.print()}
-              className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs text-black/50 hover:bg-black/5 hover:text-black dark:text-white/50 dark:hover:bg-white/5 dark:hover:text-white"
+              onClick={() => void handleDownloadPdf()}
+              disabled={isDownloadingPdf}
+              className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs text-black/50 hover:bg-black/5 hover:text-black dark:text-white/50 dark:hover:bg-white/5 dark:hover:text-white disabled:opacity-50"
               aria-label="PDF 저장"
             >
               <DownloadIcon />
-              <span>PDF 저장</span>
+              <span>{isDownloadingPdf ? "생성 중..." : "PDF 저장"}</span>
             </button>
             <button
               type="button"

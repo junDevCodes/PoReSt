@@ -133,6 +133,17 @@ export function buildResumePdfHtml(preview: ResumePdfPreview): string {
 </html>`;
 }
 
+/**
+ * 이력서를 PDF 파일로 직접 다운로드 (팝업 없음)
+ * html2canvas + jsPDF를 사용하여 브라우저 내에서 생성
+ */
+export async function downloadResumePdfFile(preview: ResumePdfPreview): Promise<void> {
+  const { downloadHtmlAsPdf } = await import("@/lib/pdf-download");
+  const html = buildResumePdfHtml(preview);
+  const filename = createResumePdfFileName(preview.resume.title);
+  await downloadHtmlAsPdf(html, filename);
+}
+
 export function openResumePdfPrintWindow(preview: ResumePdfPreview): PdfOpenResult {
   if (typeof window === "undefined") {
     return { ok: false, reason: "UNAVAILABLE_WINDOW" };

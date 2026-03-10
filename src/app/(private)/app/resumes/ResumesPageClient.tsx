@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { parseApiResponse } from "@/app/(private)/app/_lib/admin-api";
-import { openResumePdfPrintWindow } from "@/app/(private)/app/resumes/_lib/pdf";
+import { downloadResumePdfFile } from "@/app/(private)/app/resumes/_lib/pdf";
 import type { SerializedOwnerResumeListItemDto } from "@/app/(private)/app/_lib/server-serializers";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { EmptyBlock, ErrorBanner, LoadingBlock } from "@/components/ui/AsyncState";
@@ -58,17 +58,14 @@ export function ResumesPageClient({ initialResumes }: ResumesPageClientProps) {
     setPrintingId(resume.id);
     try {
       const response = await fetch(`/api/app/resumes/${resume.id}/preview`, { method: "GET" });
-      const parsed = await parseApiResponse<Parameters<typeof openResumePdfPrintWindow>[0]>(response);
+      const parsed = await parseApiResponse<Parameters<typeof downloadResumePdfFile>[0]>(response);
       if (parsed.error || !parsed.data) {
         toast.error(parsed.error ?? "미리보기 데이터를 불러올 수 없습니다.");
         return;
       }
-      const result = openResumePdfPrintWindow(parsed.data);
-      if (!result.ok && result.reason === "POPUP_BLOCKED") {
-        toast.error("팝업이 차단되었습니다. 브라우저 설정에서 팝업을 허용해 주세요.");
-      }
+      await downloadResumePdfFile(parsed.data);
     } catch {
-      toast.error("PDF 준비 중 오류가 발생했습니다.");
+      toast.error("PDF 생성 중 오류가 발생했습니다.");
     } finally {
       setPrintingId(null);
     }

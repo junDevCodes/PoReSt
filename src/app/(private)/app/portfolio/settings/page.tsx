@@ -3,7 +3,7 @@
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { parseApiResponse } from "@/app/(private)/app/_lib/admin-api";
 import { ErrorBanner, LoadingBlock } from "@/components/ui/AsyncState";
-import { PublicPortfolioPreview } from "@/components/portfolio/PublicPortfolioPreview";
+import { PortfolioFullPreview } from "@/components/portfolio/PortfolioFullPreview";
 
 const PORTFOLIO_LINK_TYPES = [
   { value: "GITHUB", label: "GitHub" },
@@ -809,47 +809,43 @@ export default function PortfolioSettingsPage() {
 
         </div>
 
-        {/* 미리보기 모달 */}
+        {/* 미리보기 — 전체 화면 오버레이 */}
         {showPreview ? (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-            onClick={(e) => {
-              if (e.target === e.currentTarget) handleModalClose();
-            }}
-          >
+          <div className="fixed inset-0 z-50 overflow-y-auto bg-[#f6f5f2]">
+            {/* 미리보기 툴바 */}
             <div
               ref={modalRef}
-              className="w-full max-w-lg rounded-2xl bg-[#faf9f6] shadow-2xl"
+              className="sticky top-0 z-10 flex items-center justify-between border-b border-black/10 bg-[#f6f5f2]/95 px-6 py-3 backdrop-blur-sm"
             >
-              <div className="flex items-center justify-between border-b border-black/10 px-6 py-4">
-                <span className="text-sm font-semibold">포트폴리오 미리보기</span>
-                <button
-                  type="button"
-                  onClick={handleModalClose}
-                  className="rounded-full p-1.5 hover:bg-black/10 text-black/60"
-                  aria-label="닫기"
-                >
-                  ✕
-                </button>
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-semibold text-black/80">미리보기</span>
+                <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">
+                  저장 전
+                </span>
               </div>
-              <div className="p-6">
-                <PublicPortfolioPreview
-                  publicSlug={form.publicSlug}
-                  isPublic={form.isPublic}
-                  displayName={form.displayName}
-                  headline={form.headline}
-                  bio={form.bio}
-                  avatarUrl={form.avatarUrl}
-                  email={form.email}
-                  isEmailPublic={form.isEmailPublic}
-                  location={form.location}
-                  availabilityStatus={form.availabilityStatus}
-                  resumeUrl={resumeMode === "upload" ? form.resumeUrl : ""}
-                  featuredResumeTitle={resumeMode === "internal" ? featuredResumeTitle : ""}
-                  links={form.links}
-                />
-              </div>
+              <button
+                type="button"
+                onClick={handleModalClose}
+                className="flex items-center gap-1.5 rounded-full border border-black/20 px-4 py-1.5 text-sm font-medium hover:bg-black/5"
+              >
+                ✕ 닫기
+              </button>
             </div>
+            {/* 실제 크기 포트폴리오 렌더링 */}
+            <PortfolioFullPreview
+              publicSlug={form.publicSlug}
+              displayName={form.displayName}
+              headline={form.headline}
+              bio={form.bio}
+              avatarUrl={form.avatarUrl}
+              email={form.email}
+              isEmailPublic={form.isEmailPublic}
+              location={form.location}
+              availabilityStatus={form.availabilityStatus}
+              resumeUrl={resumeMode === "upload" ? form.resumeUrl : ""}
+              featuredResumeTitle={resumeMode === "internal" ? featuredResumeTitle : ""}
+              links={form.links}
+            />
           </div>
         ) : null}
         </>
