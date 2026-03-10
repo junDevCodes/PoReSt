@@ -41,12 +41,13 @@ export function ThemeWrapper({ publicSlug, children }: ThemeWrapperProps) {
         }
       }
 
+      // ThemeWrapper 루트의 data-theme + text-black 상속을 보존
       const html = [
         '<!doctype html><html lang="ko"><head><meta charset="utf-8"><style>',
         cssChunks.join("\n"),
-        "</style></head><body>",
+        `</style></head><body><div data-theme="${dark ? "dark" : "light"}" class="bg-[#f6f5f2] text-black" style="color:black;">`,
         mainEl.outerHTML,
-        "</body></html>",
+        "</div></body></html>",
       ].join("");
 
       await downloadHtmlAsPdf(html, `portfolio-${publicSlug}.pdf`, "#f6f5f2");
