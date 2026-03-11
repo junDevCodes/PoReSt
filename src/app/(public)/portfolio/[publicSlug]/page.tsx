@@ -126,8 +126,29 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
 
   const viewModel = toPublicHomeViewModel(portfolio);
 
+  const skills = await prisma.skill.findMany({
+    where: {
+      owner: { portfolioSettings: { publicSlug: resolvedParams.publicSlug, isPublic: true } },
+      visibility: "PUBLIC",
+    },
+    orderBy: [{ category: "asc" }, { order: "asc" }],
+    select: { id: true, name: true, category: true, level: true },
+  });
+
+  const skillGroups = new Map<string, typeof skills>();
+  for (const skill of skills) {
+    const key = skill.category ?? "기타";
+    const group = skillGroups.get(key);
+    if (group) {
+      group.push(skill);
+    } else {
+      skillGroups.set(key, [skill]);
+    }
+  }
+
   const displayName = getProfileTitle(viewModel.profile.displayName, resolvedParams.publicSlug);
   const avatarInitial = displayName.charAt(0).toUpperCase();
+  const experiencesPath = `/portfolio/${encodeURIComponent(resolvedParams.publicSlug)}/experiences`;
 
   const siteUrl = getSiteUrl();
   const portfolioUrl = `${siteUrl}/portfolio/${encodeURIComponent(resolvedParams.publicSlug)}`;
@@ -278,6 +299,79 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
           </div>
         )}
       </section>
+
+      {viewModel.featuredExperiences.length > 0 ? (
+        <section className="mt-14">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-semibold">경력</h2>
+            <Link className="text-sm font-medium text-black/70 hover:text-black dark:text-white/70 dark:hover:text-white" href={experiencesPath}>
+              전체 보기
+            </Link>
+          </div>
+          <div className="mt-6 space-y-4">
+            {viewModel.featuredExperiences.map((exp) => (
+              <article key={exp.id} className="rounded-2xl border border-black/10 bg-white p-5 dark:border-white/10 dark:bg-[#1e1e1e]">
+                <div className="flex items-center gap-3">
+                  <h3 className="text-lg font-semibold">{exp.company}</h3>
+                  {exp.isCurrent ? (
+                    <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">
+                      재직 중
+                    </span>
+                  ) : null}
+                </div>
+                <p className="mt-1 text-sm text-black/75 dark:text-white/75">{exp.role}</p>
+                <p className="mt-1 text-xs text-black/60 dark:text-white/60">{exp.period}</p>
+                {exp.summary ? (
+                  <p className="mt-2 text-sm text-black/65 dark:text-white/65">{exp.summary}</p>
+                ) : null}
+                {exp.techTags.length > 0 ? (
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {exp.techTags.map((tag) => (
+                      <span key={tag} className="rounded-full bg-black/5 px-2.5 py-0.5 text-xs text-black/70 dark:bg-white/10 dark:text-white/70">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+              </article>
+            ))}
+          </div>
+          <Link
+            href={experiencesPath}
+            className="mt-4 inline-flex text-sm font-semibold text-black/80 hover:text-black dark:text-white/80 dark:hover:text-white"
+          >
+            경력 전체 보기 →
+          </Link>
+        </section>
+      ) : null}
+
+      {skills.length > 0 ? (
+        <section className="mt-14">
+          <h2 className="text-2xl font-semibold">기술 스택</h2>
+          <div className="mt-6 space-y-5">
+            {Array.from(skillGroups.entries()).map(([category, items]) => (
+              <div key={category}>
+                <h3 className="mb-2 text-sm font-semibold text-black/60 dark:text-white/60">{category}</h3>
+                <div className="flex flex-wrap gap-2">
+                  {items.map((skill) => (
+                    <span
+                      key={skill.id}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-black/5 px-3 py-1.5 text-sm text-black/80 dark:bg-white/10 dark:text-white/80"
+                    >
+                      {skill.name}
+                      {skill.level !== null ? (
+                        <span className="text-xs text-black/40 dark:text-white/40">
+                          {"●".repeat(skill.level)}{"○".repeat(5 - skill.level)}
+                        </span>
+                      ) : null}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
     </main>
   );
 }

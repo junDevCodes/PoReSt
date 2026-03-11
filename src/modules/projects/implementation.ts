@@ -205,7 +205,9 @@ const featuredExperienceSelect = {
   role: true,
   startDate: true,
   endDate: true,
+  isCurrent: true,
   summary: true,
+  techTags: true,
 } as const;
 
 function extractZodFieldErrors(error: z.ZodError): Record<string, string> {

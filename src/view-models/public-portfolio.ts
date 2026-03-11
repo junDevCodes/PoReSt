@@ -128,7 +128,9 @@ export type PublicHomeViewModel = {
     company: string;
     role: string;
     period: string;
+    isCurrent: boolean;
     summary: string | null;
+    techTags: string[];
   }>;
 };
 
@@ -234,13 +236,16 @@ export function toPublicHomeViewModel(input: unknown): PublicHomeViewModel {
 
         const start = toDateLabel(record.startDate);
         const end = toDateLabel(record.endDate);
+        const isCurrent = typeof record.isCurrent === "boolean" ? record.isCurrent : false;
 
         return {
           id,
           company,
           role,
           period: end ? `${start} ~ ${end}` : `${start} ~ 현재`,
+          isCurrent,
           summary: toNullableString(record.summary),
+          techTags: toStringArray(record.techTags),
         };
       })
       .filter(
