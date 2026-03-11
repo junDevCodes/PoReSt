@@ -9,11 +9,18 @@ import { useToast } from "@/components/ui/useToast";
 
 type Visibility = "PUBLIC" | "UNLISTED" | "PRIVATE";
 
+type MetricItem = { label: string; value: string };
+
 type ExperienceEditor = {
   role: string;
   visibility: Visibility;
   isFeatured: boolean;
   isCurrent: boolean;
+  summary: string;
+  bulletsText: string;
+  metrics: MetricItem[];
+  techTagsText: string;
+  expanded: boolean;
 };
 
 type ExperiencesPageClientProps = {
@@ -29,12 +36,37 @@ const DEFAULT_CREATE_FORM = {
   isCurrent: false,
 };
 
+function parseBulletsToText(json: unknown): string {
+  if (Array.isArray(json)) {
+    return json.filter((item): item is string => typeof item === "string").join("\n");
+  }
+  return "";
+}
+
+function parseMetricsToList(json: unknown): MetricItem[] {
+  if (!Array.isArray(json)) {
+    return [];
+  }
+  return json.filter(
+    (item): item is MetricItem =>
+      typeof item === "object" &&
+      item !== null &&
+      typeof (item as Record<string, unknown>).label === "string" &&
+      typeof (item as Record<string, unknown>).value === "string",
+  );
+}
+
 function createEditor(item: SerializedOwnerExperienceDto): ExperienceEditor {
   return {
     role: item.role,
     visibility: item.visibility,
     isFeatured: item.isFeatured,
     isCurrent: item.isCurrent,
+    summary: item.summary ?? "",
+    bulletsText: parseBulletsToText(item.bulletsJson),
+    metrics: parseMetricsToList(item.metricsJson),
+    techTagsText: item.techTags.join(", "),
+    expanded: false,
   };
 }
 
@@ -125,10 +157,29 @@ export function ExperiencesPageClient({ initialExperiences }: ExperiencesPageCli
 
     setError(null);
 
+    const bulletsJson = editor.bulletsText
+      .split("\n")
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0);
+    const metricsJson = editor.metrics.filter((m) => m.label.trim() && m.value.trim());
+    const techTags = editor.techTagsText
+      .split(",")
+      .map((tag) => tag.trim())
+      .filter((tag) => tag.length > 0);
+
     const response = await fetch(`/api/app/experiences/${experienceId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(editor),
+      body: JSON.stringify({
+        role: editor.role,
+        visibility: editor.visibility,
+        isFeatured: editor.isFeatured,
+        isCurrent: editor.isCurrent,
+        summary: editor.summary || null,
+        bulletsJson: bulletsJson.length > 0 ? bulletsJson : null,
+        metricsJson: metricsJson.length > 0 ? metricsJson : null,
+        techTags,
+      }),
     });
     const parsed = await parseApiResponse<SerializedOwnerExperienceDto>(response);
 
@@ -325,6 +376,126 @@ export function ExperiencesPageClient({ initialExperiences }: ExperiencesPageCli
                       삭제
                     </button>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setEditors((prev) => ({
+                        ...prev,
+                        [experience.id]: { ...editor, expanded: !editor.expanded },
+                      }))
+                    }
+                    className="mt-2 text-xs text-black/50 hover:text-black"
+                  >
+                    {editor.expanded ? "▲ 상세 접기" : "▼ 상세 펼치기"}
+                  </button>
+                  {editor.expanded ? (
+                    <div className="mt-3 grid gap-3 md:grid-cols-2">
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-black/60">요약</label>
+                        <input
+                          value={editor.summary}
+                          onChange={(event) =>
+                            setEditors((prev) => ({
+                              ...prev,
+                              [experience.id]: { ...editor, summary: event.target.value },
+                            }))
+                          }
+                          placeholder="한 줄 요약"
+                          className="w-full rounded-lg border border-black/15 bg-white px-3 py-2 text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-black/60">기술 태그 (쉼표 구분)</label>
+                        <input
+                          value={editor.techTagsText}
+                          onChange={(event) =>
+                            setEditors((prev) => ({
+                              ...prev,
+                              [experience.id]: { ...editor, techTagsText: event.target.value },
+                            }))
+                          }
+                          placeholder="React, TypeScript, PostgreSQL"
+                          className="w-full rounded-lg border border-black/15 bg-white px-3 py-2 text-sm"
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="mb-1 block text-xs font-medium text-black/60">주요 업무 (줄바꿈 = 각 항목)</label>
+                        <textarea
+                          value={editor.bulletsText}
+                          onChange={(event) =>
+                            setEditors((prev) => ({
+                              ...prev,
+                              [experience.id]: { ...editor, bulletsText: event.target.value },
+                            }))
+                          }
+                          rows={4}
+                          placeholder={"결제 시스템 API 설계 및 구현\n팀 코드리뷰 주도 및 PR 처리 시간 단축"}
+                          className="w-full rounded-lg border border-black/15 bg-white px-3 py-2 text-sm"
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="mb-1 block text-xs font-medium text-black/60">성과 지표</label>
+                        {editor.metrics.map((metric, idx) => (
+                          <div key={idx} className="mb-2 flex items-center gap-2">
+                            <input
+                              value={metric.label}
+                              onChange={(event) => {
+                                const next = [...editor.metrics];
+                                next[idx] = { ...metric, label: event.target.value };
+                                setEditors((prev) => ({
+                                  ...prev,
+                                  [experience.id]: { ...editor, metrics: next },
+                                }));
+                              }}
+                              placeholder="라벨 (예: API 응답시간 개선)"
+                              className="flex-1 rounded-lg border border-black/15 bg-white px-3 py-2 text-sm"
+                            />
+                            <input
+                              value={metric.value}
+                              onChange={(event) => {
+                                const next = [...editor.metrics];
+                                next[idx] = { ...metric, value: event.target.value };
+                                setEditors((prev) => ({
+                                  ...prev,
+                                  [experience.id]: { ...editor, metrics: next },
+                                }));
+                              }}
+                              placeholder="값 (예: 40%)"
+                              className="w-32 rounded-lg border border-black/15 bg-white px-3 py-2 text-sm"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const next = editor.metrics.filter((_, i) => i !== idx);
+                                setEditors((prev) => ({
+                                  ...prev,
+                                  [experience.id]: { ...editor, metrics: next },
+                                }));
+                              }}
+                              className="text-xs text-rose-500 hover:text-rose-700"
+                            >
+                              삭제
+                            </button>
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setEditors((prev) => ({
+                              ...prev,
+                              [experience.id]: {
+                                ...editor,
+                                metrics: [...editor.metrics, { label: "", value: "" }],
+                              },
+                            }))
+                          }
+                          className="text-xs text-black/50 hover:text-black"
+                        >
+                          + 지표 추가
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
                 </article>
               );
             })}
