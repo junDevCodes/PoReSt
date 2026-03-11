@@ -39,6 +39,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly",
       priority: 0.7,
     },
+    {
+      url: `${baseUrl}/portfolio/${p.publicSlug}/experiences`,
+      lastModified: p.updatedAt,
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
   ]);
 
   const projects = await prisma.project.findMany({
