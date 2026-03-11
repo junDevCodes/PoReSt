@@ -14,6 +14,7 @@ const NAV_GROUPS: NavItem[][] = [
     { href: "/app", label: "대시보드" },
     { href: "/app/projects", label: "프로젝트" },
     { href: "/app/experiences", label: "경력" },
+    { href: "/app/skills", label: "기술 스택" },
     { href: "/app/resumes", label: "이력서" },
     { href: "/app/portfolio/settings", label: "포트폴리오 설정" },
   ],

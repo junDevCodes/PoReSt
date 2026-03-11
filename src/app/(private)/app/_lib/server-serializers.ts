@@ -3,6 +3,7 @@ import type { OwnerExperienceDto } from "@/modules/experiences";
 import type { OwnerNoteListItemDto, OwnerNotebookDto } from "@/modules/notes";
 import type { OwnerProjectDto } from "@/modules/projects";
 import type { OwnerResumeListItemDto } from "@/modules/resumes";
+import type { OwnerSkillDto } from "@/modules/skills";
 
 export type SerializedOwnerProjectDto = Omit<OwnerProjectDto, "updatedAt"> & {
   updatedAt: string;
@@ -23,6 +24,10 @@ export type SerializedOwnerNoteListItemDto = Omit<OwnerNoteListItemDto, "updated
 };
 
 export type SerializedOwnerNotebookDto = Omit<OwnerNotebookDto, "updatedAt"> & {
+  updatedAt: string;
+};
+
+export type SerializedOwnerSkillDto = Omit<OwnerSkillDto, "updatedAt"> & {
   updatedAt: string;
 };
 
@@ -74,6 +79,13 @@ export function serializeOwnerNoteList(items: OwnerNoteListItemDto[]): Serialize
 }
 
 export function serializeOwnerNotebookList(items: OwnerNotebookDto[]): SerializedOwnerNotebookDto[] {
+  return items.map((item) => ({
+    ...item,
+    updatedAt: toIsoString(item.updatedAt),
+  }));
+}
+
+export function serializeOwnerSkillList(items: OwnerSkillDto[]): SerializedOwnerSkillDto[] {
   return items.map((item) => ({
     ...item,
     updatedAt: toIsoString(item.updatedAt),
