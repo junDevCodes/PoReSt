@@ -1,6 +1,6 @@
 # PoReSt 작업 맥락서
 
-기준일: 2026-03-15
+기준일: 2026-03-16
 문서 정의: 완료된 작업의 이력과 현재 작업이 진행되는 맥락을 기록. 새 세션에서 "지금 왜 이걸 하는가"를 즉시 파악하는 용도.
 관련 문서: `plan.md`(전체 계획), `task.md`(현재 태스크 상세), `checklist.md`(검증 체크리스트)
 
@@ -425,6 +425,50 @@
 **검증**: curl — Public API 200/422, Private API 401, 포트폴리오 홈/경력 200
 **커밋**: `eaa1a24`
 
+### T85: 추천서/동료 평가 (2026-03-16) ✅
+
+**범위**: 병렬 세션에서 구현 (3커밋)
+
+**핵심 변경**:
+
+1. **Testimonial Prisma 모델** — 추천서/동료 평가 스키마
+2. **testimonials 모듈** — CRUD + 공유 링크 + 승인 플로우
+3. **API 7개** — Private/Public 분리
+4. **워크스페이스 UI** — 추천서 관리 + 공개 작성 폼 + 포트폴리오 섹션
+
+**커밋**: `b3879c5`, `72ce4ab`, `67a4fdc`
+
+### T86: 성장 타임라인 (자동 수집 + 히트맵) (2026-03-16) ✅
+
+**범위**: 12개 파일 (10개 신규, 2개 수정) + 테스트 22개
+
+**핵심 변경**:
+
+1. **GrowthEvent Prisma 모델**
+   - `growth_events` 테이블: ownerId, type, title, description, entityId, occurredAt
+   - 8개 이벤트 타입: SKILL_ADDED, PROJECT_CREATED, EXPERIENCE_ADDED, RESUME_CREATED, NOTE_CREATED, JOB_APPLIED, OFFER_RECEIVED, CUSTOM
+
+2. **growth-timeline 모듈** (`src/modules/growth-timeline/`)
+   - `getTimeline()` — 히트맵 일별 카운트 + 타입 분포 + 월별 요약 + 최근 이벤트
+   - `createEvent()` — Zod 검증 + 수동 이벤트 추가
+   - `deleteEvent()` — 소유권 검증 (NOT_FOUND/FORBIDDEN)
+   - `syncFromEntities()` — 6가지 엔티티에서 자동 수집 + entityId 기반 중복 방지
+
+3. **API 4개**
+   - `GET /api/app/growth-timeline` — 타임라인 조회 (days 파라미터)
+   - `POST /api/app/growth-timeline` — 수동 이벤트 추가 (201)
+   - `POST /api/app/growth-timeline/sync` — 자동 수집 실행
+   - `DELETE /api/app/growth-timeline/[id]` — 이벤트 삭제
+
+4. **워크스페이스 UI** (`/app/growth-timeline`)
+   - 요약 카드 + 히트맵(365일) + 월별 차트 + 타입 분포 + 타임라인 리스트
+   - 이벤트 추가 모달 + 자동 수집 버튼
+   - AppSidebar "성장 타임라인" 메뉴 추가
+
+**게이트**: `lint(0 errors) / build / jest(64 suites, 413 tests) / vercel-build` 통과
+**검증**: Playwright — 홈/경력/Sitemap 200, API 인증 보호(401) 4개, 로그인 리다이렉트 정상
+**커밋**: `7fb82a3`
+
 ---
 
 ## 현재 진행 맥락
@@ -432,17 +476,19 @@
 ### 태스크 진행 순서
 
 ```
-T52 ✅ → T76~G ✅ → T77 ✅ → T78 ✅ → T79 ✅ ∥ T82 ✅ → T80-1 ✅ → T80-2 ✅ ∥ T80-3 ✅ ∥ T80-4 ✅ → T80-5 ✅ ∥ T80-6 ✅ → T83 ✅ ∥ T84 ✅ → T85 ∥ T86 → [확장 판단] → T87, T81
+T52 ✅ → T76~G ✅ → T77 ✅ → T78 ✅ → T79 ✅ ∥ T82 ✅ → T80-1 ✅ → T80-2 ✅ ∥ T80-3 ✅ ∥ T80-4 ✅ → T80-5 ✅ ∥ T80-6 ✅ → T83 ✅ ∥ T84 ✅ → T85 ✅ ∥ T86 ✅ → [확장 판단] → T87, T81
 ```
 
-### 다음 태스크
+### M10 완료 — 확장 판단 시점
 
-- T85: 추천서/동료 평가 (M10)
-- T86: 성장 타임라인 (M10)
+- T85 ✅ + T86 ✅ → M10 커리어 관리 마일스톤 완료
+- 다음 단계: "이 제품을 남도 쓰게 할 만한가?" 판단
+- T87: 커스텀 도메인 (유료화 경계)
+- T81: 블로그 외부 연동 (Optional)
 
 ### 전략 결정 사항 (2026-03-15 논의)
 
-- **제품 전략**: Dogfooding → M8 완료 시점에 확장 판단
+- **제품 전략**: Dogfooding → M10 완료 시점에 확장 판단
 - **T81(블로그 연동)**: 우선순위 최하향 — OAuth 유지보수 비용 > 기능 가치
 - **핵심 원칙**: "사용 빈도를 올리는 기능"이 제품 생존 핵심
 
@@ -466,3 +512,5 @@ T52 ✅ → T76~G ✅ → T77 ✅ → T78 ✅ → T79 ✅ ∥ T82 ✅ → T80-1 
 - **AI 이력서 초안**: `generateResumeDraft()` → Gemini LLM + 경력/스킬 분석 → Resume+Items 자동 생성
 - **지원 이력 트래커**: `src/modules/job-tracker/` — 칸반 보드 + Gemini JD 매칭 + ApplicationEvent 타임라인
 - **엔티티 연결**: DomainLink + SKILL enum — 양방향 조회 + 공개 조회 + 포트폴리오 "관련 프로젝트" 표시
+- **추천서/동료 평가**: `src/modules/testimonials/` — 공유 링크 → 비로그인 작성 → 승인 후 공개
+- **성장 타임라인**: `src/modules/growth-timeline/` — 6가지 엔티티 자동 수집 + 히트맵 + 수동 이벤트
