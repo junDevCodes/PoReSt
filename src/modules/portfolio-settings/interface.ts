@@ -3,6 +3,56 @@ import type { Prisma } from "@prisma/client";
 export const MAX_PORTFOLIO_PUBLIC_SLUG_LENGTH = 100;
 export const PORTFOLIO_PUBLIC_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
+// --- Layout types ---
+
+export const LAYOUT_SECTION_IDS = ["projects", "experiences", "skills"] as const;
+export type LayoutSectionId = (typeof LAYOUT_SECTION_IDS)[number];
+
+export type LayoutSection = {
+  id: LayoutSectionId;
+  visible: boolean;
+};
+
+export type LayoutConfig = {
+  sections: LayoutSection[];
+};
+
+export const DEFAULT_LAYOUT: LayoutConfig = {
+  sections: [
+    { id: "projects", visible: true },
+    { id: "experiences", visible: true },
+    { id: "skills", visible: true },
+  ],
+};
+
+export function parseLayoutConfig(raw: unknown): LayoutConfig {
+  if (!raw || typeof raw !== "object") return DEFAULT_LAYOUT;
+  const obj = raw as Record<string, unknown>;
+  if (!Array.isArray(obj.sections)) return DEFAULT_LAYOUT;
+
+  const validIds = new Set<string>(LAYOUT_SECTION_IDS);
+  const seen = new Set<string>();
+  const sections: LayoutSection[] = [];
+
+  for (const item of obj.sections) {
+    if (!item || typeof item !== "object") continue;
+    const s = item as Record<string, unknown>;
+    const id = s.id;
+    if (typeof id !== "string" || !validIds.has(id) || seen.has(id)) continue;
+    seen.add(id);
+    sections.push({ id: id as LayoutSectionId, visible: s.visible !== false });
+  }
+
+  // Append any missing sections (backward compat)
+  for (const defaultSection of DEFAULT_LAYOUT.sections) {
+    if (!seen.has(defaultSection.id)) {
+      sections.push(defaultSection);
+    }
+  }
+
+  return { sections };
+}
+
 export type PortfolioSettingsFieldErrors = Record<string, string>;
 
 export type PortfolioLinkInput = {

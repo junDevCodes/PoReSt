@@ -4,9 +4,10 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getMetadataBase, getSiteUrl } from "@/lib/site-url";
 import { createProjectsService, isProjectServiceError } from "@/modules/projects";
-import { toPublicHomeViewModel } from "@/view-models/public-portfolio";
+import { toPublicHomeViewModel, type PublicHomeViewModel } from "@/view-models/public-portfolio";
 import { PrivatePortfolioPage } from "@/components/portfolio/PrivatePortfolioPage";
 import { JsonLd } from "@/components/seo/JsonLd";
+import type { LayoutSectionId } from "@/modules/portfolio-settings/interface";
 
 function SocialIcon({ type }: { type: string }) {
   switch (type) {
@@ -107,6 +108,143 @@ export async function generateMetadata({ params }: PublicPortfolioPageProps): Pr
 
 export const revalidate = 60;
 
+/* ── Section renderers ─────────────────────────────── */
+
+function ProjectsSection({
+  viewModel,
+  userProjectsPath,
+}: {
+  viewModel: PublicHomeViewModel;
+  userProjectsPath: string;
+}) {
+  return (
+    <section className="mt-14">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-semibold">대표 프로젝트</h2>
+        <Link className="text-sm font-medium text-black/70 hover:text-black dark:text-white/70 dark:hover:text-white" href={userProjectsPath}>
+          전체 보기
+        </Link>
+      </div>
+
+      {viewModel.featuredProjects.length === 0 ? (
+        <div className="mt-6 rounded-2xl border border-black/10 bg-white p-6 text-sm text-black/65 dark:border-white/10 dark:bg-[#1e1e1e] dark:text-white/65">
+          공개된 대표 프로젝트가 없습니다.
+        </div>
+      ) : (
+        <div className="mt-6 grid gap-4 md:grid-cols-3">
+          {viewModel.featuredProjects.map((project) => (
+            <article key={project.id} className="rounded-2xl border border-black/10 bg-white p-5 dark:border-white/10 dark:bg-[#1e1e1e]">
+              <h3 className="text-lg font-semibold">{project.title}</h3>
+              <p className="mt-2 line-clamp-3 text-sm text-black/65 dark:text-white/65">
+                {project.description ?? "설명 정보가 없습니다."}
+              </p>
+              <p className="mt-3 text-xs text-black/60 dark:text-white/60">
+                {project.techStack.length > 0 ? project.techStack.join(" · ") : "기술 스택 정보 없음"}
+              </p>
+              <Link href={project.publicPath} className="mt-4 inline-flex text-sm font-semibold text-black/80 hover:text-black dark:text-white/80 dark:hover:text-white">
+                상세 보기
+              </Link>
+            </article>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function ExperiencesSection({
+  viewModel,
+  experiencesPath,
+}: {
+  viewModel: PublicHomeViewModel;
+  experiencesPath: string;
+}) {
+  if (viewModel.featuredExperiences.length === 0) return null;
+
+  return (
+    <section className="mt-14">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-semibold">경력</h2>
+        <Link className="text-sm font-medium text-black/70 hover:text-black dark:text-white/70 dark:hover:text-white" href={experiencesPath}>
+          전체 보기
+        </Link>
+      </div>
+      <div className="mt-6 space-y-4">
+        {viewModel.featuredExperiences.map((exp) => (
+          <article key={exp.id} className="rounded-2xl border border-black/10 bg-white p-5 dark:border-white/10 dark:bg-[#1e1e1e]">
+            <div className="flex items-center gap-3">
+              <h3 className="text-lg font-semibold">{exp.company}</h3>
+              {exp.isCurrent ? (
+                <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">
+                  재직 중
+                </span>
+              ) : null}
+            </div>
+            <p className="mt-1 text-sm text-black/75 dark:text-white/75">{exp.role}</p>
+            <p className="mt-1 text-xs text-black/60 dark:text-white/60">{exp.period}</p>
+            {exp.summary ? (
+              <p className="mt-2 text-sm text-black/65 dark:text-white/65">{exp.summary}</p>
+            ) : null}
+            {exp.techTags.length > 0 ? (
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {exp.techTags.map((tag) => (
+                  <span key={tag} className="rounded-full bg-black/5 px-2.5 py-0.5 text-xs text-black/70 dark:bg-white/10 dark:text-white/70">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            ) : null}
+          </article>
+        ))}
+      </div>
+      <Link
+        href={experiencesPath}
+        className="mt-4 inline-flex text-sm font-semibold text-black/80 hover:text-black dark:text-white/80 dark:hover:text-white"
+      >
+        경력 전체 보기 →
+      </Link>
+    </section>
+  );
+}
+
+function SkillsSection({
+  skillGroups,
+}: {
+  skillGroups: Map<string, Array<{ id: string; name: string; category: string | null; level: number | null }>>;
+}) {
+  if (skillGroups.size === 0) return null;
+
+  return (
+    <section className="mt-14">
+      <h2 className="text-2xl font-semibold">기술 스택</h2>
+      <div className="mt-6 space-y-5">
+        {Array.from(skillGroups.entries()).map(([category, items]) => (
+          <div key={category}>
+            <h3 className="mb-2 text-sm font-semibold text-black/60 dark:text-white/60">{category}</h3>
+            <div className="flex flex-wrap gap-2">
+              {items.map((skill) => (
+                <span
+                  key={skill.id}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-black/5 px-3 py-1.5 text-sm text-black/80 dark:bg-white/10 dark:text-white/80"
+                >
+                  {skill.name}
+                  {skill.level !== null ? (
+                    <span className="text-xs text-black/40 dark:text-white/40">
+                      {"●".repeat(skill.level)}{"○".repeat(5 - skill.level)}
+                    </span>
+                  ) : null}
+                </span>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/* ── Page component ──────────────────────────────── */
+
 export default async function PublicPortfolioPage({ params }: PublicPortfolioPageProps) {
   const resolvedParams = await params;
   const userProjectsPath = `/portfolio/${encodeURIComponent(resolvedParams.publicSlug)}/projects`;
@@ -164,9 +302,17 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
       : {}),
   };
 
+  // Build section renderers map
+  const sectionRenderers: Record<LayoutSectionId, React.ReactNode> = {
+    projects: <ProjectsSection key="projects" viewModel={viewModel} userProjectsPath={userProjectsPath} />,
+    experiences: <ExperiencesSection key="experiences" viewModel={viewModel} experiencesPath={experiencesPath} />,
+    skills: <SkillsSection key="skills" skillGroups={skillGroups} />,
+  };
+
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-6 py-14">
       <JsonLd data={personJsonLd} />
+      {/* Profile header — always first */}
       <div className="flex items-start gap-5">
         {viewModel.profile.avatarUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -268,110 +414,10 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
         </section>
       ) : null}
 
-      <section className="mt-14">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-semibold">대표 프로젝트</h2>
-          <Link className="text-sm font-medium text-black/70 hover:text-black dark:text-white/70 dark:hover:text-white" href={userProjectsPath}>
-            전체 보기
-          </Link>
-        </div>
-
-        {viewModel.featuredProjects.length === 0 ? (
-          <div className="mt-6 rounded-2xl border border-black/10 bg-white p-6 text-sm text-black/65 dark:border-white/10 dark:bg-[#1e1e1e] dark:text-white/65">
-            공개된 대표 프로젝트가 없습니다.
-          </div>
-        ) : (
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
-            {viewModel.featuredProjects.map((project) => (
-              <article key={project.id} className="rounded-2xl border border-black/10 bg-white p-5 dark:border-white/10 dark:bg-[#1e1e1e]">
-                <h3 className="text-lg font-semibold">{project.title}</h3>
-                <p className="mt-2 line-clamp-3 text-sm text-black/65 dark:text-white/65">
-                  {project.description ?? "설명 정보가 없습니다."}
-                </p>
-                <p className="mt-3 text-xs text-black/60 dark:text-white/60">
-                  {project.techStack.length > 0 ? project.techStack.join(" · ") : "기술 스택 정보 없음"}
-                </p>
-                <Link href={project.publicPath} className="mt-4 inline-flex text-sm font-semibold text-black/80 hover:text-black dark:text-white/80 dark:hover:text-white">
-                  상세 보기
-                </Link>
-              </article>
-            ))}
-          </div>
-        )}
-      </section>
-
-      {viewModel.featuredExperiences.length > 0 ? (
-        <section className="mt-14">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-semibold">경력</h2>
-            <Link className="text-sm font-medium text-black/70 hover:text-black dark:text-white/70 dark:hover:text-white" href={experiencesPath}>
-              전체 보기
-            </Link>
-          </div>
-          <div className="mt-6 space-y-4">
-            {viewModel.featuredExperiences.map((exp) => (
-              <article key={exp.id} className="rounded-2xl border border-black/10 bg-white p-5 dark:border-white/10 dark:bg-[#1e1e1e]">
-                <div className="flex items-center gap-3">
-                  <h3 className="text-lg font-semibold">{exp.company}</h3>
-                  {exp.isCurrent ? (
-                    <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">
-                      재직 중
-                    </span>
-                  ) : null}
-                </div>
-                <p className="mt-1 text-sm text-black/75 dark:text-white/75">{exp.role}</p>
-                <p className="mt-1 text-xs text-black/60 dark:text-white/60">{exp.period}</p>
-                {exp.summary ? (
-                  <p className="mt-2 text-sm text-black/65 dark:text-white/65">{exp.summary}</p>
-                ) : null}
-                {exp.techTags.length > 0 ? (
-                  <div className="mt-3 flex flex-wrap gap-1.5">
-                    {exp.techTags.map((tag) => (
-                      <span key={tag} className="rounded-full bg-black/5 px-2.5 py-0.5 text-xs text-black/70 dark:bg-white/10 dark:text-white/70">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                ) : null}
-              </article>
-            ))}
-          </div>
-          <Link
-            href={experiencesPath}
-            className="mt-4 inline-flex text-sm font-semibold text-black/80 hover:text-black dark:text-white/80 dark:hover:text-white"
-          >
-            경력 전체 보기 →
-          </Link>
-        </section>
-      ) : null}
-
-      {skills.length > 0 ? (
-        <section className="mt-14">
-          <h2 className="text-2xl font-semibold">기술 스택</h2>
-          <div className="mt-6 space-y-5">
-            {Array.from(skillGroups.entries()).map(([category, items]) => (
-              <div key={category}>
-                <h3 className="mb-2 text-sm font-semibold text-black/60 dark:text-white/60">{category}</h3>
-                <div className="flex flex-wrap gap-2">
-                  {items.map((skill) => (
-                    <span
-                      key={skill.id}
-                      className="inline-flex items-center gap-1.5 rounded-full bg-black/5 px-3 py-1.5 text-sm text-black/80 dark:bg-white/10 dark:text-white/80"
-                    >
-                      {skill.name}
-                      {skill.level !== null ? (
-                        <span className="text-xs text-black/40 dark:text-white/40">
-                          {"●".repeat(skill.level)}{"○".repeat(5 - skill.level)}
-                        </span>
-                      ) : null}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      ) : null}
+      {/* Dynamic sections — rendered in layoutJson order */}
+      {viewModel.layout.sections
+        .filter((s) => s.visible)
+        .map((s) => sectionRenderers[s.id])}
     </main>
   );
 }

@@ -3,6 +3,7 @@ import { z } from "zod";
 import {
   MAX_PORTFOLIO_PUBLIC_SLUG_LENGTH,
   PORTFOLIO_PUBLIC_SLUG_PATTERN,
+  LAYOUT_SECTION_IDS,
   type PortfolioSettingsService,
   type PortfolioSettingsServicePrismaClient,
   PortfolioSettingsServiceError,
@@ -93,7 +94,25 @@ const portfolioSettingsUpsertSchema = z
       .optional()
       .nullable(),
     avatarUrl: z.string().trim().url("아바타 URL 형식이 올바르지 않습니다.").optional().nullable(),
-    layoutJson: z.unknown().optional().nullable(),
+    layoutJson: z
+      .object({
+        sections: z
+          .array(
+            z.object({
+              id: z.enum(LAYOUT_SECTION_IDS),
+              visible: z.boolean(),
+            }),
+          )
+          .refine(
+            (sections) => {
+              const ids = sections.map((s) => s.id);
+              return new Set(ids).size === ids.length;
+            },
+            { message: "섹션 ID가 중복되었습니다." },
+          ),
+      })
+      .optional()
+      .nullable(),
     links: z
       .array(portfolioLinkSchema)
       .max(MAX_LINK_COUNT, "링크는 최대 20개까지 입력할 수 있습니다.")

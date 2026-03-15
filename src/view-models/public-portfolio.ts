@@ -1,4 +1,6 @@
-﻿const MAX_FEATURED_PROJECTS = 3;
+﻿import { parseLayoutConfig, type LayoutConfig } from "@/modules/portfolio-settings/interface";
+
+const MAX_FEATURED_PROJECTS = 3;
 const SECTION_KEYS = ["problem", "approach", "architecture", "results", "links"] as const;
 
 type SectionKey = (typeof SECTION_KEYS)[number];
@@ -94,6 +96,7 @@ function extractSections(contentMd: string): Record<SectionKey, string> {
 
 export type PublicHomeViewModel = {
   publicSlug: string | null;
+  layout: LayoutConfig;
   profile: {
     displayName: string | null;
     headline: string | null;
@@ -161,6 +164,7 @@ export type PublicProjectDetailViewModel = {
 export function toPublicHomeViewModel(input: unknown): PublicHomeViewModel {
   const root = isRecord(input) ? input : {};
   const rootPublicSlug = toNullableString(root.publicSlug);
+  const layout = parseLayoutConfig(root.layoutJson);
   const profileRaw = isRecord(root.profile) ? root.profile : {};
   const featuredProjectsRaw = Array.isArray(root.featuredProjects) ? root.featuredProjects : [];
   const featuredExperiencesRaw = Array.isArray(root.featuredExperiences)
@@ -171,6 +175,7 @@ export function toPublicHomeViewModel(input: unknown): PublicHomeViewModel {
 
   return {
     publicSlug: rootPublicSlug,
+    layout,
     profile: {
       displayName: toNullableString(profileRaw.displayName),
       headline: toNullableString(profileRaw.headline),

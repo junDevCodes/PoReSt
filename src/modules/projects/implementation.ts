@@ -573,6 +573,7 @@ export function createProjectsService(deps: { prisma: ProjectServicePrismaClient
         headline: true,
         bio: true,
         avatarUrl: true,
+        layoutJson: true,
         email: true,
         isEmailPublic: true,
         location: true,
@@ -618,6 +619,7 @@ export function createProjectsService(deps: { prisma: ProjectServicePrismaClient
     headline: string | null;
     bio: string | null;
     avatarUrl: string | null;
+    layoutJson: unknown;
     email: string | null;
     isEmailPublic: boolean;
     location: string | null;
@@ -658,6 +660,7 @@ export function createProjectsService(deps: { prisma: ProjectServicePrismaClient
 
     return {
       publicSlug: settings.publicSlug,
+      layoutJson: settings.layoutJson,
       profile: {
         displayName: settings.displayName,
         headline: settings.headline,
@@ -1188,6 +1191,7 @@ export function createProjectsService(deps: { prisma: ProjectServicePrismaClient
               headline: true,
               bio: true,
               avatarUrl: true,
+              layoutJson: true,
               email: true,
               isEmailPublic: true,
               location: true,
@@ -1208,6 +1212,7 @@ export function createProjectsService(deps: { prisma: ProjectServicePrismaClient
       if (!settings) {
         return {
           publicSlug: null,
+          layoutJson: null,
           profile: null,
           featuredProjects: [],
           featuredExperiences: [],

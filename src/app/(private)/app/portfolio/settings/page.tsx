@@ -4,6 +4,12 @@ import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "re
 import { parseApiResponse } from "@/app/(private)/app/_lib/admin-api";
 import { ErrorBanner, LoadingBlock } from "@/components/ui/AsyncState";
 import { PortfolioFullPreview } from "@/components/portfolio/PortfolioFullPreview";
+import {
+  DEFAULT_LAYOUT,
+  parseLayoutConfig,
+  type LayoutSectionId,
+  type LayoutSection,
+} from "@/modules/portfolio-settings/interface";
 
 const PORTFOLIO_LINK_TYPES = [
   { value: "GITHUB", label: "GitHub" },
@@ -50,6 +56,7 @@ type PortfolioSettingsDto = {
   headline: string | null;
   bio: string | null;
   avatarUrl: string | null;
+  layoutJson: unknown;
   email: string | null;
   isEmailPublic: boolean;
   location: string | null;
@@ -72,6 +79,12 @@ type ResumeListItem = {
   status: string;
 };
 
+const SECTION_LABELS: Record<LayoutSectionId, string> = {
+  projects: "대표 프로젝트",
+  experiences: "경력",
+  skills: "기술 스택",
+};
+
 type PortfolioSettingsFormState = {
   publicSlug: string;
   isPublic: boolean;
@@ -86,6 +99,7 @@ type PortfolioSettingsFormState = {
   resumeUrl: string;
   featuredResumeId: string;
   links: PortfolioLinkFormItem[];
+  layoutSections: LayoutSection[];
 };
 
 const DEFAULT_FORM: PortfolioSettingsFormState = {
@@ -102,12 +116,15 @@ const DEFAULT_FORM: PortfolioSettingsFormState = {
   resumeUrl: "",
   featuredResumeId: "",
   links: [],
+  layoutSections: DEFAULT_LAYOUT.sections,
 };
 
 function toFormState(dto: PortfolioSettingsDto | null): PortfolioSettingsFormState {
   if (!dto) {
     return DEFAULT_FORM;
   }
+
+  const layout = parseLayoutConfig(dto.layoutJson);
 
   return {
     publicSlug: dto.publicSlug,
@@ -129,6 +146,7 @@ function toFormState(dto: PortfolioSettingsDto | null): PortfolioSettingsFormSta
       order: link.order,
       type: link.type ?? "CUSTOM",
     })),
+    layoutSections: layout.sections,
   };
 }
 
@@ -348,6 +366,7 @@ export default function PortfolioSettingsPage() {
       headline: form.headline || null,
       bio: form.bio || null,
       avatarUrl: form.avatarUrl || null,
+      layoutJson: { sections: form.layoutSections },
       email: form.email || null,
       isEmailPublic: form.isEmailPublic,
       location: form.location || null,
@@ -741,6 +760,85 @@ export default function PortfolioSettingsPage() {
                   </p>
                 </div>
               )}
+            </section>
+
+            <section className="rounded-2xl border border-black/10 bg-white p-6">
+              <h2 className="mb-2 text-lg font-semibold">섹션 레이아웃</h2>
+              <p className="mb-4 text-xs text-black/50">
+                포트폴리오 홈에 표시할 섹션의 순서와 가시성을 설정합니다.
+                프로필 헤더는 항상 최상단에 표시됩니다.
+              </p>
+              <div className="space-y-2">
+                {form.layoutSections.map((section, index) => (
+                  <div
+                    key={section.id}
+                    className={`flex items-center gap-3 rounded-xl border px-4 py-3 transition-colors ${
+                      section.visible
+                        ? "border-black/10 bg-white"
+                        : "border-black/5 bg-black/[0.02] opacity-60"
+                    }`}
+                  >
+                    {/* 순서 변경 버튼 */}
+                    <div className="flex flex-col gap-0.5">
+                      <button
+                        type="button"
+                        disabled={index === 0}
+                        onClick={() => {
+                          setForm((prev) => {
+                            const next = [...prev.layoutSections];
+                            [next[index - 1], next[index]] = [next[index], next[index - 1]];
+                            return { ...prev, layoutSections: next };
+                          });
+                        }}
+                        className="rounded px-1.5 py-0.5 text-xs text-black/40 hover:bg-black/5 hover:text-black/70 disabled:invisible"
+                      >
+                        ▲
+                      </button>
+                      <button
+                        type="button"
+                        disabled={index === form.layoutSections.length - 1}
+                        onClick={() => {
+                          setForm((prev) => {
+                            const next = [...prev.layoutSections];
+                            [next[index], next[index + 1]] = [next[index + 1], next[index]];
+                            return { ...prev, layoutSections: next };
+                          });
+                        }}
+                        className="rounded px-1.5 py-0.5 text-xs text-black/40 hover:bg-black/5 hover:text-black/70 disabled:invisible"
+                      >
+                        ▼
+                      </button>
+                    </div>
+
+                    {/* 순서 번호 */}
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-black/5 text-xs font-medium text-black/50">
+                      {index + 1}
+                    </span>
+
+                    {/* 섹션 이름 */}
+                    <span className="flex-1 text-sm font-medium">
+                      {SECTION_LABELS[section.id]}
+                    </span>
+
+                    {/* 가시성 토글 */}
+                    <label className="flex cursor-pointer items-center gap-2 text-xs text-black/60">
+                      <input
+                        type="checkbox"
+                        checked={section.visible}
+                        onChange={(e) => {
+                          setForm((prev) => {
+                            const next = prev.layoutSections.map((s, i) =>
+                              i === index ? { ...s, visible: e.target.checked } : s,
+                            );
+                            return { ...prev, layoutSections: next };
+                          });
+                        }}
+                      />
+                      {section.visible ? "표시" : "숨김"}
+                    </label>
+                  </div>
+                ))}
+              </div>
             </section>
 
             <section className="rounded-2xl border border-black/10 bg-white p-6">
