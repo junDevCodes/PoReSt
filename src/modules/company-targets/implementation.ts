@@ -44,6 +44,8 @@ const createCompanyTargetSchema = z.object({
   analysisMd: z.string().trim().max(100000, "분석 내용은 100000자 이하로 입력해주세요.").optional().nullable(),
   linksJson: z.unknown().optional().nullable(),
   tags: z.array(z.string().trim().min(MIN_TEXT_LENGTH, "태그 값은 비어 있을 수 없습니다.")).optional().default([]),
+  jobDescriptionMd: z.string().trim().max(50000, "채용 공고는 50000자 이하로 입력해주세요.").optional().nullable(),
+  appliedAt: z.string().trim().optional().nullable(),
 });
 
 const updateCompanyTargetSchema = z
@@ -71,6 +73,8 @@ const updateCompanyTargetSchema = z
     analysisMd: z.string().trim().max(100000, "분석 내용은 100000자 이하로 입력해주세요.").optional().nullable(),
     linksJson: z.unknown().optional().nullable(),
     tags: z.array(z.string().trim().min(MIN_TEXT_LENGTH, "태그 값은 비어 있을 수 없습니다.")).optional(),
+    jobDescriptionMd: z.string().trim().max(50000, "채용 공고는 50000자 이하로 입력해주세요.").optional().nullable(),
+    appliedAt: z.string().trim().optional().nullable(),
   })
   .refine((input) => Object.keys(input).length > EMPTY_LENGTH, {
     message: "수정할 필드를 최소 1개 이상 입력해주세요.",
@@ -95,6 +99,9 @@ const ownerCompanyTargetSelect = {
   analysisMd: true,
   linksJson: true,
   tags: true,
+  jobDescriptionMd: true,
+  appliedAt: true,
+  matchScoreJson: true,
   updatedAt: true,
 } as const;
 
@@ -191,6 +198,8 @@ function parseCreateInput(input: unknown): CompanyTargetCreateInput {
     analysisMd: toNullableString(parsed.data.analysisMd),
     linksJson: (parsed.data.linksJson as Prisma.InputJsonValue | null | undefined) ?? null,
     tags: normalizeTags(parsed.data.tags) ?? [],
+    jobDescriptionMd: toNullableString(parsed.data.jobDescriptionMd),
+    appliedAt: parsed.data.appliedAt ?? null,
   };
 }
 
@@ -218,6 +227,10 @@ function parseUpdateInput(input: unknown): CompanyTargetUpdateInput {
       ? { linksJson: (parsed.data.linksJson as Prisma.InputJsonValue | null | undefined) ?? null }
       : {}),
     ...(parsed.data.tags !== undefined ? { tags: normalizeTags(parsed.data.tags) ?? [] } : {}),
+    ...(parsed.data.jobDescriptionMd !== undefined
+      ? { jobDescriptionMd: toNullableString(parsed.data.jobDescriptionMd) }
+      : {}),
+    ...(parsed.data.appliedAt !== undefined ? { appliedAt: parsed.data.appliedAt } : {}),
   };
 }
 
@@ -249,6 +262,9 @@ function mapOwnerDto(
     analysisMd: target.analysisMd,
     linksJson: target.linksJson,
     tags: target.tags,
+    jobDescriptionMd: target.jobDescriptionMd,
+    appliedAt: target.appliedAt,
+    matchScoreJson: target.matchScoreJson,
     updatedAt: target.updatedAt,
   };
 }
@@ -340,6 +356,8 @@ export function createCompanyTargetsService(deps: {
             analysisMd: parsed.analysisMd ?? null,
             linksJson: toNullableJsonInput(parsed.linksJson),
             tags: parsed.tags ?? [],
+            jobDescriptionMd: parsed.jobDescriptionMd ?? null,
+            appliedAt: parsed.appliedAt ? new Date(parsed.appliedAt) : null,
           },
           select: ownerCompanyTargetSelect,
         });
@@ -395,6 +413,8 @@ export function createCompanyTargetsService(deps: {
             ...(parsed.analysisMd !== undefined ? { analysisMd: parsed.analysisMd } : {}),
             ...(parsed.linksJson !== undefined ? { linksJson: toNullableJsonInput(parsed.linksJson) } : {}),
             ...(parsed.tags !== undefined ? { tags: parsed.tags } : {}),
+            ...(parsed.jobDescriptionMd !== undefined ? { jobDescriptionMd: parsed.jobDescriptionMd } : {}),
+            ...(parsed.appliedAt !== undefined ? { appliedAt: parsed.appliedAt ? new Date(parsed.appliedAt) : null } : {}),
           },
           select: ownerCompanyTargetSelect,
         });

@@ -9,6 +9,8 @@ export type CompanyTargetCreateInput = {
   analysisMd?: string | null;
   linksJson?: Prisma.InputJsonValue | null;
   tags?: string[];
+  jobDescriptionMd?: string | null;
+  appliedAt?: string | null;
 };
 
 export type CompanyTargetUpdateInput = Partial<CompanyTargetCreateInput>;
@@ -35,6 +37,9 @@ export type OwnerCompanyTargetDto = {
   analysisMd: string | null;
   linksJson: unknown;
   tags: string[];
+  jobDescriptionMd: string | null;
+  appliedAt: Date | null;
+  matchScoreJson: unknown;
   updatedAt: Date;
 };
 

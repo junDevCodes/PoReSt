@@ -80,6 +80,7 @@ enum FeedbackTargetType {
 enum DomainLinkEntityType {
   PROJECT
   EXPERIENCE
+  SKILL
   RESUME
   NOTE
   BLOG_POST
@@ -300,6 +301,13 @@ model CompanyTarget {
   linksJson  Json?
   tags       String[]
 
+  // T84: 지원 이력 트래커
+  jobDescriptionMd String?       @db.Text
+  appliedAt        DateTime?
+  matchScoreJson   Json?
+
+  events     ApplicationEvent[]
+
   createdAt  DateTime            @default(now())
   updatedAt  DateTime            @updatedAt
 
@@ -308,6 +316,22 @@ model CompanyTarget {
   @@index([ownerId, priority, updatedAt])
   @@map("company_targets")
 }
+
+model ApplicationEvent {
+  id              String              @id @default(cuid())
+  companyTargetId String
+  companyTarget   CompanyTarget       @relation(fields: [companyTargetId], references: [id], onDelete: Cascade)
+
+  fromStatus      CompanyTargetStatus?
+  toStatus        CompanyTargetStatus
+  note            String?             @db.Text
+
+  createdAt       DateTime            @default(now())
+
+  @@index([companyTargetId, createdAt])
+  @@map("application_events")
+}
+
 model Education {
   id          String     @id @default(cuid())
   ownerId     String
