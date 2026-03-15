@@ -6,100 +6,84 @@
 
 ---
 
-## T80-5 — AI 이력서 초안 ✅ 완료
+## T84 — 지원 이력 트래커 (칸반 + JD 매칭) ✅ 완료
 
 ### 현재 → 목표
 
 | 항목 | 현재 | 목표 |
 |---|---|---|
-| 이력서 생성 | 수동 생성 + 경력 항목 수동 추가 | Gemini LLM이 경력/스킬 분석 → 맞춤 초안 자동 생성 |
-| 경력 선별 | 사용자가 수동 선택 | AI가 직무 관련도 기반 자동 선별 (2~5개) |
-| 성과 커스터마이즈 | 수동 override 작성 | LLM이 직무 맞춤 STAR 기법 성과 재구성 |
-| 요약문 | 사용자가 직접 작성 | AI가 직무 맞춤 자기소개 자동 생성 |
-| Fallback | 없음 | GEMINI_API_KEY 미설정 → 공개 경력 자동 포함 |
+| 기업 분석 카드 관리 | 리스트 형태 CRUD | 칸반 보드(상태별 컬럼) |
+| JD 저장 | 미지원 | CompanyTarget에 jobDescriptionMd 필드 |
+| JD 매칭 분석 | 미지원 | Gemini LLM으로 보유 기술/경력 ↔ JD 적합도 분석 |
+| 상태 변경 이력 | 미지원 | ApplicationEvent 모델로 타임라인 추적 |
+| 지원일 기록 | 미지원 | appliedAt 자동/수동 기록 |
+| AI Fallback | 미지원 | 키워드 기반 기본 매칭 |
 
 ### 핵심 변경
 
-1. **시스템 프롬프트** — `RESUME_DRAFT_SYSTEM_PROMPT` (이력서 작성 전문 컨설턴트 페르소나)
+1. **Prisma 스키마 확장**
+   - `CompanyTarget`: `jobDescriptionMd`, `appliedAt`, `matchScoreJson` 추가
+   - `ApplicationEvent` 모델 신규 (fromStatus, toStatus, note, createdAt)
 
-2. **프롬프트 빌더** — `buildResumeDraftPrompt()`
-   - 보유 경력 전체 (인덱스 번호 부여)
-   - 보유 기술 (카테고리별 그룹)
-   - 지원 정보 (회사/직무/레벨)
-   - 채용 공고 (JD) 선택적 포함
-   - JSON 출력 형식 지시 (summaryMd + selectedExperiences)
+2. **job-tracker 모듈** (`src/modules/job-tracker/`)
+   - `getBoardForOwner()` — 상태별 그룹핑 칸반 보드 쿼리
+   - `changeStatus()` — 상태 변경 + ApplicationEvent 자동 생성
+   - `runJdMatch()` — Gemini LLM JD 매칭 + fallback
+   - `getEventsForTarget()` — 타임라인 조회
 
-3. **LLM 응답 파서** — `parseResumeDraftResponse()`
-   - 코드 블록/앞뒤 텍스트 자동 추출
-   - 경력 인덱스 매핑 (1-based → experienceId)
-   - 중복 경력 방지, 유효하지 않은 인덱스 필터링
-   - overrideBullets/Metrics/TechTags/notes 파싱
+3. **JD 매칭 AI**
+   - `JD_MATCH_SYSTEM_PROMPT` — 10년+ 커리어 컨설턴트 페르소나
+   - `buildJdMatchPrompt()` — JD + 기술/경력 프롬프트 빌더
+   - `parseJdMatchResponse()` — score/matchedSkills/gaps/summary 파서
+   - `buildFallbackMatch()` — 키워드 기반 기본 매칭
 
-4. **Fallback** — `buildFallbackResumeDraft()`
-   - PUBLIC 경력만 선택, featured → current → 최신 순 정렬
-   - 최대 5개, override 없이 원본 경력 참조
+4. **API 라우트**
+   - `GET /api/app/job-tracker` — 칸반 보드 데이터
+   - `PATCH /api/app/job-tracker/[id]/status` — 상태 변경 + 이벤트
+   - `POST /api/app/job-tracker/[id]/match` — JD 매칭 실행
+   - `GET /api/app/job-tracker/[id]/events` — 이벤트 타임라인
 
-5. **서비스 로직** — `generateResumeDraft()`
-   - 경력/스킬 조회 → 프롬프트 빌드 → LLM 호출 → 파싱
-   - Resume + ResumeItems 순차 생성
-   - `withGeminiFallback()` 패턴 적용
+5. **칸반 보드 UI** (`/app/job-tracker`)
+   - 상태별 6컬럼 (관심→지원→면접→오퍼→탈락→보관)
+   - 카드: 회사, 직무, 우선순위, 태그, 매칭 점수, 지원일
+   - 상세 모달: 상태 변경, JD 매칭, 이벤트 타임라인
 
-6. **API 엔드포인트** — `POST /api/app/resumes/draft`
-   - 인증 필수, targetCompany/targetRole/level/jobDescription 입력
-   - 201 Created → OwnerResumeDetailDto 반환
-
-7. **워크스페이스 UI** — "AI 초안 생성" 버튼 + 입력 모달
-   - 지원 회사/직무/레벨/채용 공고 입력 폼
-   - 생성 완료 시 편집 페이지로 자동 리다이렉트
+6. **company-targets 모듈 확장**
+   - DTO에 jobDescriptionMd, appliedAt, matchScoreJson 추가
+   - Zod 스키마에 새 필드 검증 추가
 
 ### 변경 파일 목록
 
 **수정:**
-- `src/modules/resumes/interface.ts` — `ResumeDraftInput`, `ResumeDraftPrismaClient` 타입 추가
-- `src/modules/resumes/implementation.ts` — AI 이력서 초안 생성 전체 로직
-- `src/app/(private)/app/resumes/ResumesPageClient.tsx` — AI 초안 버튼 + 모달 UI
-- `src/app/(private)/app/resumes/__tests__/resumes-page-client.test.tsx` — useRouter mock
-- `src/app/(private)/app/projects/__tests__/light-theme-contrast.test.tsx` — useRouter mock
+- `prisma/schema.prisma` — CompanyTarget 확장 + ApplicationEvent 모델
+- `src/modules/company-targets/interface.ts` — DTO + Input 타입 확장
+- `src/modules/company-targets/implementation.ts` — Zod, Select, 매핑 확장
+- `src/components/app/AppSidebar.tsx` — "지원 트래커" 메뉴 추가
 
 **신규:**
-- `src/app/api/app/resumes/draft/route.ts` — AI 초안 API 엔드포인트
-- `src/modules/resumes/tests/resume-draft.test.ts` — 32개 테스트
-
-### 완료 기준
-
-- [x] `generateResumeDraft()` — Gemini LLM 호출 + fallback 패턴
-- [x] `RESUME_DRAFT_SYSTEM_PROMPT` — 이력서 작성 전문가 페르소나
-- [x] `buildResumeDraftPrompt()` — 경력/스킬/JD 프롬프트 빌더
-- [x] `parseResumeDraftResponse()` — JSON 파서 (인덱스 매핑 + 검증)
-- [x] `buildFallbackResumeDraft()` — 공개 경력 기반 기본 초안
-- [x] `generateDraftTitle()` — 자동 제목 생성
-- [x] GEMINI_API_KEY 미설정 → fallback 즉시 실행
-- [x] LLM retryable 에러 → fallback 자동 전환
-- [x] JD 포함 시 직무 맞춤 최적화
-- [x] POST `/api/app/resumes/draft` API 엔드포인트
-- [x] 이력서 목록 페이지 "AI 초안 생성" 버튼 + 모달
-- [x] 테스트 32개 통과
-- [x] 게이트 4종 통과
+- `src/modules/job-tracker/interface.ts` — Board/Event/Match 타입 정의
+- `src/modules/job-tracker/implementation.ts` — 서비스 구현 + JD 매칭
+- `src/modules/job-tracker/http.ts` — 에러 응답 헬퍼
+- `src/modules/job-tracker/index.ts` — 공개 API export
+- `src/app/api/app/job-tracker/route.ts` — Board GET
+- `src/app/api/app/job-tracker/[id]/status/route.ts` — PATCH status
+- `src/app/api/app/job-tracker/[id]/match/route.ts` — POST match
+- `src/app/api/app/job-tracker/[id]/events/route.ts` — GET events
+- `src/app/(private)/app/job-tracker/page.tsx` — 칸반 보드 UI
+- `src/modules/job-tracker/tests/job-tracker.test.ts` — 22개 테스트
 
 ### 게이트
 
 - [x] `npm run lint` 통과 (0 errors, 6 warnings)
 - [x] `npm run build` 통과
-- [x] `npx jest --runInBand` 통과 (60 suites, 324 tests)
+- [x] `npx jest --runInBand` 통과 (62 suites, 359 tests)
 - [x] `npm run vercel-build` 통과
-- [x] push 완료 (`4059e70`)
+- [x] push 완료 (`92ab4d5`)
 
 ---
 
-## T80-6 — 자동 후보 엣지 ✅ 완료
+## 다음 태스크
 
-(병렬 세션에서 완료, 커밋 `976317b`)
-
----
-
-## 다음 태스크: M8 종결 → T83/T84
-
-M8 (AI 기능 고도화) 완료:
-- T80-1~6 전체 완료
-- T83: 엔티티 연결 (Experience ↔ Project ↔ Skill)
-- T84: 지원 이력 트래커 (칸반 + JD 매칭)
+- T83: 엔티티 연결 (Experience ↔ Project ↔ Skill) — 병렬 세션 진행 중
+- T85: 추천서/동료 평가 (M10)
+- T86: 성장 타임라인 (M10)

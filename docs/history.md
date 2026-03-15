@@ -354,6 +354,46 @@
 **검증**: Playwright MCP — 홈, 포트폴리오, 경력, API 인증 보호(401/405) 정상
 **커밋**: `4059e70`
 
+### T84: 지원 이력 트래커 (칸반 + JD 매칭) (2026-03-16) ✅
+
+**범위**: 14개 파일 (10개 신규, 4개 수정)
+
+**핵심 변경**:
+
+1. **CompanyTarget 스키마 확장**
+   - `jobDescriptionMd` (Text) — 채용 공고 원문 저장
+   - `appliedAt` (DateTime) — 실제 지원일
+   - `matchScoreJson` (Json) — AI 매칭 결과 (score/matchedSkills/gaps/summary)
+
+2. **ApplicationEvent 모델 신규**
+   - 상태 변경 이력 추적 (fromStatus → toStatus + note)
+   - `@@index([companyTargetId, createdAt])`
+
+3. **job-tracker 모듈** (`src/modules/job-tracker/`)
+   - `getBoardForOwner()` — 상태별 그룹핑 칸반 보드 쿼리
+   - `changeStatus()` — 상태 변경 + ApplicationEvent 자동 생성
+   - `runJdMatch()` — Gemini LLM JD 매칭 + 키워드 fallback
+   - `getEventsForTarget()` — 타임라인 조회
+
+4. **JD 매칭 AI**
+   - `JD_MATCH_SYSTEM_PROMPT` — 10년+ 커리어 컨설턴트 페르소나
+   - `buildJdMatchPrompt()` — JD + 기술/경력 프롬프트 빌더
+   - `parseJdMatchResponse()` — score 0~100 범위 보정, matchedSkills 10개/gaps 5개 제한
+   - `buildFallbackMatch()` — 키워드 기반 기본 매칭 (GEMINI_API_KEY 미설정 시)
+
+5. **API 4개**
+   - `GET /api/app/job-tracker` — 칸반 보드
+   - `PATCH /api/app/job-tracker/[id]/status` — 상태 변경
+   - `POST /api/app/job-tracker/[id]/match` — JD 매칭
+   - `GET /api/app/job-tracker/[id]/events` — 이벤트 타임라인
+
+6. **칸반 보드 UI** (`/app/job-tracker`)
+   - 상태별 6컬럼, 카드 상세 모달, JD 매칭 분석 결과 표시
+   - AppSidebar "지원 트래커" 메뉴 추가
+
+**게이트**: `lint(0 errors) / build / jest(62 suites, 359 tests) / vercel-build` 통과
+**커밋**: `92ab4d5`
+
 ---
 
 ## 현재 진행 맥락
@@ -361,14 +401,14 @@
 ### 태스크 진행 순서
 
 ```
-T52 ✅ → T76~G ✅ → T77 ✅ → T78 ✅ → T79 ✅ ∥ T82 ✅ → T80-1 ✅ → T80-2 ✅ ∥ T80-3 ✅ ∥ T80-4 ✅ → T80-5 ✅ ∥ T80-6 ✅ → T83 ∥ T84 → T85 ∥ T86 → [확장 판단] → T87, T81
+T52 ✅ → T76~G ✅ → T77 ✅ → T78 ✅ → T79 ✅ ∥ T82 ✅ → T80-1 ✅ → T80-2 ✅ ∥ T80-3 ✅ ∥ T80-4 ✅ → T80-5 ✅ ∥ T80-6 ✅ → T83 ∥ T84 ✅ → T85 ∥ T86 → [확장 판단] → T87, T81
 ```
 
 ### 다음 태스크
 
-**M8 (AI 기능 고도화) 완료** — T80-1~6 전체 완료.
-- T83: 엔티티 연결 (Experience ↔ Project ↔ Skill)
-- T84: 지원 이력 트래커 (칸반 + JD 매칭)
+- T83: 엔티티 연결 (Experience ↔ Project ↔ Skill) — 병렬 세션 진행 중
+- T85: 추천서/동료 평가 (M10)
+- T86: 성장 타임라인 (M10)
 
 ### 전략 결정 사항 (2026-03-15 논의)
 
@@ -394,3 +434,4 @@ T52 ✅ → T76~G ✅ → T77 ✅ → T78 ✅ → T79 ✅ ∥ T82 ✅ → T80-1 
 - **임베딩 자동화**: Gemini text-embedding-004 → NoteEmbedding UPSERT, deterministic fallback
 - **자동 후보 엣지**: `queueEmbeddingAndEdgesForNote()` → pgvector 유사도 → NoteEdge CANDIDATE 자동 생성
 - **AI 이력서 초안**: `generateResumeDraft()` → Gemini LLM + 경력/스킬 분석 → Resume+Items 자동 생성
+- **지원 이력 트래커**: `src/modules/job-tracker/` — 칸반 보드 + Gemini JD 매칭 + ApplicationEvent 타임라인

@@ -6,137 +6,115 @@
 
 ---
 
-## T80-5 — AI 이력서 초안 ✅
+## T84 — 지원 이력 트래커 (칸반 + JD 매칭) ✅
 
 ---
 
-### 아키텍처
+### 스키마
 
-- [x] `generateResumeDraft()` — Gemini LLM + fallback 통합
-- [x] `withGeminiFallback()` 패턴 적용
-- [x] Resume + ResumeItems 순차 생성 (항목별 에러 catch)
-- [x] 경력 미등록 시 VALIDATION_ERROR(422)
+- [x] CompanyTarget에 `jobDescriptionMd` (Text, nullable) 추가
+- [x] CompanyTarget에 `appliedAt` (DateTime, nullable) 추가
+- [x] CompanyTarget에 `matchScoreJson` (Json, nullable) 추가
+- [x] CompanyTarget에 `events` relation 추가
+- [x] `ApplicationEvent` 모델 신규 (companyTargetId, fromStatus, toStatus, note)
+- [x] `@@index([companyTargetId, createdAt])` 인덱스
+- [x] `prisma db push` 정상 반영
+- [x] `prisma generate` 클라이언트 생성
 
-### LLM 프롬프트
+### job-tracker 모듈
 
-- [x] `RESUME_DRAFT_SYSTEM_PROMPT` — 이력서 작성 전문 컨설턴트 (10년+, 한국어)
-- [x] `buildResumeDraftPrompt()` — 경력 인덱스 + 기술 카테고리 + 지원 정보
-- [x] 채용 공고 (JD) 선택적 포함 (5000자 제한)
-- [x] 7가지 작성 규칙 (STAR 기법, 정량 지표 등)
+- [x] `interface.ts` — BoardCardDto, BoardColumnDto, BoardDto, ApplicationEventDto, JdMatchResult 타입
+- [x] `interface.ts` — JobTrackerServiceError + isJobTrackerServiceError 타입 가드
+- [x] `implementation.ts` — STATUS_ORDER 6개 상태, STATUS_LABELS 한국어
+- [x] `implementation.ts` — statusChangeSchema Zod 검증
+- [x] `implementation.ts` — jdMatchInputSchema Zod 검증 (1~50000자)
+- [x] `getBoardForOwner()` — ownerId 필터 + 우선순위/수정일 정렬 + 상태별 그룹핑
+- [x] `changeStatus()` — 소유권 검증 + 상태 업데이트 + ApplicationEvent 생성
+- [x] `changeStatus()` — APPLIED 전이 시 appliedAt 자동 설정
+- [x] `runJdMatch()` — input JD 저장 + 기존 JD 사용 분기
+- [x] `runJdMatch()` — skill + experience 조회 + Gemini LLM 호출
+- [x] `runJdMatch()` — matchScoreJson 결과 저장
+- [x] `runJdMatch()` — JD 미등록 시 NO_JD(422) 에러
+- [x] `getEventsForTarget()` — 소유권 검증 + createdAt desc 정렬
+- [x] `withGeminiFallback()` — GEMINI_API_KEY 미설정 시 fallback
+- [x] `buildFallbackMatch()` — 키워드 기반 기본 매칭
 
-### 응답 파서
+### JD 매칭 AI
 
-- [x] `parseResumeDraftResponse()` — 코드 블록/앞뒤 텍스트 자동 추출
-- [x] 경력 인덱스 매핑 (1-based → experienceId) + 중복 방지
-- [x] 빈 overrideBullets/Metrics → null 변환
-- [x] JSON 미발견/파싱 실패 → GeminiClientError(retryable)
+- [x] `JD_MATCH_SYSTEM_PROMPT` — 한국어 커리어 컨설턴트 페르소나
+- [x] `buildJdMatchPrompt()` — JD + 기술(카테고리) + 경력(재직중/techTags/summary)
+- [x] `parseJdMatchResponse()` — JSON 추출 (코드블록/일반)
+- [x] `parseJdMatchResponse()` — score 0~100 범위 보정
+- [x] `parseJdMatchResponse()` — matchedSkills 최대 10개, gaps 최대 5개
+- [x] `parseJdMatchResponse()` — summary 500자 제한
+- [x] `parseJdMatchResponse()` — 파싱 실패 시 안전 기본값 반환
 
-### Fallback
+### API
 
-- [x] GEMINI_API_KEY 미설정 → fallback 즉시 실행
-- [x] LLM retryable 에러 → fallback 전환
-- [x] PUBLIC 경력만, featured → current → 최신 정렬, 최대 5개
+- [x] `GET /api/app/job-tracker` — 인증 필수, Board 반환
+- [x] `PATCH /api/app/job-tracker/[id]/status` — 인증 + JSON 검증 + 상태 변경
+- [x] `POST /api/app/job-tracker/[id]/match` — 인증 + JD 입력 + 매칭 결과
+- [x] `GET /api/app/job-tracker/[id]/events` — 인증 + 타임라인 반환
 
-### 테스트 (32개)
+### company-targets 모듈 확장
 
-- [x] parseResumeDraftInput 5개 (정상/빈/null/초과/JD초과)
-- [x] buildResumeDraftPrompt 6개 (경력/기술/JD/없음/bullets/날짜)
-- [x] parseResumeDraftResponse 10개 (정상/코드블록/텍스트/인덱스/중복/null/빈값/에러3개)
-- [x] buildFallbackResumeDraft 5개 (PUBLIC/featured/null/override/최대)
-- [x] generateDraftTitle 3개 (회사+직무/회사/기본)
-- [x] RESUME_DRAFT_SYSTEM_PROMPT 3개 (한국어/전문가/IT)
+- [x] `OwnerCompanyTargetDto` — jobDescriptionMd, appliedAt, matchScoreJson 추가
+- [x] `CompanyTargetCreateInput` — jobDescriptionMd, appliedAt 추가
+- [x] Zod create/update 스키마 — 새 필드 검증 추가
+- [x] ownerCompanyTargetSelect — 새 필드 포함
+- [x] mapOwnerDto — 새 필드 매핑
+- [x] create/update 데이터 — 새 필드 Prisma 반영
 
-### T80-5 게이트 4종
+### 칸반 보드 UI
+
+- [x] `/app/job-tracker` 페이지 정상 렌더링
+- [x] 상태별 6컬럼 칸반 레이아웃 (가로 스크롤)
+- [x] 카드 표시: 회사, 직무, 우선순위, 태그(3개+), 매칭 점수, 지원일
+- [x] 빈 보드 시 안내 메시지 + 기업 분석 링크
+- [x] 카드 클릭 → 상세 모달
+- [x] 모달: 상태 변경 버튼 + 메모 입력
+- [x] 모달: JD 입력 + AI 매칭 분석 버튼
+- [x] 모달: 매칭 결과 (점수, 일치 기술, 보완 필요, 요약)
+- [x] 모달: 이벤트 타임라인 (상태 변경 이력)
+- [x] 모달: 배경 클릭 닫기
+- [x] AppSidebar "지원 트래커" 메뉴 추가
+
+### 테스트 (22개)
+
+- [x] parseJdMatchResponse 정상 JSON (1)
+- [x] parseJdMatchResponse 코드블록 추출 (1)
+- [x] parseJdMatchResponse score 100 초과 보정 (1)
+- [x] parseJdMatchResponse score 음수 보정 (1)
+- [x] parseJdMatchResponse matchedSkills 10개 제한 (1)
+- [x] parseJdMatchResponse gaps 5개 제한 (1)
+- [x] parseJdMatchResponse JSON 실패 기본값 (1)
+- [x] parseJdMatchResponse 빈 문자열 기본값 (1)
+- [x] parseJdMatchResponse 잘못된 구조 안전 처리 (1)
+- [x] parseJdMatchResponse summary 500자 절삭 (1)
+- [x] buildJdMatchPrompt 기술+경력 포함 (1)
+- [x] buildJdMatchPrompt 기술/경력 없음 (1)
+- [x] buildJdMatchPrompt JD 10000자 절삭 (1)
+- [x] buildJdMatchPrompt 카테고리 없음 (1)
+- [x] buildJdMatchPrompt 경력 techTags (1)
+- [x] JD_MATCH_SYSTEM_PROMPT 한국어 (1)
+- [x] JD_MATCH_SYSTEM_PROMPT 커리어 컨설턴트 (1)
+- [x] JD_MATCH_SYSTEM_PROMPT JSON 형식 (1)
+- [x] JobTrackerServiceError 생성 (1)
+- [x] JobTrackerServiceError 필드 에러 (1)
+- [x] isJobTrackerServiceError 타입 가드 (1)
+- [x] CompanyTargetStatus 6개 정의 (1)
+
+### T84 게이트 4종
 
 - [x] `npm run lint` 통과 (0 errors, 6 warnings)
 - [x] `npm run build` 통과
-- [x] `npx jest --runInBand` 통과 (60 suites, 324 tests)
+- [x] `npx jest --runInBand` 통과 (62 suites, 359 tests)
 - [x] `npm run vercel-build` 통과
-
----
-
-## T80-6 — 자동 후보 엣지 ✅
-
----
-
-### generateCandidateEdgesForNote
-
-- [x] 임베딩 유사 노트 기반 CANDIDATE 엣지 생성 (`status: CANDIDATE`, `origin: AUTO`)
-- [x] MAX(임베딩 코사인, 태그 Jaccard) 가중치 계산
-- [x] 동일 도메인(노트북) 가중치 보너스 +0.1 적용
-- [x] 가중치 상한 1.0 cap
-- [x] 기존 엣지 중복 방지 (normalizePairKey)
-- [x] fromId < toId 정규화
-- [x] 상위 20개 후보만 저장
-- [x] 소스 노트 미존재 → 빈 배열 반환
-- [x] 빈 유사 노트 배열 → 빈 배열 반환 (DB 조회 없음)
-- [x] 삭제된 후보 노트 스킵 (`deletedAt: null` 필터)
-- [x] reason에 임베딩 유사도 포함 (`임베딩 유사도: 0.XXXX`)
-- [x] reason에 태그 교집합 포함 (태그 유사도 > 0인 경우)
-- [x] reason에 동일 도메인 가중치 표시 (해당 시)
-- [x] 태그 없는 노트 쌍에서도 임베딩 점수로 엣지 생성
-
-### queueEmbeddingAndEdgesForNote
-
-- [x] `embedSingleNote()` 성공 (succeeded > 0) 후 유사 검색 실행
-- [x] `searchSimilarNotesForOwner()` 호출 (limit: 10, minScore: 0.5)
-- [x] 유사 노트 있으면 `edgeCallback()` 호출 (noteId + score 전달)
-- [x] 임베딩 실패 시 엣지 콜백 미호출
-- [x] 임베딩 succeeded=0이면 엣지 콜백 미호출
-- [x] 유사 노트 없으면 엣지 콜백 미호출
-- [x] 엣지 콜백 실패 시 에러 삼키고 warn 로그
-- [x] `edgeCallback: null`이면 유사 검색 자체 스킵
-- [x] fire-and-forget 패턴 (API 응답 지연 없음)
-
-### API 연동
-
-- [x] POST `/api/app/notes` — `queueEmbeddingAndEdgesForNote()` 호출
-- [x] PUT `/api/app/notes/[id]` — `queueEmbeddingAndEdgesForNote()` 호출
-- [x] `EdgeGenerationCallback` 타입으로 notesService.generateCandidateEdgesForNote 연결
-
-### 테스트 (18개)
-
-- [x] 임베딩 유사 노트 기반 CANDIDATE 엣지 생성 (1)
-- [x] 빈 유사 노트 배열 → 빈 배열 반환 (1)
-- [x] 소스 노트 미존재 → 빈 배열 반환 (1)
-- [x] 기존 엣지 중복 스킵 (1)
-- [x] 동일 도메인 가중치 보너스 (1)
-- [x] MAX(임베딩, 태그) 가중치 (1)
-- [x] fromId < toId 정규화 (1)
-- [x] 삭제된 후보 노트 스킵 (1)
-- [x] reason에 임베딩 유사도 포함 (1)
-- [x] 태그 없는 노트 임베딩 엣지 생성 (1)
-- [x] 가중치 상한 1.0 (1)
-- [x] 상위 20개 제한 (1)
-- [x] 임베딩 성공 → 유사 검색 → 엣지 콜백 호출 (1)
-- [x] 임베딩 실패 → 엣지 콜백 미호출 (1)
-- [x] succeeded=0 → 엣지 콜백 미호출 (1)
-- [x] 유사 노트 없음 → 엣지 콜백 미호출 (1)
-- [x] 엣지 콜백 실패 → 에러 삼키기 (1)
-- [x] edgeCallback null → 스킵 (1)
-
-### T80-6 게이트 4종
-
-- [x] `npm run lint` 통과 (0 errors, 6 warnings)
-- [x] `npm run build` 통과
-- [x] `npx jest --runInBand` 통과 (59 suites, 292 tests)
-- [x] `npm run vercel-build` 통과
-
----
-
-### Playwright 브라우저 검증
-
-- [x] 홈페이지 정상 렌더링 (타이틀 확인)
-- [x] 포트폴리오 공개 페이지 정상 (프로필/프로젝트/경력/기술 스택)
-- [x] Private API 인증 보호 (notes/edges/analytics → 401)
-- [x] Public API 정상 (pageviews 201, 422, 404)
-- [x] Sitemap XML 200 반환
 
 ---
 
 ### 매 태스크 종료 시 공통
 
 - [x] 게이트 4종 통과
-- [x] Jest 테스트 18개 통과 (auto-candidate-edges.test.ts)
-- [x] Playwright 브라우저 검증 통과
+- [x] Jest 테스트 22개 통과 (job-tracker.test.ts)
 - [x] `task.md`, `checklist.md`, `history.md`, `plan.md` 문서 동기화
