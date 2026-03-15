@@ -99,6 +99,7 @@ export type FeedbackServicePrismaClient = Pick<
   | "resumeItem"
   | "note"
   | "blogPost"
+  | "skill"
 >;
 
 export interface FeedbackService {
