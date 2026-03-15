@@ -26,10 +26,12 @@ const NAV_GROUPS: NavItem[][] = [
     { href: "/app/experience-stories", label: "STAR 스토리" },
     { href: "/app/company-targets", label: "기업 분석" },
     { href: "/app/job-tracker", label: "지원 트래커" },
+    { href: "/app/testimonials", label: "추천서" },
     { href: "/app/feedback", label: "피드백" },
   ],
   [
     { href: "/app/analytics", label: "방문 분석" },
+    { href: "/app/growth-timeline", label: "성장 타임라인" },
     { href: "/app/domain-links", label: "교차 링크" },
     { href: "/app/audit", label: "감사 로그" },
   ],

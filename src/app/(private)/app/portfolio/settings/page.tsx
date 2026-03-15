@@ -83,6 +83,7 @@ const SECTION_LABELS: Record<LayoutSectionId, string> = {
   projects: "대표 프로젝트",
   experiences: "경력",
   skills: "기술 스택",
+  testimonials: "추천서",
 };
 
 type PortfolioSettingsFormState = {

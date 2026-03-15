@@ -5,6 +5,7 @@ import { DomainLinkEntityType } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getMetadataBase, getSiteUrl } from "@/lib/site-url";
 import { createProjectsService, isProjectServiceError } from "@/modules/projects";
+import { createTestimonialService, type PublicTestimonialDto } from "@/modules/testimonials";
 import { toPublicHomeViewModel, type PublicHomeViewModel } from "@/view-models/public-portfolio";
 import { PrivatePortfolioPage } from "@/components/portfolio/PrivatePortfolioPage";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -55,6 +56,7 @@ type PublicPortfolioPageProps = {
 };
 
 const projectsService = createProjectsService({ prisma });
+const testimonialService = createTestimonialService({ prisma });
 
 function getProfileTitle(displayName: string | null, publicSlug: string) {
   return displayName ?? publicSlug;
@@ -264,6 +266,47 @@ function SkillsSection({
   );
 }
 
+function TestimonialsSection({
+  testimonials,
+}: {
+  testimonials: PublicTestimonialDto[];
+}) {
+  if (testimonials.length === 0) return null;
+
+  return (
+    <section className="mt-14">
+      <h2 className="text-2xl font-semibold">추천서</h2>
+      <div className="mt-6 space-y-4">
+        {testimonials.map((t) => (
+          <div key={t.id} className="rounded-2xl border border-black/10 bg-white p-5 dark:border-white/10 dark:bg-[#1e1e1e]">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-black/5 text-sm font-semibold text-black/60 dark:bg-white/10 dark:text-white/60">
+                  {t.authorName.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <p className="text-sm font-semibold">{t.authorName}</p>
+                  <p className="text-xs text-black/50 dark:text-white/50">
+                    {[t.authorCompany, t.authorTitle, t.relationship].filter(Boolean).join(" · ")}
+                  </p>
+                </div>
+              </div>
+              {t.rating ? (
+                <span className="text-sm text-amber-500">
+                  {"★".repeat(t.rating)}{"☆".repeat(5 - t.rating)}
+                </span>
+              ) : null}
+            </div>
+            <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-black/70 dark:text-white/70">
+              {t.content}
+            </p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 /* ── Page component ──────────────────────────────── */
 
 export default async function PublicPortfolioPage({ params }: PublicPortfolioPageProps) {
@@ -304,6 +347,9 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
       skillGroups.set(key, [skill]);
     }
   }
+
+  // 추천서 조회
+  const testimonials = await testimonialService.listPublicBySlug(resolvedParams.publicSlug);
 
   // 엔티티 연결 조회 (Experience ↔ Project ↔ Skill)
   const ownerSettings = await prisma.portfolioSettings.findUnique({
@@ -371,6 +417,7 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
     projects: <ProjectsSection key="projects" viewModel={viewModel} userProjectsPath={userProjectsPath} />,
     experiences: <ExperiencesSection key="experiences" viewModel={viewModel} experiencesPath={experiencesPath} experienceProjects={experienceProjects} projectTitleMap={projectTitleMap} publicSlug={resolvedParams.publicSlug} />,
     skills: <SkillsSection key="skills" skillGroups={skillGroups} />,
+    testimonials: <TestimonialsSection key="testimonials" testimonials={testimonials} />,
   };
 
   return (

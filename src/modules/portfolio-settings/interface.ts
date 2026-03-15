@@ -5,7 +5,7 @@ export const PORTFOLIO_PUBLIC_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 // --- Layout types ---
 
-export const LAYOUT_SECTION_IDS = ["projects", "experiences", "skills"] as const;
+export const LAYOUT_SECTION_IDS = ["projects", "experiences", "skills", "testimonials"] as const;
 export type LayoutSectionId = (typeof LAYOUT_SECTION_IDS)[number];
 
 export type LayoutSection = {
@@ -22,6 +22,7 @@ export const DEFAULT_LAYOUT: LayoutConfig = {
     { id: "projects", visible: true },
     { id: "experiences", visible: true },
     { id: "skills", visible: true },
+    { id: "testimonials", visible: true },
   ],
 };
 
