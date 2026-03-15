@@ -148,7 +148,7 @@
    - 저장 시 layoutJson 자동 포함
 
 **게이트**: `lint/build/jest(54 suites, 203 tests)/vercel-build` 통과
-**검증**: Playwright 브라우저 테스트 7/7 통과 (홈 렌더링, 섹션 순서 정합, 레이아웃 편집 UI, 다크모드, 경력/프로젝트 페이지, Sitemap)
+**검증**: Playwright 로컬 7/7 + 프로덕션 WebFetch 검증 (홈 섹션 순서, 경력/프로젝트 페이지, Sitemap, JSON-LD)
 
 ### T82: 포트폴리오 방문 분석 (2026-03-15) ✅
 
@@ -177,7 +177,8 @@
    - `/app/analytics` — 요약 카드 + 일별 바 차트 + 페이지 분포 + 유입 경로 + 최근 방문
    - AppSidebar에 "방문 분석" 메뉴 추가
 
-**게이트**: `lint/build/jest(54 suites, 203 tests)` 통과
+**게이트**: `lint/build/jest(54 suites, 203 tests)/vercel-build` 통과
+**검증**: 프로덕션 PageView API 201 Created 확인
 
 ---
 

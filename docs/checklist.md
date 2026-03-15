@@ -100,8 +100,21 @@
 
 ---
 
+### 프로덕션 배포 검증
+
+- [x] Vercel Production 배포 성공 (`f797ec4`)
+- [x] 포트폴리오 홈 — 프로필/프로젝트/경력/기술 스택 섹션 순서 정합 확인
+- [x] 포트폴리오 홈 — JSON-LD Person 구조화 데이터 확인
+- [x] 경력 전용 페이지 — 200 + "← 프로필로" 링크 + "재직 중" 배지 확인
+- [x] 프로젝트 목록 페이지 — 200 + 카드 그리드 렌더링 확인
+- [x] Sitemap — portfolio/experiences/projects URL 모두 포함 확인
+- [x] POST /api/public/pageviews — 201 Created (방문 기록 동작 확인)
+
+---
+
 ### 매 태스크 종료 시 공통
 
 - [x] 게이트 4종 통과
-- [x] Playwright 브라우저 테스트 7/7 통과 (T79)
+- [x] Playwright 로컬 브라우저 테스트 7/7 통과 (T79)
+- [x] 프로덕션 배포 + WebFetch 검증 완료
 - [x] `task.md`, `checklist.md`, `history.md`, `plan.md` 문서 동기화

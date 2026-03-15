@@ -115,7 +115,7 @@ src/modules/pageviews/
 - [x] `npm run build` 통과
 - [x] `npx jest --runInBand` 통과 (54 suites, 203 tests)
 - [x] `npm run vercel-build` 통과 (Zod enum 호환성 수정 포함)
-- [ ] push 후 Vercel 배포 성공
+- [x] push 후 Vercel 배포 성공 (`f797ec4`)
 
 ---
 
