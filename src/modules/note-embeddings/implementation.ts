@@ -9,6 +9,8 @@ import type {
   NoteEmbeddingSimilarNoteDto,
 } from "@/modules/note-embeddings/interface";
 import { NoteEmbeddingServiceError } from "@/modules/note-embeddings/interface";
+import type { GeminiClient } from "@/modules/gemini/interface";
+import { getDefaultGeminiClient, withGeminiFallback } from "@/modules/gemini/implementation";
 
 const DEFAULT_REBUILD_LIMIT = 50;
 const MAX_REBUILD_LIMIT = 200;
@@ -16,6 +18,7 @@ const DEFAULT_EMBEDDING_DIMENSIONS = 1536;
 const DEFAULT_SIMILAR_LIMIT = 5;
 const MAX_SIMILAR_LIMIT = 20;
 const DEFAULT_MIN_SCORE = 0.5;
+const MAX_EMBEDDING_CONTENT_LENGTH = 9500;
 
 const noteEmbeddingPlanSchema = z.object({
   noteIds: z.array(z.string().min(1)).max(MAX_REBUILD_LIMIT).optional(),
@@ -37,6 +40,21 @@ type SimilarQueryRow = {
   score: number | string | Prisma.Decimal;
 };
 
+type NoteContentFields = {
+  title: string;
+  contentMd: string;
+  tags: string[];
+  summary: string | null;
+};
+
+const NOTE_CONTENT_SELECT = {
+  id: true,
+  title: true,
+  contentMd: true,
+  tags: true,
+  summary: true,
+} as const;
+
 function parsePlanInput(input: unknown): NoteEmbeddingPlanInput {
   const parsed = noteEmbeddingPlanSchema.safeParse(input ?? {});
   if (!parsed.success) {
@@ -55,6 +73,23 @@ function parseSimilarSearchInput(input: unknown): NormalizedSimilarSearchInput {
     limit: parsed.data.limit ?? DEFAULT_SIMILAR_LIMIT,
     minScore: parsed.data.minScore ?? DEFAULT_MIN_SCORE,
   };
+}
+
+/** 노트 필드를 임베딩용 단일 텍스트로 조합 (Gemini 입력 길이 제한 내 자동 절삭) */
+export function buildEmbeddingContent(note: NoteContentFields): string {
+  const parts: string[] = [note.title];
+
+  if (note.tags.length > 0) {
+    parts.push(note.tags.join(", "));
+  }
+
+  if (note.summary) {
+    parts.push(note.summary);
+  }
+
+  parts.push(note.contentMd);
+
+  return parts.join("\n").slice(0, MAX_EMBEDDING_CONTENT_LENGTH);
 }
 
 export function buildDeterministicEmbeddingVector(
@@ -212,10 +247,28 @@ async function findSimilarNoteRows(
   `);
 }
 
+/** Gemini + fallback 으로 임베딩 벡터 생성 */
+async function generateEmbeddingVector(
+  geminiClient: GeminiClient,
+  content: string,
+): Promise<number[]> {
+  const { result } = await withGeminiFallback(
+    geminiClient,
+    async () => {
+      const { embedding } = await geminiClient.generateEmbedding(content);
+      return embedding;
+    },
+    () => buildDeterministicEmbeddingVector(content),
+  );
+  return result;
+}
+
 export function createNoteEmbeddingPipelineService(deps: {
   prisma: NoteEmbeddingServicePrismaClient;
+  geminiClient?: GeminiClient;
 }): NoteEmbeddingPipelineService {
   const { prisma } = deps;
+  const geminiClient = deps.geminiClient ?? getDefaultGeminiClient();
 
   return {
     async prepareRebuildForOwner(ownerId, input): Promise<NoteEmbeddingPlanResult> {
@@ -228,10 +281,7 @@ export function createNoteEmbeddingPipelineService(deps: {
               id: { in: parsed.noteIds },
               deletedAt: null,
             },
-            select: {
-              id: true,
-              contentMd: true,
-            },
+            select: NOTE_CONTENT_SELECT,
           })
         : await prisma.note.findMany({
             where: {
@@ -240,10 +290,7 @@ export function createNoteEmbeddingPipelineService(deps: {
             },
             orderBy: [{ updatedAt: "desc" }],
             take: parsed.limit ?? DEFAULT_REBUILD_LIMIT,
-            select: {
-              id: true,
-              contentMd: true,
-            },
+            select: NOTE_CONTENT_SELECT,
           });
 
       if (parsed.noteIds?.length) {
@@ -257,7 +304,8 @@ export function createNoteEmbeddingPipelineService(deps: {
       }
 
       for (const row of noteRows) {
-        await upsertPendingEmbedding(prisma, row.id, row.contentMd);
+        const content = buildEmbeddingContent(row);
+        await upsertPendingEmbedding(prisma, row.id, content);
       }
 
       return {
@@ -295,7 +343,7 @@ export function createNoteEmbeddingPipelineService(deps: {
 
       for (const row of pendingRows) {
         try {
-          const vector = buildDeterministicEmbeddingVector(row.content);
+          const vector = await generateEmbeddingVector(geminiClient, row.content);
           await applyEmbeddingVector(prisma, row.id, vector);
           succeeded += 1;
         } catch (error) {
@@ -317,6 +365,53 @@ export function createNoteEmbeddingPipelineService(deps: {
         failed,
         noteIds: planned.noteIds,
       };
+    },
+
+    async embedSingleNote(ownerId, noteId): Promise<NoteEmbeddingRunResult> {
+      const note = await prisma.note.findFirst({
+        where: {
+          id: noteId,
+          ownerId,
+          deletedAt: null,
+        },
+        select: NOTE_CONTENT_SELECT,
+      });
+
+      if (!note) {
+        return { scheduled: 0, succeeded: 0, failed: 0, noteIds: [] };
+      }
+
+      const content = buildEmbeddingContent(note);
+      await upsertPendingEmbedding(prisma, note.id, content);
+
+      const pendingRow = await prisma.noteEmbedding.findFirst({
+        where: {
+          noteId: note.id,
+          chunkIndex: 0,
+          status: NoteEmbeddingStatus.PENDING,
+        },
+        orderBy: [{ updatedAt: "desc" }, { id: "desc" }],
+      });
+
+      if (!pendingRow) {
+        return { scheduled: 1, succeeded: 0, failed: 1, noteIds: [noteId] };
+      }
+
+      try {
+        const vector = await generateEmbeddingVector(geminiClient, pendingRow.content);
+        await applyEmbeddingVector(prisma, pendingRow.id, vector);
+        return { scheduled: 1, succeeded: 1, failed: 0, noteIds: [noteId] };
+      } catch (error) {
+        await prisma.noteEmbedding.update({
+          where: { id: pendingRow.id },
+          data: {
+            status: NoteEmbeddingStatus.FAILED,
+            error: normalizeErrorMessage(error),
+          },
+          select: { id: true },
+        });
+        return { scheduled: 1, succeeded: 0, failed: 1, noteIds: [noteId] };
+      }
     },
 
     async searchSimilarNotesForOwner(ownerId, noteId, input): Promise<NoteEmbeddingSimilarNoteDto[]> {
@@ -388,4 +483,15 @@ export function createNoteEmbeddingPipelineService(deps: {
       return result;
     },
   };
+}
+
+/** 노트 생성/수정 후 비동기 임베딩 트리거 (fire-and-forget) */
+export function queueEmbeddingForNote(
+  service: NoteEmbeddingPipelineService,
+  ownerId: string,
+  noteId: string,
+): void {
+  service.embedSingleNote(ownerId, noteId).catch((error) => {
+    console.warn("임베딩 자동 생성 실패:", error instanceof Error ? error.message : error);
+  });
 }

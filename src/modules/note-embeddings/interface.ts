@@ -64,6 +64,8 @@ export type NoteEmbeddingServicePrismaClient = Pick<
 export interface NoteEmbeddingPipelineService {
   prepareRebuildForOwner(ownerId: string, input?: unknown): Promise<NoteEmbeddingPlanResult>;
   rebuildForOwner(ownerId: string, input?: unknown): Promise<NoteEmbeddingRunResult>;
+  /** 단일 노트 임베딩 생성 (생성/수정 후 자동 호출용) */
+  embedSingleNote(ownerId: string, noteId: string): Promise<NoteEmbeddingRunResult>;
   searchSimilarNotesForOwner(
     ownerId: string,
     noteId: string,
