@@ -1,11 +1,84 @@
 "use client";
 
 import type { FormEvent } from "react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { parseApiResponse } from "@/app/(private)/app/_lib/admin-api";
 import type { SerializedOwnerSkillDto } from "@/app/(private)/app/_lib/server-serializers";
 import { EmptyBlock, ErrorBanner, LoadingBlock } from "@/components/ui/AsyncState";
 import { useToast } from "@/components/ui/useToast";
+
+/* ── 프리셋 기술 목록 ── */
+
+type PresetSkill = { name: string; category: string };
+
+const PRESET_SKILLS: PresetSkill[] = [
+  // Backend
+  { name: "Node.js", category: "Backend" },
+  { name: "Spring Boot", category: "Backend" },
+  { name: "Django", category: "Backend" },
+  { name: "Express.js", category: "Backend" },
+  { name: "FastAPI", category: "Backend" },
+  { name: "NestJS", category: "Backend" },
+  { name: "Ruby on Rails", category: "Backend" },
+  { name: "ASP.NET", category: "Backend" },
+  { name: "Go (Gin)", category: "Backend" },
+  // Frontend
+  { name: "React", category: "Frontend" },
+  { name: "Vue.js", category: "Frontend" },
+  { name: "Angular", category: "Frontend" },
+  { name: "Next.js", category: "Frontend" },
+  { name: "Nuxt.js", category: "Frontend" },
+  { name: "Svelte", category: "Frontend" },
+  { name: "TypeScript", category: "Frontend" },
+  { name: "Tailwind CSS", category: "Frontend" },
+  // Mobile
+  { name: "React Native", category: "Mobile" },
+  { name: "Flutter", category: "Mobile" },
+  { name: "Swift", category: "Mobile" },
+  { name: "Kotlin", category: "Mobile" },
+  // Database
+  { name: "MySQL", category: "Database" },
+  { name: "PostgreSQL", category: "Database" },
+  { name: "MongoDB", category: "Database" },
+  { name: "Redis", category: "Database" },
+  { name: "Oracle", category: "Database" },
+  { name: "MariaDB", category: "Database" },
+  { name: "Elasticsearch", category: "Database" },
+  // DevOps
+  { name: "Docker", category: "DevOps" },
+  { name: "Kubernetes", category: "DevOps" },
+  { name: "Jenkins", category: "DevOps" },
+  { name: "GitHub Actions", category: "DevOps" },
+  { name: "Terraform", category: "DevOps" },
+  { name: "Ansible", category: "DevOps" },
+  // Cloud
+  { name: "AWS", category: "Cloud" },
+  { name: "Google Cloud", category: "Cloud" },
+  { name: "Azure", category: "Cloud" },
+  { name: "Firebase", category: "Cloud" },
+  // AI/ML
+  { name: "TensorFlow", category: "AI/ML" },
+  { name: "PyTorch", category: "AI/ML" },
+  { name: "scikit-learn", category: "AI/ML" },
+  { name: "LangChain", category: "AI/ML" },
+  // Message Queue
+  { name: "Kafka", category: "Message Queue" },
+  { name: "RabbitMQ", category: "Message Queue" },
+  // Monitoring
+  { name: "Grafana", category: "Monitoring" },
+  { name: "Prometheus", category: "Monitoring" },
+  { name: "Datadog", category: "Monitoring" },
+  // Version Control
+  { name: "Git", category: "Version Control" },
+  { name: "GitHub", category: "Version Control" },
+  { name: "GitLab", category: "Version Control" },
+];
+
+const PRESET_CATEGORIES = Array.from(
+  new Set(PRESET_SKILLS.map((s) => s.category)),
+);
+
+/* ── 타입 ── */
 
 type Visibility = "PUBLIC" | "PRIVATE";
 
@@ -19,6 +92,8 @@ type SkillEditor = {
 type SkillsPageClientProps = {
   initialSkills: SerializedOwnerSkillDto[];
 };
+
+/* ── 헬퍼 ── */
 
 const DEFAULT_CREATE_FORM = {
   name: "",
@@ -67,6 +142,8 @@ function extractCategories(items: SerializedOwnerSkillDto[]): string[] {
   return Array.from(set).sort();
 }
 
+/* ── 컴포넌트 ── */
+
 export function SkillsPageClient({ initialSkills }: SkillsPageClientProps) {
   const [skills, setSkills] = useState<SerializedOwnerSkillDto[]>(initialSkills);
   const [editors, setEditors] = useState<Record<string, SkillEditor>>(buildEditors(initialSkills));
@@ -74,10 +151,37 @@ export function SkillsPageClient({ initialSkills }: SkillsPageClientProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // 프리셋 UI 상태
+  const [presetFilter, setPresetFilter] = useState<string>("전체");
+  const [presetSearch, setPresetSearch] = useState("");
+  const [addingPresets, setAddingPresets] = useState<Set<string>>(new Set());
+
   const toast = useToast();
 
   const categories = extractCategories(skills);
   const grouped = groupByCategory(skills);
+
+  // 이미 등록된 기술명 집합
+  const registeredNames = useMemo(
+    () => new Set(skills.map((s) => s.name)),
+    [skills],
+  );
+
+  // 프리셋 필터링
+  const filteredPresets = useMemo(() => {
+    let list = PRESET_SKILLS;
+    if (presetFilter !== "전체") {
+      list = list.filter((s) => s.category === presetFilter);
+    }
+    if (presetSearch.trim()) {
+      const q = presetSearch.trim().toLowerCase();
+      list = list.filter((s) => s.name.toLowerCase().includes(q));
+    }
+    return list;
+  }, [presetFilter, presetSearch]);
+
+  /* ── API 호출 ── */
 
   async function requestSkills() {
     const response = await fetch("/api/app/skills", { method: "GET" });
@@ -102,6 +206,38 @@ export function SkillsPageClient({ initialSkills }: SkillsPageClientProps) {
 
     applySkills(parsed.data ?? []);
     setIsLoading(false);
+  }
+
+  async function handlePresetAdd(preset: PresetSkill) {
+    if (registeredNames.has(preset.name)) return;
+
+    setAddingPresets((prev) => new Set(prev).add(preset.name));
+    setError(null);
+
+    const response = await fetch("/api/app/skills", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: preset.name,
+        category: preset.category,
+        visibility: "PUBLIC",
+      }),
+    });
+    const parsed = await parseApiResponse<SerializedOwnerSkillDto>(response);
+
+    setAddingPresets((prev) => {
+      const next = new Set(prev);
+      next.delete(preset.name);
+      return next;
+    });
+
+    if (parsed.error) {
+      toast.error(parsed.error);
+      return;
+    }
+
+    toast.success(`${preset.name} 추가 완료`);
+    await reloadSkills();
   }
 
   async function handleCreate(event: FormEvent<HTMLFormElement>) {
@@ -144,9 +280,7 @@ export function SkillsPageClient({ initialSkills }: SkillsPageClientProps) {
 
   async function handleUpdate(skillId: string) {
     const editor = editors[skillId];
-    if (!editor) {
-      return;
-    }
+    if (!editor) return;
 
     setError(null);
 
@@ -209,76 +343,159 @@ export function SkillsPageClient({ initialSkills }: SkillsPageClientProps) {
         <h1 className="mt-2 text-3xl font-semibold">기술 스택</h1>
       </header>
 
+      {/* ── 프리셋에서 선택 ── */}
       <section className="mt-8 rounded-2xl border border-black/10 bg-white p-6">
-        <h2 className="text-lg font-semibold">새 기술 추가</h2>
-        <form onSubmit={handleCreate} className="mt-4 grid gap-3 md:grid-cols-[1fr_1fr_100px_120px_auto]">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">프리셋에서 선택</h2>
+          <span className="text-xs text-black/40">
+            {skills.length}개 등록됨
+          </span>
+        </div>
+
+        {/* 검색 */}
+        <div className="mt-4">
           <input
-            value={createForm.name}
-            onChange={(event) =>
-              setCreateForm((prev) => ({ ...prev, name: event.target.value }))
-            }
-            placeholder="기술명 (예: React, TypeScript)"
-            className="rounded-lg border border-black/15 bg-white px-3 py-2 text-sm"
+            value={presetSearch}
+            onChange={(e) => setPresetSearch(e.target.value)}
+            placeholder="기술명 검색..."
+            className="w-full rounded-lg border border-black/15 bg-[#faf9f6] px-3 py-2 text-sm"
           />
-          <div>
-            <input
-              list="category-suggestions"
-              value={createForm.category}
-              onChange={(event) =>
-                setCreateForm((prev) => ({ ...prev, category: event.target.value }))
-              }
-              placeholder="카테고리 (예: Frontend)"
-              className="w-full rounded-lg border border-black/15 bg-white px-3 py-2 text-sm"
-            />
-            <datalist id="category-suggestions">
-              {categories.map((cat) => (
-                <option key={cat} value={cat} />
-              ))}
-            </datalist>
-          </div>
-          <select
-            value={createForm.level}
-            onChange={(event) =>
-              setCreateForm((prev) => ({ ...prev, level: event.target.value }))
-            }
-            className="rounded-lg border border-black/15 bg-white px-3 py-2 text-sm"
-          >
-            <option value="">레벨</option>
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5">5</option>
-          </select>
-          <select
-            value={createForm.visibility}
-            onChange={(event) =>
-              setCreateForm((prev) => ({ ...prev, visibility: event.target.value as Visibility }))
-            }
-            className="rounded-lg border border-black/15 bg-white px-3 py-2 text-sm"
-          >
-            <option value="PUBLIC">PUBLIC</option>
-            <option value="PRIVATE">PRIVATE</option>
-          </select>
-          <button
-            type="submit"
-            disabled={isCreating}
-            className="rounded-full bg-black px-5 py-2 text-sm font-semibold text-white disabled:opacity-60"
-          >
-            {isCreating ? "추가 중..." : "추가"}
-          </button>
-        </form>
+        </div>
+
+        {/* 카테고리 탭 */}
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {["전체", ...PRESET_CATEGORIES].map((tab) => (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => setPresetFilter(tab)}
+              className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                presetFilter === tab
+                  ? "bg-black text-white"
+                  : "bg-black/5 text-black/60 hover:bg-black/10"
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+
+        {/* 기술 pill 그리드 */}
+        <div className="mt-4 flex flex-wrap gap-2">
+          {filteredPresets.map((preset) => {
+            const isAdded = registeredNames.has(preset.name);
+            const isAdding = addingPresets.has(preset.name);
+            return (
+              <button
+                key={`${preset.category}-${preset.name}`}
+                type="button"
+                disabled={isAdded || isAdding}
+                onClick={() => void handlePresetAdd(preset)}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-all ${
+                  isAdded
+                    ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                    : isAdding
+                      ? "border-black/10 bg-black/5 text-black/40"
+                      : "border-black/10 bg-white text-black/80 hover:border-black/30 hover:bg-black/5 active:scale-95"
+                }`}
+              >
+                {isAdded ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="h-3.5 w-3.5">
+                    <path fillRule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clipRule="evenodd" />
+                  </svg>
+                ) : isAdding ? (
+                  <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-black/20 border-t-black/60" />
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="h-3.5 w-3.5 text-black/30">
+                    <path d="M8.75 3.75a.75.75 0 0 0-1.5 0v3.5h-3.5a.75.75 0 0 0 0 1.5h3.5v3.5a.75.75 0 0 0 1.5 0v-3.5h3.5a.75.75 0 0 0 0-1.5h-3.5v-3.5Z" />
+                  </svg>
+                )}
+                {preset.name}
+              </button>
+            );
+          })}
+          {filteredPresets.length === 0 && (
+            <p className="py-4 text-sm text-black/40">검색 결과가 없습니다.</p>
+          )}
+        </div>
       </section>
+
+      {/* ── 직접 추가 (접기/펼치기) ── */}
+      <details className="mt-4">
+        <summary className="cursor-pointer rounded-2xl border border-black/10 bg-white px-6 py-4 text-sm font-semibold text-black/60 hover:bg-black/[0.02]">
+          직접 입력하여 추가
+        </summary>
+        <div className="rounded-b-2xl border border-t-0 border-black/10 bg-white p-6">
+          <form onSubmit={handleCreate} className="grid gap-3 md:grid-cols-[1fr_1fr_100px_120px_auto]">
+            <input
+              value={createForm.name}
+              onChange={(event) =>
+                setCreateForm((prev) => ({ ...prev, name: event.target.value }))
+              }
+              placeholder="기술명 (예: React, TypeScript)"
+              className="rounded-lg border border-black/15 bg-white px-3 py-2 text-sm"
+            />
+            <div>
+              <input
+                list="category-suggestions"
+                value={createForm.category}
+                onChange={(event) =>
+                  setCreateForm((prev) => ({ ...prev, category: event.target.value }))
+                }
+                placeholder="카테고리 (예: Frontend)"
+                className="w-full rounded-lg border border-black/15 bg-white px-3 py-2 text-sm"
+              />
+              <datalist id="category-suggestions">
+                {[...new Set([...categories, ...PRESET_CATEGORIES])].sort().map((cat) => (
+                  <option key={cat} value={cat} />
+                ))}
+              </datalist>
+            </div>
+            <select
+              value={createForm.level}
+              onChange={(event) =>
+                setCreateForm((prev) => ({ ...prev, level: event.target.value }))
+              }
+              className="rounded-lg border border-black/15 bg-white px-3 py-2 text-sm"
+            >
+              <option value="">레벨</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+            </select>
+            <select
+              value={createForm.visibility}
+              onChange={(event) =>
+                setCreateForm((prev) => ({ ...prev, visibility: event.target.value as Visibility }))
+              }
+              className="rounded-lg border border-black/15 bg-white px-3 py-2 text-sm"
+            >
+              <option value="PUBLIC">PUBLIC</option>
+              <option value="PRIVATE">PRIVATE</option>
+            </select>
+            <button
+              type="submit"
+              disabled={isCreating}
+              className="rounded-full bg-black px-5 py-2 text-sm font-semibold text-white disabled:opacity-60"
+            >
+              {isCreating ? "추가 중..." : "추가"}
+            </button>
+          </form>
+        </div>
+      </details>
 
       {error ? <ErrorBanner message={error} className="mt-6" /> : null}
 
+      {/* ── 내 기술 목록 ── */}
       <section className="mt-8 rounded-2xl border border-black/10 bg-white p-6">
-        <h2 className="text-lg font-semibold">기술 목록</h2>
+        <h2 className="text-lg font-semibold">내 기술 목록</h2>
 
         {isLoading ? (
           <LoadingBlock message="기술 목록을 불러오는 중입니다." className="mt-4" />
         ) : skills.length === 0 ? (
-          <EmptyBlock message="등록된 기술이 없습니다." className="mt-4" />
+          <EmptyBlock message="등록된 기술이 없습니다. 위에서 프리셋을 선택하거나 직접 추가하세요." className="mt-4" />
         ) : (
           <div className="mt-4 space-y-6">
             {Array.from(grouped.entries()).map(([category, items]) => (
@@ -367,7 +584,7 @@ export function SkillsPageClient({ initialSkills }: SkillsPageClientProps) {
           </div>
         )}
         <datalist id="category-suggestions-edit">
-          {categories.map((cat) => (
+          {[...new Set([...categories, ...PRESET_CATEGORIES])].sort().map((cat) => (
             <option key={cat} value={cat} />
           ))}
         </datalist>
