@@ -128,7 +128,23 @@ export default function JobTrackerPage() {
   }
 
   useEffect(() => {
-    void loadBoard();
+    let active = true;
+    fetch("/api/app/job-tracker")
+      .then((res) => parseApiResponse<BoardDto>(res))
+      .then((parsed) => {
+        if (!active) return;
+        if (parsed.error) setError(parsed.error);
+        else setBoard(parsed.data);
+      })
+      .catch(async (err) => {
+        if (!active) return;
+        const parsed = await parseApiResponse<BoardDto>(err);
+        setError(parsed.error);
+      })
+      .finally(() => {
+        if (active) setIsLoading(false);
+      });
+    return () => { active = false; };
   }, []);
 
   async function loadEvents(targetId: string) {

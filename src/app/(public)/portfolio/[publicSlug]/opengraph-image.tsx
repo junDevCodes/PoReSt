@@ -32,7 +32,6 @@ export default async function Image({ params }: { params: Promise<{ publicSlug: 
       >
         {/* 아바타 */}
         {avatarUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={avatarUrl}
             alt=""
