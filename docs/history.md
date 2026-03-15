@@ -427,15 +427,47 @@
 
 ### T85: 추천서/동료 평가 (2026-03-16) ✅
 
-**범위**: 병렬 세션에서 구현 (3커밋)
+**범위**: 16개 파일 (12개 신규, 4개 수정) + 테스트 32개
 
 **핵심 변경**:
 
-1. **Testimonial Prisma 모델** — 추천서/동료 평가 스키마
-2. **testimonials 모듈** — CRUD + 공유 링크 + 승인 플로우
-3. **API 7개** — Private/Public 분리
-4. **워크스페이스 UI** — 추천서 관리 + 공개 작성 폼 + 포트폴리오 섹션
+1. **Testimonial Prisma 모델**
+   - `testimonials` 테이블: authorName/Title/Company/Email, relationship, content, rating(1~5), status(PENDING→SUBMITTED→APPROVED→REJECTED), shareToken(unique), isPublic, displayOrder
+   - `TestimonialStatus` enum 신규 (PENDING/SUBMITTED/APPROVED/REJECTED)
+   - `@@index([ownerId, status])`, `@@index([shareToken])`
 
+2. **testimonials 모듈** (`src/modules/testimonials/`)
+   - `createRequest()` — 추천 요청 생성 + 16자 공유 토큰 발급
+   - `updateForOwner()` — 승인/거절/공개 설정 (승인 시 isPublic 자동 true, 거절 시 자동 false)
+   - `deleteForOwner()` — 소유권 검증 + 삭제
+   - `getByShareToken()` — 공유 토큰으로 요청 정보 조회
+   - `submitByShareToken()` — 외부 작성자 비로그인 제출 (PENDING→SUBMITTED)
+   - `listPublicBySlug()` — 포트폴리오용 승인된 추천서 조회
+   - Zod 스키마 3개 (create/update/submit), RELATIONSHIP_PRESETS 8개
+
+3. **API 7개**
+   - `GET/POST /api/app/testimonials` — 목록/생성 (인증 필수)
+   - `PATCH/DELETE /api/app/testimonials/[id]` — 수정/삭제 (인증 필수)
+   - `GET /api/public/testimonials?slug=` — 공개 조회
+   - `GET/POST /api/public/testimonials/[token]` — 토큰 정보/제출
+
+4. **워크스페이스 UI** (`/app/testimonials`)
+   - 추천 요청 생성 모달 (이름/이메일/관계 프리셋)
+   - 상태별 배지, 승인/거절/공개 전환 버튼
+   - 공유 링크 복사, 상세 모달
+
+5. **공개 작성 폼** (`/testimonial/[token]`)
+   - 비로그인 추천서 작성 (크림 배경, 별점 UI, 관계 프리셋)
+   - 이미 제출된 토큰/잘못된 토큰 에러 처리
+
+6. **포트폴리오 통합**
+   - 레이아웃 시스템 확장 (testimonials 섹션 추가)
+   - 포트폴리오 홈 동적 섹션 렌더링 (승인+공개 추천서만)
+   - 설정 UI 섹션 레이아웃에 "추천서" 라벨 추가
+   - AppSidebar "추천서" 메뉴 추가
+
+**게이트**: `lint(0 errors, 8 warnings) / build / jest(63 suites, 391 tests) / vercel-build` 통과
+**검증**: Playwright MCP 프로덕션 — 포트폴리오 홈/경력 200, Public API 200/422, Private API 401, 토큰 API 404, 공개 폼 에러 표시
 **커밋**: `b3879c5`, `72ce4ab`, `67a4fdc`
 
 ### T86: 성장 타임라인 (자동 수집 + 히트맵) (2026-03-16) ✅

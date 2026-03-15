@@ -111,3 +111,136 @@
 - [x] Jest 테스트 22개 통과 (growth-timeline.test.ts)
 - [x] Playwright 브라우저 테스트 6개 통과
 - [x] `task.md`, `checklist.md`, `history.md`, `plan.md` 문서 동기화
+
+---
+
+## T85 — 추천서/동료 평가 ✅
+
+---
+
+### 스키마
+
+- [x] `TestimonialStatus` enum (PENDING/SUBMITTED/APPROVED/REJECTED)
+- [x] `Testimonial` 모델 (authorName/Title/Company/Email, relationship, content, rating, status, shareToken, isPublic, displayOrder)
+- [x] `@@index([ownerId, status])` 인덱스
+- [x] `@@index([shareToken])` 인덱스
+- [x] User relation `testimonials` 추가
+- [x] `prisma db push` 정상 반영
+- [x] `prisma generate` 클라이언트 생성
+
+### testimonials 모듈
+
+- [x] `interface.ts` — TestimonialDto, PublicTestimonialDto, ShareTokenInfoDto 타입
+- [x] `interface.ts` — TestimonialServiceError + isTestimonialServiceError 타입 가드
+- [x] `implementation.ts` — createSchema Zod 검증 (이름, 이메일, 관계)
+- [x] `implementation.ts` — updateSchema Zod 검증 (status, isPublic, displayOrder)
+- [x] `implementation.ts` — submitSchema Zod 검증 (이름 필수, 내용 10~5000자, rating 1~5)
+- [x] `createRequest()` — 16자 공유 토큰 + 추천서 요청 생성
+- [x] `updateForOwner()` — 소유권 검증 + 승인 시 isPublic 자동 true + 거절 시 자동 false
+- [x] `deleteForOwner()` — 소유권 검증 + 삭제
+- [x] `getByShareToken()` — 토큰 유효성 + 요청자 프로필 정보
+- [x] `submitByShareToken()` — PENDING 검증 + SUBMITTED 전이 + 이미 제출 시 409
+- [x] `listPublicBySlug()` — 비공개 포트폴리오 빈 배열, APPROVED+isPublic만 반환
+- [x] `generateShareToken()` — 16자 알파뉴머릭 토큰
+- [x] `RELATIONSHIP_PRESETS` — 8개 관계 프리셋
+
+### API
+
+- [x] `GET /api/app/testimonials` — 인증 필수, 목록 반환
+- [x] `POST /api/app/testimonials` — 인증 + 요청 생성 (201)
+- [x] `PATCH /api/app/testimonials/[id]` — 인증 + 승인/거절/공개 설정
+- [x] `DELETE /api/app/testimonials/[id]` — 인증 + 삭제 (204)
+- [x] `GET /api/public/testimonials?slug=` — 공개 조회 (200/422)
+- [x] `GET /api/public/testimonials/[token]` — 토큰 정보 (200/404)
+- [x] `POST /api/public/testimonials/[token]` — 제출 (201/404/409)
+
+### 워크스페이스 UI
+
+- [x] `/app/testimonials` 페이지 정상 렌더링
+- [x] 추천 요청 생성 모달 (이름/이메일/관계 프리셋)
+- [x] 추천서 목록 (상태 배지 + 공개 배지 + 별점)
+- [x] 상세 모달 (승인/거절/공개 전환/삭제)
+- [x] 공유 링크 복사 버튼
+- [x] 빈 목록 안내 메시지
+- [x] AppSidebar "추천서" 메뉴 추가
+
+### 공개 작성 폼
+
+- [x] `/testimonial/[token]` 비로그인 작성 페이지
+- [x] 요청자 프로필 정보 표시 (이름 + 아바타)
+- [x] 이름/직책/회사/이메일/관계/별점/내용 입력
+- [x] 관계 프리셋 pill 선택
+- [x] 별점 클릭 토글 (1~5)
+- [x] 잘못된 토큰 에러 화면
+- [x] 이미 제출된 토큰 안내 화면
+- [x] 제출 완료 성공 화면
+
+### 포트폴리오 통합
+
+- [x] `LAYOUT_SECTION_IDS`에 "testimonials" 추가
+- [x] `DEFAULT_LAYOUT`에 testimonials 섹션 추가
+- [x] 포트폴리오 홈 `TestimonialsSection` 컴포넌트
+- [x] `sectionRenderers`에 testimonials 등록
+- [x] 설정 UI `SECTION_LABELS`에 "추천서" 추가
+
+### 테스트 (32개)
+
+- [x] generateShareToken 16자 (1)
+- [x] generateShareToken 유니크성 (1)
+- [x] createSchema 빈 객체 유효 (1)
+- [x] createSchema 이름+이메일+관계 (1)
+- [x] createSchema 잘못된 이메일 거부 (1)
+- [x] updateSchema 상태 검증 (1)
+- [x] updateSchema 잘못된 상태 거부 (1)
+- [x] updateSchema isPublic+displayOrder (1)
+- [x] submitSchema 유효 제출 (1)
+- [x] submitSchema 이름 누락 거부 (1)
+- [x] submitSchema 내용 10자 미만 거부 (1)
+- [x] submitSchema rating 범위 검증 (1)
+- [x] submitSchema 5000자 초과 거부 (1)
+- [x] createRequest 요청 생성 (1)
+- [x] updateForOwner FORBIDDEN (1)
+- [x] updateForOwner NOT_FOUND (1)
+- [x] updateForOwner 승인 시 isPublic 자동 true (1)
+- [x] deleteForOwner 정상 삭제 (1)
+- [x] deleteForOwner FORBIDDEN (1)
+- [x] submitByShareToken 정상 제출 (1)
+- [x] submitByShareToken ALREADY_SUBMITTED (1)
+- [x] submitByShareToken NOT_FOUND (1)
+- [x] listPublicBySlug 승인 공개만 반환 (1)
+- [x] listPublicBySlug 비공개 포트폴리오 빈 배열 (1)
+- [x] listPublicBySlug 존재하지 않는 slug 빈 배열 (1)
+- [x] getByShareToken 유효 토큰 정보 (1)
+- [x] getByShareToken NOT_FOUND (1)
+- [x] TestimonialServiceError 생성 (1)
+- [x] TestimonialServiceError 필드 에러 (1)
+- [x] isTestimonialServiceError 타입 가드 (1)
+- [x] RELATIONSHIP_PRESETS 정의 (1)
+- [x] TestimonialStatus 4개 정의 (1)
+
+### T85 게이트 4종
+
+- [x] `npm run lint` 통과 (0 errors, 8 warnings)
+- [x] `npm run build` 통과
+- [x] `npx jest --runInBand` 통과 (63 suites, 391 tests)
+- [x] `npm run vercel-build` 통과
+
+### Playwright 검증
+
+- [x] 포트폴리오 홈 200 정상 렌더링
+- [x] 경력 페이지 200 정상
+- [x] 홈페이지 200 정상
+- [x] Public testimonials API 200 (정상 slug)
+- [x] Public testimonials API 422 (slug 누락)
+- [x] Private testimonials API 401 (인증 보호)
+- [x] Public token API 404 (잘못된 토큰)
+- [x] 공개 작성 폼 에러 표시 (잘못된 토큰)
+
+---
+
+### 매 태스크 종료 시 공통
+
+- [x] 게이트 4종 통과
+- [x] Jest 테스트 32개 통과 (testimonials.test.ts)
+- [x] Playwright 브라우저 테스트 8개 통과
+- [x] `task.md`, `checklist.md`, `history.md`, `plan.md` 문서 동기화

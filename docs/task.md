@@ -76,7 +76,53 @@
 
 ## T85 — 추천서/동료 평가 ✅ 완료
 
-(병렬 세션에서 구현 — 커밋 `b3879c5`, `72ce4ab`, `67a4fdc`)
+### 현재 → 목표
+
+| 항목 | 현재 | 목표 |
+|---|---|---|
+| 추천서 | 미지원 | Testimonial 모델 (PENDING→SUBMITTED→APPROVED→REJECTED) |
+| 공유 링크 | 미지원 | shareToken 기반 비로그인 작성 |
+| 승인 플로우 | 미지원 | 소유자 승인/거절 → 공개 전환 |
+| 포트폴리오 표시 | 미지원 | 레이아웃 시스템 통합 (testimonials 섹션) |
+
+### 핵심 변경
+
+1. **Prisma 스키마** — Testimonial 모델 + TestimonialStatus enum
+2. **testimonials 모듈** — CRUD + 공유 토큰 + 승인 플로우 + 공개 조회
+3. **API 7개** — Private(GET/POST/PATCH/DELETE) + Public(GET slug/GET token/POST token)
+4. **워크스페이스 UI** — 추천 요청 생성 + 상태 관리 + 공유 링크 복사
+5. **공개 작성 폼** — `/testimonial/[token]` 비로그인 작성
+6. **포트폴리오 통합** — layoutJson testimonials 섹션 + 설정 UI 라벨
+
+### 변경 파일 목록
+
+**수정:**
+- `prisma/schema.prisma` — Testimonial 모델 + TestimonialStatus enum + User relation
+- `src/modules/portfolio-settings/interface.ts` — LAYOUT_SECTION_IDS에 "testimonials" 추가
+- `src/app/(public)/portfolio/[publicSlug]/page.tsx` — TestimonialsSection + sectionRenderers
+- `src/app/(private)/app/portfolio/settings/page.tsx` — SECTION_LABELS에 "추천서" 추가
+- `src/components/app/AppSidebar.tsx` — "추천서" 메뉴 추가
+
+**신규:**
+- `src/modules/testimonials/interface.ts` — DTO + Service 인터페이스
+- `src/modules/testimonials/implementation.ts` — 서비스 구현
+- `src/modules/testimonials/http.ts` — 에러 응답 헬퍼
+- `src/modules/testimonials/index.ts` — 공개 API export
+- `src/app/api/app/testimonials/route.ts` — GET/POST
+- `src/app/api/app/testimonials/[id]/route.ts` — PATCH/DELETE
+- `src/app/api/public/testimonials/route.ts` — GET slug
+- `src/app/api/public/testimonials/[token]/route.ts` — GET/POST token
+- `src/app/(private)/app/testimonials/page.tsx` — 워크스페이스 관리 UI
+- `src/app/(public)/testimonial/[token]/page.tsx` — 공개 작성 폼
+- `src/modules/testimonials/tests/testimonials.test.ts` — 32개 테스트
+
+### 게이트
+
+- [x] `npm run lint` 통과 (0 errors, 8 warnings)
+- [x] `npm run build` 통과
+- [x] `npx jest --runInBand` 통과 (63 suites, 391 tests)
+- [x] `npm run vercel-build` 통과
+- [x] push 완료 (`67a4fdc`)
 
 ---
 
