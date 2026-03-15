@@ -6,60 +6,76 @@
 
 ---
 
-## T80-1 — Gemini 클라이언트 모듈 ✅
+## T80-3 — 노트 AI 평가 ✅
 
 ---
 
-### 모듈 구조
+### 아키텍처
 
-- [x] `src/modules/gemini/interface.ts` — GeminiClient 인터페이스, 에러 클래스, 타입 상수
-- [x] `src/modules/gemini/implementation.ts` — createGeminiClient(), withGeminiFallback(), 싱글턴
-- [x] `src/modules/gemini/http.ts` — createGeminiErrorResponse()
-- [x] `src/modules/gemini/index.ts` — 모듈 export
+- [x] `buildNoteFeedbackItems()` — Gemini LLM 경로 + regex fallback 통합
+- [x] `buildNoteFeedbackItemsRegex()` — 기존 regex 로직 분리 (fallback)
+- [x] `buildNoteFeedbackItemsWithAI()` — Gemini LLM 호출 경로
+- [x] `withGeminiFallback()` — AI/fallback 자동 분기
 
-### 인터페이스 검증
+### LLM 프롬프트
 
-- [x] `GeminiClient.isConfigured()` — API 키 존재 시 true, 미설정/빈 문자열 시 false
-- [x] `GeminiClient.generateEmbedding(content)` — 1536차원 벡터 반환
-- [x] `GeminiClient.generateText(prompt, options?)` — 텍스트 + 모델명 + tokenCount 반환
-- [x] `GeminiTextGenerationOptions` — model, systemPrompt, temperature, maxOutputTokens
+- [x] `NOTE_FEEDBACK_SYSTEM_PROMPT` — 노트 평가 전문가 페르소나
+- [x] 5가지 평가 기준: 완성도, 구조, 근거, 명확성, 태그
+- [x] JSON 배열 출력 형식 지시
+- [x] 최대 5개 항목 제한
+- [x] `buildNoteFeedbackPrompt()` — 노트 정보(제목/태그/요약/본문) 포함
 
-### 에러 처리
+### 응답 파싱
 
-- [x] NOT_CONFIGURED (503) — API 키 미설정 시
-- [x] INVALID_INPUT (422) — 빈 텍스트, 길이 초과
-- [x] EMPTY_RESPONSE (502) — SDK 응답 비어있을 때
-- [x] API_ERROR (502, retryable) — SDK 일반 에러
-- [x] RATE_LIMITED (429, retryable) — 429/rate limit 키워드 감지
+- [x] `parseNoteFeedbackResponse()` — LLM 텍스트 → FeedbackItemDraft[]
+- [x] 코드 블록(`\`\`\`json`) 마커 자동 제거
+- [x] JSON 배열 추출 (텍스트 앞뒤에 설명 있어도 추출)
+- [x] severity 검증 (INFO/WARNING/CRITICAL만 허용)
+- [x] title/message 빈 문자열 필터링
+- [x] 최대 5개 슬라이싱
+- [x] suggestion 없으면 null 처리
+- [x] 파싱 실패 시 에러 throw (not silent)
 
-### Fallback 전략
+### Fallback 동작
 
-- [x] `withGeminiFallback()` — isConfigured() false → fallback 즉시 실행
-- [x] `withGeminiFallback()` — AI 경로 retryable 실패 → fallback 자동 전환
-- [x] `withGeminiFallback()` — AI 경로 non-retryable 에러 → 에러 전파
+- [x] GEMINI_API_KEY 미설정 → regex fallback 즉시 실행
+- [x] LLM retryable 에러 (API_ERROR/RATE_LIMITED) → regex fallback
+- [x] LLM non-retryable 에러 (INVALID_INPUT) → 에러 전파
+- [x] LLM 응답 파싱 실패 → GeminiClientError(retryable) → fallback 전환
+- [x] LLM 정상 빈 배열 [] → "AI 점검 통과" INFO 항목
 
-### 테스트 (26개)
+### 추적성
 
-- [x] isConfigured: API 키 있음/없음/빈 문자열 (3개)
-- [x] generateEmbedding: 미설정/빈입력/긴입력/성공/빈응답/SDK에러/Rate limit (7개)
-- [x] generateText: 미설정/빈입력/성공/커스텀옵션/빈응답/SDK에러 (6개)
-- [x] GeminiClientError: 타입가드/retryable 플래그 (2개)
-- [x] 싱글턴: 동일 인스턴스/리셋 (2개)
-- [x] withGeminiFallback: fallback/AI/retryable전환/non-retryable전파 (4개)
-- [x] 상수: 임베딩 모델/텍스트 모델 (2개)
+- [x] AI 생성 피드백 `evidenceJson: { source: "gemini" }` 추가
+- [x] Regex fallback 피드백은 evidenceJson 없음 (기존 동작 유지)
 
-### 환경변수
+### 테스트 (17개)
 
-- [x] `.env.example`에 `GEMINI_API_KEY` 섹션 추가
-- [x] `GEMINI_API_KEY` 미설정 시 기존 코드 영향 없음 (독립 모듈)
+- [x] parseNoteFeedbackResponse: 유효 JSON 변환 (1)
+- [x] parseNoteFeedbackResponse: 코드 블록 파싱 (1)
+- [x] parseNoteFeedbackResponse: 빈 배열 반환 (1)
+- [x] parseNoteFeedbackResponse: JSON 없는 텍스트 에러 (1)
+- [x] parseNoteFeedbackResponse: 유효하지 않은 JSON 에러 (1)
+- [x] parseNoteFeedbackResponse: 잘못된 severity 필터링 (1)
+- [x] parseNoteFeedbackResponse: 최대 5개 제한 (1)
+- [x] parseNoteFeedbackResponse: 빈 title/message 필터링 (1)
+- [x] parseNoteFeedbackResponse: suggestion 없으면 null (1)
+- [x] parseNoteFeedbackResponse: CRITICAL severity 처리 (1)
+- [x] parseNoteFeedbackResponse: JSON 앞뒤 텍스트 추출 (1)
+- [x] buildNoteFeedbackPrompt: 노트 정보 포함 (1)
+- [x] buildNoteFeedbackPrompt: 태그/요약 없음 처리 (1)
+- [x] buildNoteFeedbackPrompt: 공백 요약 처리 (1)
+- [x] NOTE_FEEDBACK_SYSTEM_PROMPT: 5가지 평가 기준 (1)
+- [x] NOTE_FEEDBACK_SYSTEM_PROMPT: JSON 출력 지시 (1)
+- [x] NOTE_FEEDBACK_SYSTEM_PROMPT: 최대 항목 수 (1)
 
 ---
 
 ### 게이트 4종
 
-- [x] `npm run lint` 통과 (0 errors, 6 warnings)
+- [x] `npm run lint` 통과 (0 errors, 12 warnings)
 - [x] `npm run build` 통과
-- [x] `npx jest --runInBand` 통과 (55 suites, 229 tests)
+- [x] `npx jest --runInBand` 통과 (57 suites, 263 tests)
 - [x] `npm run vercel-build` 통과
 
 ---
@@ -67,6 +83,7 @@
 ### 매 태스크 종료 시 공통
 
 - [x] 게이트 4종 통과
-- [x] Jest SDK mock 기반 테스트 26개 통과
-- [x] Vercel 배포 성공 (`1630168`)
+- [x] Jest 테스트 17개 통과 (note-ai-feedback.test.ts)
+- [x] Vercel 배포 성공 (`4ba94ca`)
+- [x] 프로덕션 검증 (홈, 포트폴리오, 사이트맵)
 - [x] `task.md`, `checklist.md`, `history.md`, `plan.md` 문서 동기화

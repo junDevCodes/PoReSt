@@ -210,6 +210,61 @@
 **게이트**: `lint/build/jest(55 suites, 229 tests)/vercel-build` 통과
 **검증**: SDK mock 기반 Jest 26개 테스트 전체 통과
 
+### T80-2: 임베딩 자동화 (2026-03-15) ✅
+
+**범위**: 노트 임베딩 모듈 Gemini 통합
+
+**핵심 변경**:
+
+1. **Gemini text-embedding-004 연동** — 노트 저장 시 자동 임베딩 생성
+2. **withGeminiFallback()** — deterministic 벡터 fallback 유지
+3. **비동기 fire-and-forget** — 노트 CRUD 성능 영향 없음
+
+**게이트**: `lint/build/jest/vercel-build` 통과
+**커밋**: `27f6a5f`
+
+### T80-3: 노트 AI 평가 (2026-03-15) ✅
+
+**범위**: 피드백 모듈 노트 평가 Gemini LLM 통합
+
+**핵심 변경**:
+
+1. **buildNoteFeedbackItems() 리팩토링**
+   - 기존 regex → `buildNoteFeedbackItemsRegex()` (fallback 분리)
+   - AI 경로 → `buildNoteFeedbackItemsWithAI()` (Gemini LLM)
+   - `withGeminiFallback()` 자동 분기
+
+2. **NOTE_FEEDBACK_SYSTEM_PROMPT**
+   - 개발자 기술 노트 평가 전문가 페르소나
+   - 5가지 평가 기준: 완성도, 구조, 근거, 명확성, 태그
+   - JSON 배열 출력 형식, 최대 5개 항목
+
+3. **parseNoteFeedbackResponse()**
+   - LLM 텍스트 → FeedbackItemDraft[] 변환
+   - 코드 블록 마커 제거, JSON 배열 추출
+   - severity/title/message 검증, 빈 항목 필터링
+   - 파싱 실패 → retryable GeminiClientError → fallback
+
+4. **AI 생성 추적**
+   - `evidenceJson: { source: "gemini" }` 태깅
+
+**게이트**: `lint 0 errors / build / jest(57 suites, 263 tests) / vercel-build` 통과
+**검증**: 프로덕션 WebFetch — 홈, 포트폴리오, 사이트맵 정상 / 피드백 API 인증 보호(401) 정상
+**커밋**: `4ba94ca`
+
+### T80-4: HR 피드백 LLM (2026-03-15) ✅
+
+**범위**: 포트폴리오/이력서 피드백 Gemini LLM 통합 (T80-3과 동일 커밋)
+
+**핵심 변경**:
+
+1. **HR 10년차 시니어 리크루터 페르소나** — HR_SYSTEM_PROMPT
+2. **buildPortfolioFeedbackItemsWithAI()** — 포트폴리오 AI 분석
+3. **buildResumeFeedbackItemsWithAI()** — 이력서 AI 분석
+4. **parseFeedbackItemsFromLLM()** — 공용 LLM 응답 파서
+
+**커밋**: `4ba94ca` (T80-3과 동일)
+
 ---
 
 ## 현재 진행 맥락
@@ -217,12 +272,14 @@
 ### 태스크 진행 순서
 
 ```
-T52 ✅ → T76~G ✅ → T77 ✅ → T78 ✅ → T79 ✅ ∥ T82 ✅ → T80-1 ✅ → T80-2/3/4 → T83 ∥ T84 → T85 ∥ T86 → [확장 판단] → T87, T81
+T52 ✅ → T76~G ✅ → T77 ✅ → T78 ✅ → T79 ✅ ∥ T82 ✅ → T80-1 ✅ → T80-2 ✅ ∥ T80-3 ✅ ∥ T80-4 ✅ → T80-5/6 → T83 ∥ T84 → T85 ∥ T86 → [확장 판단] → T87, T81
 ```
 
 ### 다음 태스크
 
-T80-1 완료. 다음은 T80-2(임베딩 자동화), T80-3(노트 AI 평가), T80-4(HR 피드백) 병렬 진입 가능.
+T80-2/3/4 완료. 다음:
+- T80-5: AI 이력서 초안 (T80-4 의존)
+- T80-6: 자동 후보 엣지 (T80-2 의존)
 
 ### 전략 결정 사항 (2026-03-15 논의)
 
@@ -243,4 +300,6 @@ T80-1 완료. 다음은 T80-2(임베딩 자동화), T80-3(노트 AI 평가), T80
 - **layoutJson**: `{ sections: [{ id, visible }] }` — 포트폴리오 홈 섹션 순서/가시성 커스텀
 - **PageView**: `page_views` 테이블, 공개 포트폴리오 자동 트래킹, `/app/analytics` 대시보드
 - **Gemini 클라이언트**: `src/modules/gemini/` — `createGeminiClient()`, `withGeminiFallback()`, GEMINI_API_KEY 기반
-- **AI 현재**: T80-1 완료 (클라이언트 모듈). 기존 deterministic 벡터 + regex는 T80-2/3에서 Gemini로 교체 예정
+- **노트 AI 평가**: `buildNoteFeedbackItemsWithAI()` + `parseNoteFeedbackResponse()` — Gemini LLM + regex fallback
+- **HR 피드백 LLM**: `buildPortfolioFeedbackItemsWithAI()`, `buildResumeFeedbackItemsWithAI()` — HR 페르소나
+- **임베딩 자동화**: Gemini text-embedding-004 → NoteEmbedding UPSERT, deterministic fallback
