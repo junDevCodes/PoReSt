@@ -28,7 +28,7 @@ const PRESET_SKILLS: PresetSkill[] = [
   { name: "Vue.js", category: "Frontend", icon: "vuedotjs" },
   { name: "Angular", category: "Frontend", icon: "angular" },
   { name: "Next.js", category: "Frontend", icon: "nextdotjs" },
-  { name: "Nuxt.js", category: "Frontend", icon: "nuxtdotjs" },
+  { name: "Nuxt.js", category: "Frontend", icon: "devicon:nuxtjs/nuxtjs-original" },
   { name: "Svelte", category: "Frontend", icon: "svelte" },
   { name: "TypeScript", category: "Frontend", icon: "typescript" },
   { name: "Tailwind CSS", category: "Frontend", icon: "tailwindcss" },
@@ -42,7 +42,7 @@ const PRESET_SKILLS: PresetSkill[] = [
   { name: "PostgreSQL", category: "Database", icon: "postgresql" },
   { name: "MongoDB", category: "Database", icon: "mongodb" },
   { name: "Redis", category: "Database", icon: "redis" },
-  { name: "Oracle", category: "Database", icon: "oracle" },
+  { name: "Oracle", category: "Database", icon: "devicon:oracle/oracle-original" },
   { name: "MariaDB", category: "Database", icon: "mariadb" },
   { name: "Elasticsearch", category: "Database", icon: "elasticsearch" },
   // DevOps
@@ -53,9 +53,9 @@ const PRESET_SKILLS: PresetSkill[] = [
   { name: "Terraform", category: "DevOps", icon: "terraform" },
   { name: "Ansible", category: "DevOps", icon: "ansible" },
   // Cloud
-  { name: "AWS", category: "Cloud", icon: "amazonwebservices" },
+  { name: "AWS", category: "Cloud", icon: "devicon:amazonwebservices/amazonwebservices-original-wordmark" },
   { name: "Google Cloud", category: "Cloud", icon: "googlecloud" },
-  { name: "Azure", category: "Cloud", icon: "microsoftazure" },
+  { name: "Azure", category: "Cloud", icon: "devicon:azure/azure-original" },
   { name: "Firebase", category: "Cloud", icon: "firebase" },
   // AI/ML
   { name: "TensorFlow", category: "AI/ML", icon: "tensorflow" },
@@ -76,6 +76,10 @@ const PRESET_SKILLS: PresetSkill[] = [
 ];
 
 function skillIconUrl(slug: string): string {
+  if (slug.startsWith("devicon:")) {
+    const path = slug.replace("devicon:", "");
+    return `https://cdn.jsdelivr.net/gh/devicons/devicon/icons/${path}.svg`;
+  }
   return `https://cdn.simpleicons.org/${slug}`;
 }
 
