@@ -330,6 +330,30 @@
 **검증**: Playwright MCP 로컬 브라우저 테스트 — 홈, 포트폴리오, API 인증/공개 엔드포인트 전체 정상
 **커밋**: `976317b`
 
+### T80-5: AI 이력서 초안 (2026-03-16) ✅
+
+**범위**: 5개 파일 수정 + 2개 신규 (테스트 32개)
+
+**핵심 변경**:
+
+1. **AI 이력서 초안 생성** — `generateResumeDraft()`
+   - 보유 경력/스킬 분석 → Gemini LLM으로 직무 맞춤 이력서 자동 생성
+   - 이력서 작성 전문 컨설턴트 페르소나 (`RESUME_DRAFT_SYSTEM_PROMPT`)
+   - 경력 인덱스 기반 LLM ↔ DB 매핑 (`parseResumeDraftResponse()`)
+   - `withGeminiFallback()` — 미설정/실패 시 공개 경력 자동 포함
+
+2. **API 엔드포인트** — `POST /api/app/resumes/draft`
+   - targetCompany/targetRole/level/jobDescription 입력
+   - Resume + ResumeItems 자동 생성 → 201 Created
+
+3. **워크스페이스 UI** — "AI 초안 생성" 버튼 + 모달
+   - 지원 정보 + 채용 공고(JD) 입력 폼
+   - 생성 완료 시 편집 페이지 자동 리다이렉트
+
+**게이트**: `lint(0 errors) / build / jest(60 suites, 324 tests) / vercel-build` 통과
+**검증**: Playwright MCP — 홈, 포트폴리오, 경력, API 인증 보호(401/405) 정상
+**커밋**: `4059e70`
+
 ---
 
 ## 현재 진행 맥락
@@ -337,13 +361,12 @@
 ### 태스크 진행 순서
 
 ```
-T52 ✅ → T76~G ✅ → T77 ✅ → T78 ✅ → T79 ✅ ∥ T82 ✅ → T80-1 ✅ → T80-2 ✅ ∥ T80-3 ✅ ∥ T80-4 ✅ → T80-5 ∥ T80-6 ✅ → T83 ∥ T84 → T85 ∥ T86 → [확장 판단] → T87, T81
+T52 ✅ → T76~G ✅ → T77 ✅ → T78 ✅ → T79 ✅ ∥ T82 ✅ → T80-1 ✅ → T80-2 ✅ ∥ T80-3 ✅ ∥ T80-4 ✅ → T80-5 ✅ ∥ T80-6 ✅ → T83 ∥ T84 → T85 ∥ T86 → [확장 판단] → T87, T81
 ```
 
 ### 다음 태스크
 
-T80-6 완료. T80-5 병렬 진행 중.
-- T80-5 완료 시 M8 종결
+**M8 (AI 기능 고도화) 완료** — T80-1~6 전체 완료.
 - T83: 엔티티 연결 (Experience ↔ Project ↔ Skill)
 - T84: 지원 이력 트래커 (칸반 + JD 매칭)
 
@@ -370,3 +393,4 @@ T80-6 완료. T80-5 병렬 진행 중.
 - **HR 피드백 LLM**: `buildPortfolioFeedbackItemsWithAI()`, `buildResumeFeedbackItemsWithAI()` — HR 페르소나
 - **임베딩 자동화**: Gemini text-embedding-004 → NoteEmbedding UPSERT, deterministic fallback
 - **자동 후보 엣지**: `queueEmbeddingAndEdgesForNote()` → pgvector 유사도 → NoteEdge CANDIDATE 자동 생성
+- **AI 이력서 초안**: `generateResumeDraft()` → Gemini LLM + 경력/스킬 분석 → Resume+Items 자동 생성

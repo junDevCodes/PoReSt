@@ -6,80 +6,100 @@
 
 ---
 
-## T80-6 — 자동 후보 엣지 ✅ 완료
+## T80-5 — AI 이력서 초안 ✅ 완료
 
 ### 현재 → 목표
 
 | 항목 | 현재 | 목표 |
 |---|---|---|
-| 후보 엣지 생성 | 태그 Jaccard만 (수동 트리거) | 임베딩 유사도 + 태그 Jaccard + 자동 트리거 |
-| 자동 생성 시점 | 없음 | 노트 생성/수정 → 임베딩 완료 후 자동 |
-| 가중치 계산 | 태그 Jaccard 단독 | MAX(임베딩 코사인, 태그 Jaccard) |
-| 트리거 함수 | `queueEmbeddingForNote()` | `queueEmbeddingAndEdgesForNote()` 체인 |
+| 이력서 생성 | 수동 생성 + 경력 항목 수동 추가 | Gemini LLM이 경력/스킬 분석 → 맞춤 초안 자동 생성 |
+| 경력 선별 | 사용자가 수동 선택 | AI가 직무 관련도 기반 자동 선별 (2~5개) |
+| 성과 커스터마이즈 | 수동 override 작성 | LLM이 직무 맞춤 STAR 기법 성과 재구성 |
+| 요약문 | 사용자가 직접 작성 | AI가 직무 맞춤 자기소개 자동 생성 |
+| Fallback | 없음 | GEMINI_API_KEY 미설정 → 공개 경력 자동 포함 |
 
 ### 핵심 변경
 
-1. **`generateCandidateEdgesForNote()`** — 단일 노트 임베딩 유사도 기반 CANDIDATE 엣지 생성
-   - 소스 노트 + 후보 노트 조회 → 기존 엣지 중복 방지
-   - 임베딩 점수 + 태그 Jaccard 동시 계산
-   - MAX(임베딩, 태그) 최종 가중치 + 동일 도메인 보너스(+0.1)
-   - fromId < toId 정규화, 상위 20개 제한
-   - reason에 임베딩 유사도/태그 교집합/도메인 보너스 포함
+1. **시스템 프롬프트** — `RESUME_DRAFT_SYSTEM_PROMPT` (이력서 작성 전문 컨설턴트 페르소나)
 
-2. **`queueEmbeddingAndEdgesForNote()`** — 임베딩 → 유사 검색 → 엣지 생성 체인
-   - `embedSingleNote()` 성공 후 `searchSimilarNotesForOwner()` 호출
-   - 유사 노트 있으면 `edgeCallback()`으로 엣지 생성
-   - fire-and-forget 패턴, 에러 삼키기 + warn 로그
-   - `edgeCallback: null`이면 엣지 생성 스킵
+2. **프롬프트 빌더** — `buildResumeDraftPrompt()`
+   - 보유 경력 전체 (인덱스 번호 부여)
+   - 보유 기술 (카테고리별 그룹)
+   - 지원 정보 (회사/직무/레벨)
+   - 채용 공고 (JD) 선택적 포함
+   - JSON 출력 형식 지시 (summaryMd + selectedExperiences)
 
-3. **API 라우트 연동**
-   - POST `/api/app/notes` — `queueEmbeddingAndEdgesForNote()` 교체
-   - PUT `/api/app/notes/[id]` — `queueEmbeddingAndEdgesForNote()` 교체
+3. **LLM 응답 파서** — `parseResumeDraftResponse()`
+   - 코드 블록/앞뒤 텍스트 자동 추출
+   - 경력 인덱스 매핑 (1-based → experienceId)
+   - 중복 경력 방지, 유효하지 않은 인덱스 필터링
+   - overrideBullets/Metrics/TechTags/notes 파싱
+
+4. **Fallback** — `buildFallbackResumeDraft()`
+   - PUBLIC 경력만 선택, featured → current → 최신 순 정렬
+   - 최대 5개, override 없이 원본 경력 참조
+
+5. **서비스 로직** — `generateResumeDraft()`
+   - 경력/스킬 조회 → 프롬프트 빌드 → LLM 호출 → 파싱
+   - Resume + ResumeItems 순차 생성
+   - `withGeminiFallback()` 패턴 적용
+
+6. **API 엔드포인트** — `POST /api/app/resumes/draft`
+   - 인증 필수, targetCompany/targetRole/level/jobDescription 입력
+   - 201 Created → OwnerResumeDetailDto 반환
+
+7. **워크스페이스 UI** — "AI 초안 생성" 버튼 + 입력 모달
+   - 지원 회사/직무/레벨/채용 공고 입력 폼
+   - 생성 완료 시 편집 페이지로 자동 리다이렉트
 
 ### 변경 파일 목록
 
 **수정:**
-- `src/modules/notes/interface.ts` — `EmbeddingSimilarityInput` 타입, `generateCandidateEdgesForNote` 메서드
-- `src/modules/notes/implementation.ts` — 임베딩 기반 엣지 생성 구현
-- `src/modules/note-embeddings/implementation.ts` — `queueEmbeddingAndEdgesForNote()`, `EdgeGenerationCallback` 타입
-- `src/app/api/app/notes/route.ts` — 오케스트레이터 교체
-- `src/app/api/app/notes/[id]/route.ts` — 오케스트레이터 교체
+- `src/modules/resumes/interface.ts` — `ResumeDraftInput`, `ResumeDraftPrismaClient` 타입 추가
+- `src/modules/resumes/implementation.ts` — AI 이력서 초안 생성 전체 로직
+- `src/app/(private)/app/resumes/ResumesPageClient.tsx` — AI 초안 버튼 + 모달 UI
+- `src/app/(private)/app/resumes/__tests__/resumes-page-client.test.tsx` — useRouter mock
+- `src/app/(private)/app/projects/__tests__/light-theme-contrast.test.tsx` — useRouter mock
 
 **신규:**
-- `src/modules/notes/tests/auto-candidate-edges.test.ts` — 18개 테스트
+- `src/app/api/app/resumes/draft/route.ts` — AI 초안 API 엔드포인트
+- `src/modules/resumes/tests/resume-draft.test.ts` — 32개 테스트
 
 ### 완료 기준
 
-- [x] `generateCandidateEdgesForNote()` 임베딩 유사 노트 기반 CANDIDATE 엣지 생성
-- [x] MAX(임베딩 코사인, 태그 Jaccard) 가중치 계산
-- [x] 동일 도메인 가중치 보너스 (+0.1, 상한 1.0)
-- [x] 기존 엣지 중복 방지 (normalizePairKey)
-- [x] fromId < toId 정규화
-- [x] 상위 20개 후보 제한
-- [x] 소스 노트 미존재 시 빈 배열 반환
-- [x] 빈 유사 노트 배열 시 빈 배열 반환
-- [x] 삭제된 후보 노트 스킵
-- [x] reason에 임베딩 유사도 포함
-- [x] `queueEmbeddingAndEdgesForNote()` 임베딩 → 엣지 체인
-- [x] 임베딩 실패 시 엣지 콜백 미호출
-- [x] 유사 노트 없으면 엣지 콜백 미호출
-- [x] 엣지 콜백 실패 시 에러 삼키기
-- [x] edgeCallback null이면 스킵
-- [x] 테스트 18개 통과
+- [x] `generateResumeDraft()` — Gemini LLM 호출 + fallback 패턴
+- [x] `RESUME_DRAFT_SYSTEM_PROMPT` — 이력서 작성 전문가 페르소나
+- [x] `buildResumeDraftPrompt()` — 경력/스킬/JD 프롬프트 빌더
+- [x] `parseResumeDraftResponse()` — JSON 파서 (인덱스 매핑 + 검증)
+- [x] `buildFallbackResumeDraft()` — 공개 경력 기반 기본 초안
+- [x] `generateDraftTitle()` — 자동 제목 생성
+- [x] GEMINI_API_KEY 미설정 → fallback 즉시 실행
+- [x] LLM retryable 에러 → fallback 자동 전환
+- [x] JD 포함 시 직무 맞춤 최적화
+- [x] POST `/api/app/resumes/draft` API 엔드포인트
+- [x] 이력서 목록 페이지 "AI 초안 생성" 버튼 + 모달
+- [x] 테스트 32개 통과
 - [x] 게이트 4종 통과
 
 ### 게이트
 
 - [x] `npm run lint` 통과 (0 errors, 6 warnings)
 - [x] `npm run build` 통과
-- [x] `npx jest --runInBand` 통과 (59 suites, 292 tests)
+- [x] `npx jest --runInBand` 통과 (60 suites, 324 tests)
 - [x] `npm run vercel-build` 통과
-- [x] push 완료 (`976317b`)
+- [x] push 완료 (`4059e70`)
 
 ---
 
-## 다음 태스크: T80-5 (병렬 진행 중) → T83/T84
+## T80-6 — 자동 후보 엣지 ✅ 완료
 
-T80-5 완료 후 M8 종결:
+(병렬 세션에서 완료, 커밋 `976317b`)
+
+---
+
+## 다음 태스크: M8 종결 → T83/T84
+
+M8 (AI 기능 고도화) 완료:
+- T80-1~6 전체 완료
 - T83: 엔티티 연결 (Experience ↔ Project ↔ Skill)
 - T84: 지원 이력 트래커 (칸반 + JD 매칭)

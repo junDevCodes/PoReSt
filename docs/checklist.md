@@ -6,6 +6,55 @@
 
 ---
 
+## T80-5 — AI 이력서 초안 ✅
+
+---
+
+### 아키텍처
+
+- [x] `generateResumeDraft()` — Gemini LLM + fallback 통합
+- [x] `withGeminiFallback()` 패턴 적용
+- [x] Resume + ResumeItems 순차 생성 (항목별 에러 catch)
+- [x] 경력 미등록 시 VALIDATION_ERROR(422)
+
+### LLM 프롬프트
+
+- [x] `RESUME_DRAFT_SYSTEM_PROMPT` — 이력서 작성 전문 컨설턴트 (10년+, 한국어)
+- [x] `buildResumeDraftPrompt()` — 경력 인덱스 + 기술 카테고리 + 지원 정보
+- [x] 채용 공고 (JD) 선택적 포함 (5000자 제한)
+- [x] 7가지 작성 규칙 (STAR 기법, 정량 지표 등)
+
+### 응답 파서
+
+- [x] `parseResumeDraftResponse()` — 코드 블록/앞뒤 텍스트 자동 추출
+- [x] 경력 인덱스 매핑 (1-based → experienceId) + 중복 방지
+- [x] 빈 overrideBullets/Metrics → null 변환
+- [x] JSON 미발견/파싱 실패 → GeminiClientError(retryable)
+
+### Fallback
+
+- [x] GEMINI_API_KEY 미설정 → fallback 즉시 실행
+- [x] LLM retryable 에러 → fallback 전환
+- [x] PUBLIC 경력만, featured → current → 최신 정렬, 최대 5개
+
+### 테스트 (32개)
+
+- [x] parseResumeDraftInput 5개 (정상/빈/null/초과/JD초과)
+- [x] buildResumeDraftPrompt 6개 (경력/기술/JD/없음/bullets/날짜)
+- [x] parseResumeDraftResponse 10개 (정상/코드블록/텍스트/인덱스/중복/null/빈값/에러3개)
+- [x] buildFallbackResumeDraft 5개 (PUBLIC/featured/null/override/최대)
+- [x] generateDraftTitle 3개 (회사+직무/회사/기본)
+- [x] RESUME_DRAFT_SYSTEM_PROMPT 3개 (한국어/전문가/IT)
+
+### T80-5 게이트 4종
+
+- [x] `npm run lint` 통과 (0 errors, 6 warnings)
+- [x] `npm run build` 통과
+- [x] `npx jest --runInBand` 통과 (60 suites, 324 tests)
+- [x] `npm run vercel-build` 통과
+
+---
+
 ## T80-6 — 자동 후보 엣지 ✅
 
 ---
