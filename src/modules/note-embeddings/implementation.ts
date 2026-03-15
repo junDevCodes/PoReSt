@@ -19,6 +19,8 @@ const DEFAULT_SIMILAR_LIMIT = 5;
 const MAX_SIMILAR_LIMIT = 20;
 const DEFAULT_MIN_SCORE = 0.5;
 const MAX_EMBEDDING_CONTENT_LENGTH = 9500;
+const EMBEDDING_EDGE_SIMILAR_LIMIT = 10;
+const EMBEDDING_EDGE_MIN_SCORE = 0.5;
 
 const noteEmbeddingPlanSchema = z.object({
   noteIds: z.array(z.string().min(1)).max(MAX_REBUILD_LIMIT).optional(),
@@ -494,4 +496,44 @@ export function queueEmbeddingForNote(
   service.embedSingleNote(ownerId, noteId).catch((error) => {
     console.warn("임베딩 자동 생성 실패:", error instanceof Error ? error.message : error);
   });
+}
+
+export type EdgeGenerationCallback = (
+  ownerId: string,
+  noteId: string,
+  similarNotes: Array<{ noteId: string; score: number }>,
+) => Promise<unknown>;
+
+/** 노트 생성/수정 후 비동기 임베딩 → 후보 엣지 자동 생성 체인 (fire-and-forget) */
+export function queueEmbeddingAndEdgesForNote(
+  embeddingService: NoteEmbeddingPipelineService,
+  edgeCallback: EdgeGenerationCallback | null,
+  ownerId: string,
+  noteId: string,
+): void {
+  embeddingService
+    .embedSingleNote(ownerId, noteId)
+    .then(async (result) => {
+      if (result.succeeded > 0 && edgeCallback) {
+        try {
+          const similarNotes = await embeddingService.searchSimilarNotesForOwner(
+            ownerId,
+            noteId,
+            { limit: EMBEDDING_EDGE_SIMILAR_LIMIT, minScore: EMBEDDING_EDGE_MIN_SCORE },
+          );
+          if (similarNotes.length > 0) {
+            await edgeCallback(
+              ownerId,
+              noteId,
+              similarNotes.map((n) => ({ noteId: n.noteId, score: n.score })),
+            );
+          }
+        } catch (error) {
+          console.warn("자동 후보 엣지 생성 실패:", error instanceof Error ? error.message : error);
+        }
+      }
+    })
+    .catch((error) => {
+      console.warn("임베딩 자동 생성 실패:", error instanceof Error ? error.message : error);
+    });
 }

@@ -8,7 +8,7 @@ import {
   createNotePayloadTooLargeResponse,
   createNotesService,
 } from "@/modules/notes";
-import { createNoteEmbeddingPipelineService, queueEmbeddingForNote } from "@/modules/note-embeddings";
+import { createNoteEmbeddingPipelineService, queueEmbeddingAndEdgesForNote } from "@/modules/note-embeddings";
 
 const notesService = createNotesService({ prisma });
 const noteEmbeddingService = createNoteEmbeddingPipelineService({ prisma });
@@ -44,7 +44,12 @@ export async function POST(request: Request) {
   try {
     const ownerId = authResult.session.user.id;
     const created = await notesService.createNote(ownerId, parsedBody.value);
-    queueEmbeddingForNote(noteEmbeddingService, ownerId, created.id);
+    queueEmbeddingAndEdgesForNote(
+      noteEmbeddingService,
+      (oid, nid, similar) => notesService.generateCandidateEdgesForNote(oid, nid, similar),
+      ownerId,
+      created.id,
+    );
     return NextResponse.json({ data: created }, { status: 201 });
   } catch (error) {
     return createNoteErrorResponse(error);

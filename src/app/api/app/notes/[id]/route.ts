@@ -8,7 +8,7 @@ import {
   createNotePayloadTooLargeResponse,
   createNotesService,
 } from "@/modules/notes";
-import { createNoteEmbeddingPipelineService, queueEmbeddingForNote } from "@/modules/note-embeddings";
+import { createNoteEmbeddingPipelineService, queueEmbeddingAndEdgesForNote } from "@/modules/note-embeddings";
 
 type NoteIdRouteContext = {
   params: Promise<{ id: string }> | { id: string };
@@ -50,7 +50,12 @@ export async function PUT(request: Request, context: NoteIdRouteContext) {
     const params = await context.params;
     const ownerId = authResult.session.user.id;
     const updated = await notesService.updateNote(ownerId, params.id, parsedBody.value);
-    queueEmbeddingForNote(noteEmbeddingService, ownerId, updated.id);
+    queueEmbeddingAndEdgesForNote(
+      noteEmbeddingService,
+      (oid, nid, similar) => notesService.generateCandidateEdgesForNote(oid, nid, similar),
+      ownerId,
+      updated.id,
+    );
     return NextResponse.json({ data: updated });
   } catch (error) {
     return createNoteErrorResponse(error);

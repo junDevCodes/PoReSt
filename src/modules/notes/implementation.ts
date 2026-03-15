@@ -883,6 +883,115 @@ export function createNotesService(deps: { prisma: NotesServicePrismaClient }): 
       return this.listCandidateEdgesForOwner(ownerId);
     },
 
+    async generateCandidateEdgesForNote(ownerId, noteId, embeddingSimilarNotes) {
+      if (embeddingSimilarNotes.length === 0) {
+        return [];
+      }
+
+      const sourceNote = await prisma.note.findFirst({
+        where: { id: noteId, ownerId, deletedAt: null },
+        select: { id: true, notebookId: true, tags: true },
+      });
+
+      if (!sourceNote) {
+        return [];
+      }
+
+      const candidateNoteIds = embeddingSimilarNotes.map((n) => n.noteId);
+      const candidateNotes = await prisma.note.findMany({
+        where: { id: { in: candidateNoteIds }, ownerId, deletedAt: null },
+        select: { id: true, notebookId: true, tags: true },
+      });
+      const candidateMap = new Map(candidateNotes.map((n) => [n.id, n]));
+
+      const existingEdges = await prisma.noteEdge.findMany({
+        where: {
+          relationType: DEFAULT_RELATION_TYPE,
+          OR: [
+            { fromId: noteId, toId: { in: candidateNoteIds } },
+            { toId: noteId, fromId: { in: candidateNoteIds } },
+          ],
+        },
+        select: { fromId: true, toId: true },
+      });
+      const existingPairKeys = new Set(
+        existingEdges.map((edge) => normalizePairKey(edge.fromId, edge.toId)),
+      );
+
+      const candidates: Array<{
+        fromId: string;
+        toId: string;
+        weight: number;
+        reason: string;
+      }> = [];
+
+      for (const similar of embeddingSimilarNotes) {
+        const candidate = candidateMap.get(similar.noteId);
+        if (!candidate) continue;
+
+        const pairKey = normalizePairKey(noteId, similar.noteId);
+        if (existingPairKeys.has(pairKey)) continue;
+
+        const tagResult = computeJaccard(sourceNote.tags, candidate.tags);
+        const isSameDomain = sourceNote.notebookId === candidate.notebookId;
+
+        let embeddingWeight = similar.score;
+        if (isSameDomain) {
+          embeddingWeight = Math.min(CANDIDATE_WEIGHT_MAX, embeddingWeight + CANDIDATE_DOMAIN_WEIGHT_BONUS);
+        }
+
+        const tagWeight = isSameDomain
+          ? Math.min(CANDIDATE_WEIGHT_MAX, tagResult.score + CANDIDATE_DOMAIN_WEIGHT_BONUS)
+          : tagResult.score;
+
+        const weight = Math.max(embeddingWeight, tagWeight);
+
+        const fromId = noteId < similar.noteId ? noteId : similar.noteId;
+        const toId = noteId < similar.noteId ? similar.noteId : noteId;
+
+        const reasons: string[] = [`임베딩 유사도: ${similar.score.toFixed(4)}`];
+        if (tagResult.score > 0) {
+          reasons.push(`태그 교집합 ${tagResult.intersectionCount}/${tagResult.unionCount}`);
+        }
+        if (isSameDomain) {
+          reasons.push("동일 도메인 가중치 적용");
+        }
+
+        candidates.push({
+          fromId,
+          toId,
+          weight: Number(weight.toFixed(4)),
+          reason: reasons.join(" / "),
+        });
+      }
+
+      if (candidates.length === 0) {
+        return [];
+      }
+
+      candidates.sort((a, b) => b.weight - a.weight);
+      const topCandidates = candidates.slice(0, CANDIDATE_TOP_N);
+
+      try {
+        await prisma.noteEdge.createMany({
+          data: topCandidates.map((c) => ({
+            fromId: c.fromId,
+            toId: c.toId,
+            relationType: DEFAULT_RELATION_TYPE,
+            weight: c.weight,
+            status: NoteEdgeStatus.CANDIDATE,
+            origin: NoteEdgeOrigin.AUTO,
+            reason: c.reason,
+          })),
+          skipDuplicates: true,
+        });
+      } catch (error) {
+        handleKnownPrismaError(error);
+      }
+
+      return this.listEdgesForNoteForOwner(ownerId, noteId);
+    },
+
     async listCandidateEdgesForOwner(ownerId) {
       return prisma.noteEdge.findMany({
         where: {

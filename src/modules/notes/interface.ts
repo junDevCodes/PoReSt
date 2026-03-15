@@ -28,6 +28,11 @@ export type NoteEdgeActionInput = {
   edgeId: string;
 };
 
+export type EmbeddingSimilarityInput = {
+  noteId: string;
+  score: number;
+};
+
 export type OwnerNoteListItemDto = {
   id: string;
   notebookId: string;
@@ -122,6 +127,11 @@ export interface NotesService {
   updateNote(ownerId: string, noteId: string, input: unknown): Promise<OwnerNoteDetailDto>;
   deleteNote(ownerId: string, noteId: string): Promise<{ id: string }>;
   generateCandidateEdgesForOwner(ownerId: string): Promise<OwnerCandidateEdgeDto[]>;
+  generateCandidateEdgesForNote(
+    ownerId: string,
+    noteId: string,
+    embeddingSimilarNotes: EmbeddingSimilarityInput[],
+  ): Promise<OwnerCandidateEdgeDto[]>;
   listCandidateEdgesForOwner(ownerId: string): Promise<OwnerCandidateEdgeDto[]>;
   listEdgesForNoteForOwner(ownerId: string, noteId: string): Promise<OwnerCandidateEdgeDto[]>;
   confirmEdgeForOwner(ownerId: string, input: unknown): Promise<OwnerCandidateEdgeDto>;
