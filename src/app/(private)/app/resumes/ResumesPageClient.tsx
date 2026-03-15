@@ -1,6 +1,7 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { parseApiResponse } from "@/app/(private)/app/_lib/admin-api";
 import { downloadResumePdfFile } from "@/app/(private)/app/resumes/_lib/pdf";
@@ -29,7 +30,16 @@ export function ResumesPageClient({ initialResumes }: ResumesPageClientProps) {
   const [pendingDeleteResume, setPendingDeleteResume] =
     useState<SerializedOwnerResumeListItemDto | null>(null);
   const [printingId, setPrintingId] = useState<string | null>(null);
+  const [showDraftModal, setShowDraftModal] = useState(false);
+  const [isDraftLoading, setIsDraftLoading] = useState(false);
+  const [draftForm, setDraftForm] = useState({
+    targetCompany: "",
+    targetRole: "",
+    level: "",
+    jobDescription: "",
+  });
   const toast = useToast();
+  const router = useRouter();
 
   async function requestResumes() {
     try {
@@ -102,6 +112,46 @@ export function ResumesPageClient({ initialResumes }: ResumesPageClientProps) {
     await reloadResumes();
   }
 
+  async function handleDraftSubmit() {
+    setIsDraftLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/app/resumes/draft", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          targetCompany: draftForm.targetCompany || null,
+          targetRole: draftForm.targetRole || null,
+          level: draftForm.level || null,
+          jobDescription: draftForm.jobDescription || null,
+        }),
+      });
+      const parsed = await parseApiResponse<{ id: string }>(response);
+
+      if (parsed.error) {
+        setError(parsed.error);
+        toast.error(parsed.error);
+        setIsDraftLoading(false);
+        return;
+      }
+
+      toast.success("AI 이력서 초안이 생성되었습니다.");
+      setShowDraftModal(false);
+      setDraftForm({ targetCompany: "", targetRole: "", level: "", jobDescription: "" });
+
+      if (parsed.data?.id) {
+        router.push(`/app/resumes/${parsed.data.id}/edit`);
+      } else {
+        await reloadResumes();
+      }
+    } catch {
+      toast.error("AI 초안 생성 중 오류가 발생했습니다.");
+    } finally {
+      setIsDraftLoading(false);
+    }
+  }
+
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col">
       <header className="flex flex-wrap items-center justify-between gap-4">
@@ -112,12 +162,21 @@ export function ResumesPageClient({ initialResumes }: ResumesPageClientProps) {
             회사/직무별 이력서 버전을 생성하고, 포함 경력과 항목 구성을 관리합니다.
           </p>
         </div>
-        <Link
-          href="/app/resumes/new"
-          className="rounded-full bg-black px-5 py-2 text-sm font-semibold text-white"
-        >
-          새 이력서
-        </Link>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => setShowDraftModal(true)}
+            className="rounded-full border-2 border-violet-400 bg-violet-50 px-5 py-2 text-sm font-semibold text-violet-800"
+          >
+            AI 초안 생성
+          </button>
+          <Link
+            href="/app/resumes/new"
+            className="rounded-full bg-black px-5 py-2 text-sm font-semibold text-white"
+          >
+            새 이력서
+          </Link>
+        </div>
       </header>
 
       {error ? <ErrorBanner message={error} className="mt-6" /> : null}
@@ -200,6 +259,118 @@ export function ResumesPageClient({ initialResumes }: ResumesPageClientProps) {
           void handleDeleteConfirmed();
         }}
       />
+
+      {showDraftModal ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !isDraftLoading) {
+              setShowDraftModal(false);
+            }
+          }}
+        >
+          <div className="mx-4 w-full max-w-lg rounded-2xl border border-black/10 bg-white p-6 shadow-xl">
+            <h2 className="text-xl font-semibold">AI 이력서 초안 생성</h2>
+            <p className="mt-2 text-sm text-black/60">
+              지원 정보를 입력하면 보유 경력을 분석하여 맞춤 이력서 초안을 생성합니다.
+            </p>
+
+            <div className="mt-5 space-y-4">
+              <div>
+                <label htmlFor="draft-company" className="block text-sm font-medium text-black/80">
+                  지원 회사
+                </label>
+                <input
+                  id="draft-company"
+                  type="text"
+                  value={draftForm.targetCompany}
+                  onChange={(e) =>
+                    setDraftForm((f) => ({ ...f, targetCompany: e.target.value }))
+                  }
+                  placeholder="예: 네이버, 카카오"
+                  maxLength={120}
+                  className="mt-1 w-full rounded-lg border border-black/15 px-3 py-2 text-sm"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="draft-role" className="block text-sm font-medium text-black/80">
+                  지원 직무
+                </label>
+                <input
+                  id="draft-role"
+                  type="text"
+                  value={draftForm.targetRole}
+                  onChange={(e) =>
+                    setDraftForm((f) => ({ ...f, targetRole: e.target.value }))
+                  }
+                  placeholder="예: 백엔드 개발자, 프론트엔드 엔지니어"
+                  maxLength={120}
+                  className="mt-1 w-full rounded-lg border border-black/15 px-3 py-2 text-sm"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="draft-level" className="block text-sm font-medium text-black/80">
+                  레벨
+                </label>
+                <input
+                  id="draft-level"
+                  type="text"
+                  value={draftForm.level}
+                  onChange={(e) =>
+                    setDraftForm((f) => ({ ...f, level: e.target.value }))
+                  }
+                  placeholder="예: 주니어, 미드레벨, 시니어"
+                  maxLength={50}
+                  className="mt-1 w-full rounded-lg border border-black/15 px-3 py-2 text-sm"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="draft-jd" className="block text-sm font-medium text-black/80">
+                  채용 공고 (JD)
+                  <span className="ml-1 font-normal text-black/40">선택</span>
+                </label>
+                <textarea
+                  id="draft-jd"
+                  value={draftForm.jobDescription}
+                  onChange={(e) =>
+                    setDraftForm((f) => ({ ...f, jobDescription: e.target.value }))
+                  }
+                  placeholder="채용 공고 내용을 붙여넣으면 JD에 맞춤 최적화됩니다."
+                  maxLength={5000}
+                  rows={5}
+                  className="mt-1 w-full rounded-lg border border-black/15 px-3 py-2 text-sm"
+                />
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  if (!isDraftLoading) {
+                    setShowDraftModal(false);
+                  }
+                }}
+                disabled={isDraftLoading}
+                className="rounded-lg border border-black/15 px-4 py-2 text-sm disabled:opacity-60"
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleDraftSubmit()}
+                disabled={isDraftLoading}
+                className="rounded-lg bg-violet-600 px-5 py-2 text-sm font-semibold text-white disabled:opacity-60"
+              >
+                {isDraftLoading ? "AI 분석 중..." : "초안 생성"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

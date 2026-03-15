@@ -14,6 +14,10 @@ jest.mock("@/components/ui/useToast", () => ({
   useToast: () => toast,
 }));
 
+jest.mock("next/navigation", () => ({
+  useRouter: () => ({ push: jest.fn() }),
+}));
+
 const NETWORK_ERROR_MESSAGE = "네트워크 연결을 확인해주세요. 잠시 후 다시 시도해주세요.";
 
 const INITIAL_RESUMES: SerializedOwnerResumeListItemDto[] = [

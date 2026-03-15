@@ -25,6 +25,10 @@ jest.mock("@/components/ui/useToast", () => ({
   useToast: () => toast,
 }));
 
+jest.mock("next/navigation", () => ({
+  useRouter: () => ({ push: jest.fn() }),
+}));
+
 const MIN_ACCESSIBLE_BLACK_TEXT_OPACITY = 55;
 const LOW_CONTRAST_WHITE_CLASS_NAMES = [
   "text-white/50",

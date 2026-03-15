@@ -5,10 +5,15 @@ import {
   type ResumeCreateInput,
   type ResumeItemCreateInput,
   type ResumeShareLinkCreateInput,
+  type ResumeDraftInput,
+  type ResumeDraftPrismaClient,
+  type OwnerResumeDetailDto,
   ResumeServiceError,
   type ResumeServicePrismaClient,
   type ResumesService,
 } from "@/modules/resumes/interface";
+import { getDefaultGeminiClient, withGeminiFallback } from "@/modules/gemini";
+import { GeminiClientError } from "@/modules/gemini";
 
 const MIN_TEXT_LENGTH = 1;
 const MAX_TITLE_LENGTH = 120;
@@ -1016,4 +1021,419 @@ export function createResumesService(deps: { prisma: ResumeServicePrismaClient }
       return fetchResumePreviewById(prisma, link.resumeId);
     },
   };
+}
+
+// ─────────────────────────────────────────────
+// T80-5: AI 이력서 초안 생성
+// ─────────────────────────────────────────────
+
+const RESUME_DRAFT_SYSTEM_PROMPT =
+  "당신은 대한민국 IT 업계 경력 10년 이상의 이력서 작성 전문 컨설턴트입니다. " +
+  "채용 담당자가 서류 심사에서 주목하는 핵심 역량과 성과를 강조하는 이력서를 작성합니다. " +
+  "반드시 한국어로 응답하세요.";
+
+const RESUME_DRAFT_TEMPERATURE = 0.5;
+const RESUME_DRAFT_MAX_OUTPUT_TOKENS = 4096;
+const MAX_JD_LENGTH = 5000;
+const SORT_ORDER_STEP = 10;
+const MAX_DRAFT_EXPERIENCES = 5;
+const MAX_OVERRIDE_BULLETS = 20;
+
+const resumeDraftSchema = z.object({
+  targetCompany: z
+    .string()
+    .trim()
+    .max(MAX_COMPANY_LENGTH, "회사명은 120자 이하로 입력해주세요.")
+    .optional()
+    .nullable(),
+  targetRole: z
+    .string()
+    .trim()
+    .max(MAX_ROLE_LENGTH, "직무명은 120자 이하로 입력해주세요.")
+    .optional()
+    .nullable(),
+  level: z
+    .string()
+    .trim()
+    .max(MAX_LEVEL_LENGTH, "레벨은 50자 이하로 입력해주세요.")
+    .optional()
+    .nullable(),
+  jobDescription: z
+    .string()
+    .trim()
+    .max(MAX_JD_LENGTH, "채용 공고는 5000자 이하로 입력해주세요.")
+    .optional()
+    .nullable(),
+});
+
+export function parseResumeDraftInput(input: unknown): ResumeDraftInput {
+  try {
+    const parsed = resumeDraftSchema.parse(input);
+    return {
+      targetCompany: toNullableString(parsed.targetCompany),
+      targetRole: toNullableString(parsed.targetRole),
+      level: toNullableString(parsed.level),
+      jobDescription: parsed.jobDescription?.trim() || null,
+    };
+  } catch (error) {
+    if (error instanceof ResumeServiceError) {
+      throw error;
+    }
+
+    if (error instanceof z.ZodError) {
+      throw new ResumeServiceError(
+        "VALIDATION_ERROR",
+        422,
+        "AI 이력서 초안 입력값이 올바르지 않습니다.",
+        extractZodFieldErrors(error),
+      );
+    }
+
+    throw error;
+  }
+}
+
+type ExperienceForDraft = {
+  id: string;
+  company: string;
+  role: string;
+  startDate: Date;
+  endDate: Date | null;
+  isCurrent: boolean;
+  summary: string | null;
+  bulletsJson: unknown;
+  metricsJson: unknown;
+  techTags: string[];
+  visibility: string;
+  isFeatured: boolean;
+};
+
+type SkillForDraft = {
+  name: string;
+  category: string | null;
+};
+
+type ResumeDraftItemData = {
+  experienceId: string;
+  overrideBullets: string[] | null;
+  overrideMetrics: Record<string, string> | null;
+  overrideTechTags: string[];
+  notes: string | null;
+};
+
+type ResumeDraftData = {
+  summaryMd: string | null;
+  items: ResumeDraftItemData[];
+};
+
+function formatDateYM(date: Date): string {
+  return date.toISOString().slice(0, 7);
+}
+
+function draftSafeJsonArray(value: unknown): string[] {
+  if (Array.isArray(value)) return value.filter((v): v is string => typeof v === "string");
+  return [];
+}
+
+function draftSafeJsonRecord(value: unknown): Record<string, string> {
+  if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+    const record: Record<string, string> = {};
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      record[k] = String(v);
+    }
+    return record;
+  }
+  return {};
+}
+
+export function buildResumeDraftPrompt(
+  experiences: ExperienceForDraft[],
+  skills: SkillForDraft[],
+  input: ResumeDraftInput,
+): string {
+  const targetSection = [
+    `- 지원 회사: ${input.targetCompany || "미지정"}`,
+    `- 지원 직무: ${input.targetRole || "미지정"}`,
+    `- 레벨: ${input.level || "미지정"}`,
+  ].join("\n");
+
+  const jdSection = input.jobDescription
+    ? `\n## 채용 공고 (JD)\n${input.jobDescription.slice(0, MAX_JD_LENGTH)}\n`
+    : "";
+
+  const expList = experiences
+    .map((exp, i) => {
+      const period = exp.isCurrent
+        ? `${formatDateYM(exp.startDate)} ~ 현재`
+        : `${formatDateYM(exp.startDate)} ~ ${exp.endDate ? formatDateYM(exp.endDate) : "미정"}`;
+      const lines = [`### ${i + 1}. ${exp.company} — ${exp.role} (${period})`];
+      if (exp.summary) lines.push(`요약: ${exp.summary}`);
+      const bullets = draftSafeJsonArray(exp.bulletsJson);
+      if (bullets.length > 0) lines.push(`성과:\n${bullets.map((b) => `  - ${b}`).join("\n")}`);
+      const metrics = draftSafeJsonRecord(exp.metricsJson);
+      if (Object.keys(metrics).length > 0) {
+        lines.push(
+          `지표:\n${Object.entries(metrics)
+            .map(([k, v]) => `  - ${k}: ${v}`)
+            .join("\n")}`,
+        );
+      }
+      if (exp.techTags.length > 0) lines.push(`기술: ${exp.techTags.join(", ")}`);
+      return lines.join("\n");
+    })
+    .join("\n\n");
+
+  const skillsByCategory = new Map<string, string[]>();
+  for (const skill of skills) {
+    const cat = skill.category || "기타";
+    if (!skillsByCategory.has(cat)) skillsByCategory.set(cat, []);
+    skillsByCategory.get(cat)!.push(skill.name);
+  }
+  const skillList = Array.from(skillsByCategory.entries())
+    .map(([cat, names]) => `- ${cat}: ${names.join(", ")}`)
+    .join("\n");
+
+  return (
+    `아래 개발자의 경력과 기술 스택을 분석하여, 지원 직무에 최적화된 이력서 초안을 JSON으로 작성하세요.\n\n` +
+    `## 지원 정보\n${targetSection}\n` +
+    `${jdSection}\n` +
+    `## 보유 경력 (총 ${experiences.length}개)\n${expList}\n\n` +
+    `## 보유 기술\n${skillList || "기술 정보 없음"}\n\n` +
+    `## 응답 형식\n` +
+    `아래 JSON 객체만 반환하세요. 다른 텍스트는 포함하지 마세요.\n` +
+    "```json\n" +
+    `{\n` +
+    `  "summaryMd": "지원 직무에 맞춘 자기소개 (3~5문장, 마크다운)",\n` +
+    `  "selectedExperiences": [\n` +
+    `    {\n` +
+    `      "index": 1,\n` +
+    `      "overrideBullets": ["직무 맞춤 성과 1", "직무 맞춤 성과 2"],\n` +
+    `      "overrideMetrics": {"라벨": "수치"},\n` +
+    `      "overrideTechTags": ["관련 기술"],\n` +
+    `      "notes": "이 경력 선택 이유"\n` +
+    `    }\n` +
+    `  ]\n` +
+    `}\n` +
+    "```\n\n" +
+    `## 작성 규칙\n` +
+    `1. 지원 직무와 가장 관련 높은 경력만 선별 (2~5개)\n` +
+    `2. 각 경력의 성과를 지원 직무 관점으로 STAR 기법으로 재구성\n` +
+    `3. 정량적 지표(매출, 성능, 비용, 사용자 수 등) 필수 포함\n` +
+    `4. 기술 태그는 JD와 매칭되는 것을 우선 배치\n` +
+    `5. 요약문은 지원 직무에 맞는 핵심 가치 제안 (차별화 포인트 명시)\n` +
+    `6. index는 위 경력 목록의 번호(1부터 시작)\n` +
+    `7. 경력이 없으면 selectedExperiences를 빈 배열로 반환`
+  );
+}
+
+export function parseResumeDraftResponse(
+  text: string,
+  experiences: ExperienceForDraft[],
+): ResumeDraftData {
+  let jsonText = text.trim();
+
+  const codeBlockMatch = jsonText.match(/```(?:json)?\s*\n?([\s\S]*?)\n?```/);
+  if (codeBlockMatch) {
+    jsonText = codeBlockMatch[1].trim();
+  }
+
+  const objectMatch = jsonText.match(/\{[\s\S]*\}/);
+  if (!objectMatch) {
+    throw new GeminiClientError(
+      "EMPTY_RESPONSE",
+      502,
+      "LLM 응답에서 JSON 객체를 찾을 수 없습니다.",
+      true,
+    );
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(objectMatch[0]);
+  } catch {
+    throw new GeminiClientError("EMPTY_RESPONSE", 502, "LLM 응답 JSON 파싱 실패", true);
+  }
+
+  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+    throw new GeminiClientError("EMPTY_RESPONSE", 502, "LLM 응답이 JSON 객체가 아닙니다.", true);
+  }
+
+  const data = parsed as Record<string, unknown>;
+
+  const summaryMd =
+    typeof data.summaryMd === "string" ? data.summaryMd.slice(0, MAX_SUMMARY_LENGTH) : null;
+
+  const selectedExperiences = Array.isArray(data.selectedExperiences)
+    ? data.selectedExperiences
+    : [];
+
+  const items: ResumeDraftItemData[] = [];
+  const usedExperienceIds = new Set<string>();
+
+  for (const entry of selectedExperiences) {
+    if (typeof entry !== "object" || entry === null) continue;
+    const e = entry as Record<string, unknown>;
+
+    const index = typeof e.index === "number" ? e.index : Number(e.index);
+    if (Number.isNaN(index) || index < 1 || index > experiences.length) continue;
+
+    const experience = experiences[index - 1];
+    if (usedExperienceIds.has(experience.id)) continue;
+    usedExperienceIds.add(experience.id);
+
+    const overrideBullets = Array.isArray(e.overrideBullets)
+      ? e.overrideBullets
+          .filter((b): b is string => typeof b === "string")
+          .slice(0, MAX_OVERRIDE_BULLETS)
+      : null;
+
+    const overrideMetrics =
+      typeof e.overrideMetrics === "object" &&
+      e.overrideMetrics !== null &&
+      !Array.isArray(e.overrideMetrics)
+        ? draftSafeJsonRecord(e.overrideMetrics)
+        : null;
+
+    const overrideTechTags = Array.isArray(e.overrideTechTags)
+      ? e.overrideTechTags
+          .filter((t): t is string => typeof t === "string")
+          .slice(0, MAX_TECH_TAG_SIZE)
+      : [];
+
+    const notes =
+      typeof e.notes === "string" ? e.notes.slice(0, MAX_NOTES_LENGTH) : null;
+
+    items.push({
+      experienceId: experience.id,
+      overrideBullets: overrideBullets && overrideBullets.length > 0 ? overrideBullets : null,
+      overrideMetrics:
+        overrideMetrics && Object.keys(overrideMetrics).length > 0 ? overrideMetrics : null,
+      overrideTechTags,
+      notes,
+    });
+  }
+
+  return { summaryMd, items };
+}
+
+export function buildFallbackResumeDraft(
+  experiences: ExperienceForDraft[],
+): ResumeDraftData {
+  const publicExperiences = experiences
+    .filter((e) => e.visibility === "PUBLIC")
+    .sort((a, b) => {
+      if (a.isFeatured !== b.isFeatured) return a.isFeatured ? -1 : 1;
+      if (a.isCurrent !== b.isCurrent) return a.isCurrent ? -1 : 1;
+      return b.startDate.getTime() - a.startDate.getTime();
+    })
+    .slice(0, MAX_DRAFT_EXPERIENCES);
+
+  return {
+    summaryMd: null,
+    items: publicExperiences.map((exp) => ({
+      experienceId: exp.id,
+      overrideBullets: null,
+      overrideMetrics: null,
+      overrideTechTags: [],
+      notes: null,
+    })),
+  };
+}
+
+export function generateDraftTitle(input: ResumeDraftInput): string {
+  const parts: string[] = [];
+  if (input.targetCompany) parts.push(input.targetCompany);
+  if (input.targetRole) parts.push(input.targetRole);
+  if (parts.length > 0) return `${parts.join(" ")} AI 초안`;
+  return "AI 이력서 초안";
+}
+
+export { RESUME_DRAFT_SYSTEM_PROMPT };
+
+export async function generateResumeDraft(
+  resumesService: ResumesService,
+  prisma: ResumeDraftPrismaClient,
+  ownerId: string,
+  input: unknown,
+): Promise<OwnerResumeDetailDto> {
+  const parsed = parseResumeDraftInput(input);
+
+  const experiences = await prisma.experience.findMany({
+    where: { ownerId },
+    orderBy: [{ isCurrent: "desc" }, { startDate: "desc" }],
+    select: {
+      id: true,
+      company: true,
+      role: true,
+      startDate: true,
+      endDate: true,
+      isCurrent: true,
+      summary: true,
+      bulletsJson: true,
+      metricsJson: true,
+      techTags: true,
+      visibility: true,
+      isFeatured: true,
+    },
+  });
+
+  if (experiences.length === 0) {
+    throw new ResumeServiceError(
+      "VALIDATION_ERROR",
+      422,
+      "등록된 경력이 없습니다. 경력을 먼저 추가해주세요.",
+    );
+  }
+
+  const skills = await prisma.skill.findMany({
+    where: { ownerId },
+    select: { name: true, category: true },
+    orderBy: [{ order: "asc" }],
+  });
+
+  const client = getDefaultGeminiClient();
+  const { result: draftData } = await withGeminiFallback(
+    client,
+    async () => {
+      const prompt = buildResumeDraftPrompt(experiences, skills, parsed);
+      const { text } = await client.generateText(prompt, {
+        systemPrompt: RESUME_DRAFT_SYSTEM_PROMPT,
+        temperature: RESUME_DRAFT_TEMPERATURE,
+        maxOutputTokens: RESUME_DRAFT_MAX_OUTPUT_TOKENS,
+      });
+      return parseResumeDraftResponse(text, experiences);
+    },
+    () => buildFallbackResumeDraft(experiences),
+  );
+
+  const title = generateDraftTitle(parsed);
+  const resume = await resumesService.createResume(ownerId, {
+    title,
+    targetCompany: parsed.targetCompany,
+    targetRole: parsed.targetRole,
+    level: parsed.level,
+    summaryMd: draftData.summaryMd,
+    status: "DRAFT",
+  });
+
+  for (let i = 0; i < draftData.items.length; i++) {
+    const item = draftData.items[i];
+    try {
+      await resumesService.createResumeItem(ownerId, resume.id, {
+        experienceId: item.experienceId,
+        sortOrder: (i + 1) * SORT_ORDER_STEP,
+        overrideBulletsJson: item.overrideBullets,
+        overrideMetricsJson: item.overrideMetrics,
+        overrideTechTags: item.overrideTechTags,
+        notes: item.notes,
+      });
+    } catch (error) {
+      console.warn(
+        `이력서 초안 항목 생성 실패 (experienceId: ${item.experienceId}):`,
+        error instanceof Error ? error.message : error,
+      );
+    }
+  }
+
+  return resumesService.getResumeForOwner(ownerId, resume.id);
 }

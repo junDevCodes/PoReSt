@@ -104,6 +104,20 @@ export type OwnerResumeShareLinkDto = {
   updatedAt: Date;
 };
 
+// ─── T80-5: AI 이력서 초안 ───
+
+export type ResumeDraftInput = {
+  targetCompany?: string | null;
+  targetRole?: string | null;
+  level?: string | null;
+  jobDescription?: string | null;
+};
+
+export type ResumeDraftPrismaClient = Pick<
+  Prisma.TransactionClient,
+  "experience" | "skill"
+>;
+
 export type ResumeFieldErrors = Record<string, string>;
 
 export type ResumeServiceErrorCode = "VALIDATION_ERROR" | "CONFLICT" | "NOT_FOUND" | "FORBIDDEN";
