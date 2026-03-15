@@ -9,70 +9,75 @@ import { useToast } from "@/components/ui/useToast";
 
 /* ── 프리셋 기술 목록 ── */
 
-type PresetSkill = { name: string; category: string };
+type PresetSkill = { name: string; category: string; icon: string };
 
+// icon: Simple Icons slug (https://cdn.simpleicons.org/{slug})
 const PRESET_SKILLS: PresetSkill[] = [
   // Backend
-  { name: "Node.js", category: "Backend" },
-  { name: "Spring Boot", category: "Backend" },
-  { name: "Django", category: "Backend" },
-  { name: "Express.js", category: "Backend" },
-  { name: "FastAPI", category: "Backend" },
-  { name: "NestJS", category: "Backend" },
-  { name: "Ruby on Rails", category: "Backend" },
-  { name: "ASP.NET", category: "Backend" },
-  { name: "Go (Gin)", category: "Backend" },
+  { name: "Node.js", category: "Backend", icon: "nodedotjs" },
+  { name: "Spring Boot", category: "Backend", icon: "springboot" },
+  { name: "Django", category: "Backend", icon: "django" },
+  { name: "Express.js", category: "Backend", icon: "express" },
+  { name: "FastAPI", category: "Backend", icon: "fastapi" },
+  { name: "NestJS", category: "Backend", icon: "nestjs" },
+  { name: "Ruby on Rails", category: "Backend", icon: "rubyonrails" },
+  { name: "ASP.NET", category: "Backend", icon: "dotnet" },
+  { name: "Go (Gin)", category: "Backend", icon: "go" },
   // Frontend
-  { name: "React", category: "Frontend" },
-  { name: "Vue.js", category: "Frontend" },
-  { name: "Angular", category: "Frontend" },
-  { name: "Next.js", category: "Frontend" },
-  { name: "Nuxt.js", category: "Frontend" },
-  { name: "Svelte", category: "Frontend" },
-  { name: "TypeScript", category: "Frontend" },
-  { name: "Tailwind CSS", category: "Frontend" },
+  { name: "React", category: "Frontend", icon: "react" },
+  { name: "Vue.js", category: "Frontend", icon: "vuedotjs" },
+  { name: "Angular", category: "Frontend", icon: "angular" },
+  { name: "Next.js", category: "Frontend", icon: "nextdotjs" },
+  { name: "Nuxt.js", category: "Frontend", icon: "nuxtdotjs" },
+  { name: "Svelte", category: "Frontend", icon: "svelte" },
+  { name: "TypeScript", category: "Frontend", icon: "typescript" },
+  { name: "Tailwind CSS", category: "Frontend", icon: "tailwindcss" },
   // Mobile
-  { name: "React Native", category: "Mobile" },
-  { name: "Flutter", category: "Mobile" },
-  { name: "Swift", category: "Mobile" },
-  { name: "Kotlin", category: "Mobile" },
+  { name: "React Native", category: "Mobile", icon: "react" },
+  { name: "Flutter", category: "Mobile", icon: "flutter" },
+  { name: "Swift", category: "Mobile", icon: "swift" },
+  { name: "Kotlin", category: "Mobile", icon: "kotlin" },
   // Database
-  { name: "MySQL", category: "Database" },
-  { name: "PostgreSQL", category: "Database" },
-  { name: "MongoDB", category: "Database" },
-  { name: "Redis", category: "Database" },
-  { name: "Oracle", category: "Database" },
-  { name: "MariaDB", category: "Database" },
-  { name: "Elasticsearch", category: "Database" },
+  { name: "MySQL", category: "Database", icon: "mysql" },
+  { name: "PostgreSQL", category: "Database", icon: "postgresql" },
+  { name: "MongoDB", category: "Database", icon: "mongodb" },
+  { name: "Redis", category: "Database", icon: "redis" },
+  { name: "Oracle", category: "Database", icon: "oracle" },
+  { name: "MariaDB", category: "Database", icon: "mariadb" },
+  { name: "Elasticsearch", category: "Database", icon: "elasticsearch" },
   // DevOps
-  { name: "Docker", category: "DevOps" },
-  { name: "Kubernetes", category: "DevOps" },
-  { name: "Jenkins", category: "DevOps" },
-  { name: "GitHub Actions", category: "DevOps" },
-  { name: "Terraform", category: "DevOps" },
-  { name: "Ansible", category: "DevOps" },
+  { name: "Docker", category: "DevOps", icon: "docker" },
+  { name: "Kubernetes", category: "DevOps", icon: "kubernetes" },
+  { name: "Jenkins", category: "DevOps", icon: "jenkins" },
+  { name: "GitHub Actions", category: "DevOps", icon: "githubactions" },
+  { name: "Terraform", category: "DevOps", icon: "terraform" },
+  { name: "Ansible", category: "DevOps", icon: "ansible" },
   // Cloud
-  { name: "AWS", category: "Cloud" },
-  { name: "Google Cloud", category: "Cloud" },
-  { name: "Azure", category: "Cloud" },
-  { name: "Firebase", category: "Cloud" },
+  { name: "AWS", category: "Cloud", icon: "amazonwebservices" },
+  { name: "Google Cloud", category: "Cloud", icon: "googlecloud" },
+  { name: "Azure", category: "Cloud", icon: "microsoftazure" },
+  { name: "Firebase", category: "Cloud", icon: "firebase" },
   // AI/ML
-  { name: "TensorFlow", category: "AI/ML" },
-  { name: "PyTorch", category: "AI/ML" },
-  { name: "scikit-learn", category: "AI/ML" },
-  { name: "LangChain", category: "AI/ML" },
+  { name: "TensorFlow", category: "AI/ML", icon: "tensorflow" },
+  { name: "PyTorch", category: "AI/ML", icon: "pytorch" },
+  { name: "scikit-learn", category: "AI/ML", icon: "scikitlearn" },
+  { name: "LangChain", category: "AI/ML", icon: "langchain" },
   // Message Queue
-  { name: "Kafka", category: "Message Queue" },
-  { name: "RabbitMQ", category: "Message Queue" },
+  { name: "Kafka", category: "Message Queue", icon: "apachekafka" },
+  { name: "RabbitMQ", category: "Message Queue", icon: "rabbitmq" },
   // Monitoring
-  { name: "Grafana", category: "Monitoring" },
-  { name: "Prometheus", category: "Monitoring" },
-  { name: "Datadog", category: "Monitoring" },
+  { name: "Grafana", category: "Monitoring", icon: "grafana" },
+  { name: "Prometheus", category: "Monitoring", icon: "prometheus" },
+  { name: "Datadog", category: "Monitoring", icon: "datadog" },
   // Version Control
-  { name: "Git", category: "Version Control" },
-  { name: "GitHub", category: "Version Control" },
-  { name: "GitLab", category: "Version Control" },
+  { name: "Git", category: "Version Control", icon: "git" },
+  { name: "GitHub", category: "Version Control", icon: "github" },
+  { name: "GitLab", category: "Version Control", icon: "gitlab" },
 ];
+
+function skillIconUrl(slug: string): string {
+  return `https://cdn.simpleicons.org/${slug}`;
+}
 
 const PRESET_CATEGORIES = Array.from(
   new Set(PRESET_SKILLS.map((s) => s.category)),
@@ -399,6 +404,13 @@ export function SkillsPageClient({ initialSkills }: SkillsPageClientProps) {
                       : "border-black/10 bg-white text-black/80 hover:border-black/30 hover:bg-black/5 active:scale-95"
                 }`}
               >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={skillIconUrl(preset.icon)}
+                  alt=""
+                  className="h-4 w-4 shrink-0"
+                  loading="lazy"
+                />
                 {isAdded ? (
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="h-3.5 w-3.5">
                     <path fillRule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clipRule="evenodd" />
