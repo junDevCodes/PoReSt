@@ -53,14 +53,30 @@ export function isDomainLinkServiceError(error: unknown): error is DomainLinkSer
   return error instanceof DomainLinkServiceError;
 }
 
+export type PublicEntityLinkDto = {
+  id: string;
+  sourceType: DomainLinkEntityType;
+  sourceId: string;
+  targetType: DomainLinkEntityType;
+  targetId: string;
+  context: string | null;
+};
+
+export type EntityLinkWithTargetDto = PublicEntityLinkDto & {
+  targetLabel: string;
+};
+
 export type DomainLinkServicePrismaClient = Pick<
   Prisma.TransactionClient,
-  "domainLink" | "project" | "experience" | "resume" | "note" | "blogPost"
+  "domainLink" | "project" | "experience" | "skill" | "resume" | "note" | "blogPost" | "portfolioSettings"
 >;
 
 export interface DomainLinksService {
   listLinksForOwner(ownerId: string, query?: unknown): Promise<OwnerDomainLinkDto[]>;
+  listBidirectionalLinksForOwner(ownerId: string, entityType: DomainLinkEntityType, entityId: string): Promise<OwnerDomainLinkDto[]>;
   createLinkForOwner(ownerId: string, input: unknown): Promise<OwnerDomainLinkDto>;
   deleteLinkForOwner(ownerId: string, linkId: string): Promise<{ id: string }>;
+  listPublicLinksForEntity(publicSlug: string, entityType: DomainLinkEntityType, entityId: string): Promise<PublicEntityLinkDto[]>;
+  listPublicLinksForOwner(publicSlug: string): Promise<PublicEntityLinkDto[]>;
 }
 

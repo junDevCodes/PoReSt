@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { DomainLinkEntityType } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getMetadataBase, getSiteUrl } from "@/lib/site-url";
 import { createProjectsService, isProjectServiceError } from "@/modules/projects";
@@ -155,9 +156,15 @@ function ProjectsSection({
 function ExperiencesSection({
   viewModel,
   experiencesPath,
+  experienceProjects,
+  projectTitleMap,
+  publicSlug,
 }: {
   viewModel: PublicHomeViewModel;
   experiencesPath: string;
+  experienceProjects: Map<string, string[]>;
+  projectTitleMap: Map<string, string>;
+  publicSlug: string;
 }) {
   if (viewModel.featuredExperiences.length === 0) return null;
 
@@ -191,6 +198,20 @@ function ExperiencesSection({
                   <span key={tag} className="rounded-full bg-black/5 px-2.5 py-0.5 text-xs text-black/70 dark:bg-white/10 dark:text-white/70">
                     {tag}
                   </span>
+                ))}
+              </div>
+            ) : null}
+            {(experienceProjects.get(exp.id) ?? []).length > 0 ? (
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                <span className="text-xs font-medium text-black/50 dark:text-white/50">관련 프로젝트:</span>
+                {(experienceProjects.get(exp.id) ?? []).map((projId) => (
+                  <Link
+                    key={projId}
+                    href={`/portfolio/${encodeURIComponent(publicSlug)}/projects/${encodeURIComponent(viewModel.featuredProjects.find((p) => p.id === projId)?.slug ?? projId)}`}
+                    className="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-300 dark:hover:bg-blue-900/30"
+                  >
+                    {projectTitleMap.get(projId) ?? projId}
+                  </Link>
                 ))}
               </div>
             ) : null}
@@ -284,6 +305,49 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
     }
   }
 
+  // 엔티티 연결 조회 (Experience ↔ Project ↔ Skill)
+  const ownerSettings = await prisma.portfolioSettings.findUnique({
+    where: { publicSlug: resolvedParams.publicSlug },
+    select: { ownerId: true },
+  });
+  const entityLinks = ownerSettings
+    ? await prisma.domainLink.findMany({
+        where: {
+          ownerId: ownerSettings.ownerId,
+          sourceType: { in: [DomainLinkEntityType.PROJECT, DomainLinkEntityType.EXPERIENCE, DomainLinkEntityType.SKILL] },
+          targetType: { in: [DomainLinkEntityType.PROJECT, DomainLinkEntityType.EXPERIENCE, DomainLinkEntityType.SKILL] },
+        },
+        select: { sourceType: true, sourceId: true, targetType: true, targetId: true },
+      })
+    : [];
+
+  // 경력 → 관련 프로젝트 맵
+  const experienceProjects = new Map<string, string[]>();
+  // 프로젝트 ID → 제목 맵
+  const projectTitleMap = new Map<string, string>();
+  for (const p of viewModel.featuredProjects) {
+    projectTitleMap.set(p.id, p.title);
+  }
+  // 스킬 ID → 이름 맵
+  const skillNameMap = new Map<string, string>();
+  for (const s of skills) {
+    skillNameMap.set(s.id, s.name);
+  }
+
+  for (const link of entityLinks) {
+    // Experience → Project
+    if (link.sourceType === DomainLinkEntityType.EXPERIENCE && link.targetType === DomainLinkEntityType.PROJECT) {
+      const arr = experienceProjects.get(link.sourceId) ?? [];
+      if (projectTitleMap.has(link.targetId)) arr.push(link.targetId);
+      experienceProjects.set(link.sourceId, arr);
+    }
+    if (link.sourceType === DomainLinkEntityType.PROJECT && link.targetType === DomainLinkEntityType.EXPERIENCE) {
+      const arr = experienceProjects.get(link.targetId) ?? [];
+      if (projectTitleMap.has(link.sourceId)) arr.push(link.sourceId);
+      experienceProjects.set(link.targetId, arr);
+    }
+  }
+
   const displayName = getProfileTitle(viewModel.profile.displayName, resolvedParams.publicSlug);
   const avatarInitial = displayName.charAt(0).toUpperCase();
   const experiencesPath = `/portfolio/${encodeURIComponent(resolvedParams.publicSlug)}/experiences`;
@@ -305,7 +369,7 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
   // Build section renderers map
   const sectionRenderers: Record<LayoutSectionId, React.ReactNode> = {
     projects: <ProjectsSection key="projects" viewModel={viewModel} userProjectsPath={userProjectsPath} />,
-    experiences: <ExperiencesSection key="experiences" viewModel={viewModel} experiencesPath={experiencesPath} />,
+    experiences: <ExperiencesSection key="experiences" viewModel={viewModel} experiencesPath={experiencesPath} experienceProjects={experienceProjects} projectTitleMap={projectTitleMap} publicSlug={resolvedParams.publicSlug} />,
     skills: <SkillsSection key="skills" skillGroups={skillGroups} />,
   };
 

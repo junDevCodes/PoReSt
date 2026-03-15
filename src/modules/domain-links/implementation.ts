@@ -7,6 +7,7 @@ import type {
   DomainLinkServicePrismaClient,
   FieldErrors,
   OwnerDomainLinkDto,
+  PublicEntityLinkDto,
 } from "@/modules/domain-links/interface";
 import { DomainLinkServiceError } from "@/modules/domain-links/interface";
 
@@ -125,6 +126,24 @@ function mapDomainLink(record: {
   };
 }
 
+function mapPublicLink(record: {
+  id: string;
+  sourceType: DomainLinkEntityType;
+  sourceId: string;
+  targetType: DomainLinkEntityType;
+  targetId: string;
+  context: string | null;
+}): PublicEntityLinkDto {
+  return {
+    id: record.id,
+    sourceType: record.sourceType,
+    sourceId: record.sourceId,
+    targetType: record.targetType,
+    targetId: record.targetId,
+    context: record.context,
+  };
+}
+
 async function ensureEntityOwnedByOwner(
   prisma: DomainLinkServicePrismaClient,
   ownerId: string,
@@ -171,6 +190,16 @@ async function ensureEntityOwnedByOwner(
       });
       if (!exists) {
         throw new DomainLinkServiceError("NOT_FOUND", 404, "노트를 찾을 수 없습니다.");
+      }
+      return;
+    }
+    case DomainLinkEntityType.SKILL: {
+      const exists = await prisma.skill.findFirst({
+        where: commonWhere,
+        select: { id: true },
+      });
+      if (!exists) {
+        throw new DomainLinkServiceError("NOT_FOUND", 404, "기술을 찾을 수 없습니다.");
       }
       return;
     }
@@ -257,6 +286,67 @@ export function createDomainLinksService(deps: { prisma: DomainLinkServicePrisma
       } catch (error) {
         handleKnownPrismaError(error);
       }
+    },
+
+    async listBidirectionalLinksForOwner(ownerId, entityType, entityId) {
+      const items = await prisma.domainLink.findMany({
+        where: {
+          ownerId,
+          OR: [
+            { sourceType: entityType, sourceId: entityId },
+            { targetType: entityType, targetId: entityId },
+          ],
+        },
+        orderBy: [{ updatedAt: "desc" }, { id: "desc" }],
+      });
+
+      return items.map(mapDomainLink);
+    },
+
+    async listPublicLinksForEntity(publicSlug, entityType, entityId) {
+      const settings = await prisma.portfolioSettings.findUnique({
+        where: { publicSlug },
+        select: { ownerId: true, isPublic: true },
+      });
+
+      if (!settings || !settings.isPublic) {
+        return [];
+      }
+
+      const items = await prisma.domainLink.findMany({
+        where: {
+          ownerId: settings.ownerId,
+          OR: [
+            { sourceType: entityType, sourceId: entityId },
+            { targetType: entityType, targetId: entityId },
+          ],
+        },
+        orderBy: [{ updatedAt: "desc" }],
+      });
+
+      return items.map(mapPublicLink);
+    },
+
+    async listPublicLinksForOwner(publicSlug) {
+      const settings = await prisma.portfolioSettings.findUnique({
+        where: { publicSlug },
+        select: { ownerId: true, isPublic: true },
+      });
+
+      if (!settings || !settings.isPublic) {
+        return [];
+      }
+
+      const items = await prisma.domainLink.findMany({
+        where: {
+          ownerId: settings.ownerId,
+          sourceType: { in: [DomainLinkEntityType.PROJECT, DomainLinkEntityType.EXPERIENCE, DomainLinkEntityType.SKILL] },
+          targetType: { in: [DomainLinkEntityType.PROJECT, DomainLinkEntityType.EXPERIENCE, DomainLinkEntityType.SKILL] },
+        },
+        orderBy: [{ updatedAt: "desc" }],
+      });
+
+      return items.map(mapPublicLink);
     },
 
     async deleteLinkForOwner(ownerId, linkId) {

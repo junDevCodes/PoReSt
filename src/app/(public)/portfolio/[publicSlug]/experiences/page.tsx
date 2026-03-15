@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { DomainLinkEntityType } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getMetadataBase } from "@/lib/site-url";
 
@@ -61,6 +62,35 @@ export default async function PublicExperiencesPage({ params }: ExperiencesPageP
       techTags: true,
     },
   });
+
+  // 엔티티 연결: 경력 → 관련 프로젝트
+  const entityLinks = await prisma.domainLink.findMany({
+    where: {
+      ownerId: settings.ownerId,
+      OR: [
+        { sourceType: DomainLinkEntityType.EXPERIENCE, targetType: DomainLinkEntityType.PROJECT },
+        { sourceType: DomainLinkEntityType.PROJECT, targetType: DomainLinkEntityType.EXPERIENCE },
+      ],
+    },
+    select: { sourceType: true, sourceId: true, targetType: true, targetId: true },
+  });
+
+  const publicProjects = await prisma.project.findMany({
+    where: { ownerId: settings.ownerId, visibility: "PUBLIC" },
+    select: { id: true, slug: true, title: true },
+  });
+  const projectMap = new Map(publicProjects.map((p) => [p.id, p]));
+
+  const experienceProjectMap = new Map<string, Array<{ id: string; slug: string; title: string }>>();
+  for (const link of entityLinks) {
+    const expId = link.sourceType === DomainLinkEntityType.EXPERIENCE ? link.sourceId : link.targetId;
+    const projId = link.sourceType === DomainLinkEntityType.PROJECT ? link.sourceId : link.targetId;
+    const proj = projectMap.get(projId);
+    if (!proj) continue;
+    const arr = experienceProjectMap.get(expId) ?? [];
+    if (!arr.some((p) => p.id === proj.id)) arr.push(proj);
+    experienceProjectMap.set(expId, arr);
+  }
 
   function formatPeriod(startDate: Date, endDate: Date | null) {
     const start = startDate.toISOString().slice(0, 7);
@@ -163,6 +193,21 @@ export default async function PublicExperiencesPage({ params }: ExperiencesPageP
                       >
                         {tag}
                       </span>
+                    ))}
+                  </div>
+                ) : null}
+
+                {(experienceProjectMap.get(exp.id) ?? []).length > 0 ? (
+                  <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                    <span className="text-xs font-medium text-black/50 dark:text-white/50">관련 프로젝트:</span>
+                    {(experienceProjectMap.get(exp.id) ?? []).map((proj) => (
+                      <Link
+                        key={proj.id}
+                        href={`/portfolio/${encodeURIComponent(resolvedParams.publicSlug)}/projects/${encodeURIComponent(proj.slug)}`}
+                        className="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-300 dark:hover:bg-blue-900/30"
+                      >
+                        {proj.title}
+                      </Link>
                     ))}
                   </div>
                 ) : null}

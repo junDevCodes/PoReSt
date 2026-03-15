@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { parseApiResponse } from "@/app/(private)/app/_lib/admin-api";
 
-type DomainType = "PROJECT" | "EXPERIENCE" | "RESUME" | "NOTE" | "BLOG_POST";
+type DomainType = "PROJECT" | "EXPERIENCE" | "SKILL" | "RESUME" | "NOTE" | "BLOG_POST";
 
 type EntityOption = {
   id: string;
@@ -25,6 +25,7 @@ type DomainOptionsState = Record<DomainType, EntityOption[]>;
 const DOMAIN_TYPE_LABEL: Record<DomainType, string> = {
   PROJECT: "프로젝트",
   EXPERIENCE: "경력",
+  SKILL: "기술",
   RESUME: "이력서",
   NOTE: "노트",
   BLOG_POST: "블로그",
@@ -33,6 +34,7 @@ const DOMAIN_TYPE_LABEL: Record<DomainType, string> = {
 const EMPTY_OPTIONS: DomainOptionsState = {
   PROJECT: [],
   EXPERIENCE: [],
+  SKILL: [],
   RESUME: [],
   NOTE: [],
   BLOG_POST: [],
@@ -72,27 +74,30 @@ export default function DomainLinksPage() {
     targetOptions.find((option) => option.id === targetId)?.id ?? targetOptions[0]?.id ?? "";
 
   async function loadEntityOptions() {
-    const [projectResponse, experienceResponse, resumeResponse, noteResponse, blogResponse] =
+    const [projectResponse, experienceResponse, skillResponse, resumeResponse, noteResponse, blogResponse] =
       await Promise.all([
         fetch("/api/app/projects", { method: "GET" }),
         fetch("/api/app/experiences", { method: "GET" }),
+        fetch("/api/app/skills", { method: "GET" }),
         fetch("/api/app/resumes", { method: "GET" }),
         fetch("/api/app/notes", { method: "GET" }),
         fetch("/api/app/blog/posts", { method: "GET" }),
       ]);
 
-    const [projects, experiences, resumes, notes, blogs] = await Promise.all([
+    const [projects, experiences, skills, resumes, notes, blogs] = await Promise.all([
       parseApiResponse<Array<{ id: string; title?: string }>>(projectResponse),
       parseApiResponse<Array<{ id: string; company?: string; role?: string }>>(experienceResponse),
+      parseApiResponse<Array<{ id: string; name?: string; category?: string }>>(skillResponse),
       parseApiResponse<Array<{ id: string; title?: string }>>(resumeResponse),
       parseApiResponse<Array<{ id: string; title?: string }>>(noteResponse),
       parseApiResponse<Array<{ id: string; title?: string }>>(blogResponse),
     ]);
 
-    if (projects.error || experiences.error || resumes.error || notes.error || blogs.error) {
+    if (projects.error || experiences.error || skills.error || resumes.error || notes.error || blogs.error) {
       setError(
         projects.error ??
           experiences.error ??
+          skills.error ??
           resumes.error ??
           notes.error ??
           blogs.error ??
@@ -111,6 +116,10 @@ export default function DomainLinksPage() {
         label:
           [item.company, item.role].filter((value) => Boolean(value)).join(" / ") ||
           `경력 (${item.id.slice(0, 8)})`,
+      })),
+      SKILL: (skills.data ?? []).map((item) => ({
+        id: item.id,
+        label: [item.category, item.name].filter(Boolean).join(" / ") || `기술 (${item.id.slice(0, 8)})`,
       })),
       RESUME: (resumes.data ?? []).map((item) => ({
         id: item.id,

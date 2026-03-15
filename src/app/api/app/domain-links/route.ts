@@ -33,6 +33,34 @@ export async function GET(request: Request) {
   }
 
   const url = new URL(request.url);
+  const entityType = url.searchParams.get("entityType") ?? undefined;
+  const entityId = url.searchParams.get("entityId") ?? undefined;
+
+  // 양방향 조회: entityType + entityId → source 또는 target 어느 쪽이든 매칭
+  if (entityType && entityId) {
+    try {
+      const { DomainLinkEntityType } = await import("@prisma/client");
+      const validTypes = Object.values(DomainLinkEntityType) as string[];
+      if (!validTypes.includes(entityType)) {
+        return NextResponse.json(
+          { error: { code: "VALIDATION_ERROR", message: "유효하지 않은 entityType입니다." } },
+          { status: 422 },
+        );
+      }
+      const links = await domainLinksService.listBidirectionalLinksForOwner(
+        authResult.session.user.id,
+        entityType as typeof DomainLinkEntityType[keyof typeof DomainLinkEntityType],
+        entityId,
+      );
+      return NextResponse.json({ data: links });
+    } catch (error) {
+      if (!isDomainLinkServiceError(error)) {
+        await reportServerError({ request, scope: "api.domain-links.bidirectional", userId: authResult.session.user.id }, error);
+      }
+      return createDomainLinkErrorResponse(error);
+    }
+  }
+
   const query = {
     sourceType: url.searchParams.get("sourceType") ?? undefined,
     sourceId: url.searchParams.get("sourceId") ?? undefined,
