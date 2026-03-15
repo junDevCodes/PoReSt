@@ -109,6 +109,9 @@
 - [x] 프로젝트 목록 페이지 — 200 + 카드 그리드 렌더링 확인
 - [x] Sitemap — portfolio/experiences/projects URL 모두 포함 확인
 - [x] POST /api/public/pageviews — 201 Created (방문 기록 동작 확인)
+- [x] POST /api/public/pageviews — 404 NOT_FOUND (존재하지 않는 slug)
+- [x] POST /api/public/pageviews — 422 VALIDATION_ERROR (잘못된 pageType)
+- [x] POST /api/public/pageviews — 201 Created (referrer 포함 기록 정상)
 
 ---
 

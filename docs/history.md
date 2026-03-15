@@ -178,7 +178,7 @@
    - AppSidebar에 "방문 분석" 메뉴 추가
 
 **게이트**: `lint/build/jest(54 suites, 203 tests)/vercel-build` 통과
-**검증**: 프로덕션 PageView API 201 Created 확인
+**검증**: 프로덕션 API 심층 검증 — 201(정상), 404(미존재 slug), 422(잘못된 pageType), referrer 기록 정상
 
 ---
 
