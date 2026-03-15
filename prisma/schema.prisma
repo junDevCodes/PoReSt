@@ -95,6 +95,13 @@ enum CompanyTargetStatus {
   ARCHIVED
 }
 
+enum TestimonialStatus {
+  PENDING
+  SUBMITTED
+  APPROVED
+  REJECTED
+}
+
 
 // ========== AUTH (Auth.js / Prisma Adapter 기준) ==========
 // 공식 예시를 그대로 사용 (필드명/맵핑 포함)
@@ -163,6 +170,8 @@ model User {
   experienceStories ExperienceStory[]
   companyTargets    CompanyTarget[]
   pageViews         PageView[]
+  testimonials      Testimonial[]
+  growthEvents      GrowthEvent[]
 
   @@map("users")
 }
@@ -749,6 +758,60 @@ model PageView {
   @@index([ownerId, createdAt])
   @@index([ownerId, pageType])
   @@map("page_views")
+}
+
+// ========== TESTIMONIAL (추천서/동료 평가) ==========
+
+model Testimonial {
+  id              String             @id @default(cuid())
+  ownerId         String
+  owner           User               @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  // 작성자 정보 (외부 작성자가 채움)
+  authorName      String?
+  authorTitle     String?            // "Senior Engineer"
+  authorCompany   String?
+  authorEmail     String?
+  relationship    String?            // "동료", "상사", "멘토", "클라이언트"
+
+  // 내용
+  content         String?            @db.Text
+  rating          Int?               // 1~5
+
+  // 상태 관리
+  status          TestimonialStatus  @default(PENDING)
+  shareToken      String             @unique
+
+  // 공개 표시
+  isPublic        Boolean            @default(false)
+  displayOrder    Int                @default(0)
+
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  @@index([ownerId, status])
+  @@index([shareToken])
+  @@map("testimonials")
+}
+
+// ========== GROWTH TIMELINE (성장 타임라인) ==========
+
+model GrowthEvent {
+  id          String   @id @default(cuid())
+  ownerId     String
+  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  type        String   // SKILL_ADDED | PROJECT_CREATED | EXPERIENCE_ADDED | RESUME_CREATED | NOTE_CREATED | JOB_APPLIED | OFFER_RECEIVED | CUSTOM
+  title       String
+  description String?  @db.Text
+  entityId    String?  // 소스 엔티티 ID (프로젝트, 경력 등)
+
+  occurredAt  DateTime // 이벤트 실제 발생 시점
+  createdAt   DateTime @default(now())
+
+  @@index([ownerId, occurredAt])
+  @@index([ownerId, type])
+  @@map("growth_events")
 }
 
 // ========== FEEDBACK (자동 피드백 요청/결과) ==========
