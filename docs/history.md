@@ -212,15 +212,35 @@
 
 ### T80-2: 임베딩 자동화 (2026-03-15) ✅
 
-**범위**: 노트 임베딩 모듈 Gemini 통합
+**범위**: 노트 임베딩 모듈 Gemini 통합 + 자동 트리거 + 테스트 17개
 
 **핵심 변경**:
 
-1. **Gemini text-embedding-004 연동** — 노트 저장 시 자동 임베딩 생성
-2. **withGeminiFallback()** — deterministic 벡터 fallback 유지
-3. **비동기 fire-and-forget** — 노트 CRUD 성능 영향 없음
+1. **Gemini text-embedding-004 통합**
+   - `rebuildForOwner()` — deterministic → Gemini + `withGeminiFallback()` 교체
+   - `generateEmbeddingVector()` — AI/fallback 자동 분기 내부 헬퍼
+   - GEMINI_API_KEY 미설정/retryable 에러 시 deterministic fallback 자동 전환
 
-**게이트**: `lint/build/jest/vercel-build` 통과
+2. **콘텐츠 준비 개선**
+   - `buildEmbeddingContent(title, tags, summary, contentMd)` — 4개 필드 조합
+   - 9500자 절삭 (Gemini 입력 제한 10000자 대응)
+   - `prepareRebuildForOwner()` select 확장 (title, tags, summary 포함)
+
+3. **단일 노트 임베딩**
+   - `embedSingleNote(ownerId, noteId)` 메서드 — 인터페이스 + 구현
+   - 노트 조회 → 콘텐츠 조합 → PENDING upsert → 벡터 생성 → 적용
+
+4. **자동 트리거**
+   - `queueEmbeddingForNote(service, ownerId, noteId)` fire-and-forget 함수
+   - POST `/api/app/notes` — createNote 후 자동 임베딩
+   - PUT `/api/app/notes/[id]` — updateNote 후 자동 임베딩
+   - 실패 시 `console.warn` (API 응답 영향 없음)
+
+5. **DI 지원**
+   - `createNoteEmbeddingPipelineService({ prisma, geminiClient? })` — 테스트 편의
+
+**게이트**: `lint(0 errors) / build / jest(56 suites, 246 tests) / vercel-build` 통과
+**검증**: SDK mock 기반 Jest 17개 테스트 + Vercel 배포 성공 (`27f6a5f`)
 **커밋**: `27f6a5f`
 
 ### T80-3: 노트 AI 평가 (2026-03-15) ✅

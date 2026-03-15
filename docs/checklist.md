@@ -6,6 +6,67 @@
 
 ---
 
+## T80-2 — 임베딩 자동화 ✅
+
+---
+
+### Gemini 통합
+
+- [x] `rebuildForOwner()` — Gemini text-embedding-004 + deterministic fallback
+- [x] `generateEmbeddingVector()` — `withGeminiFallback()` 패턴 적용
+- [x] `embedSingleNote(ownerId, noteId)` — 단일 노트 임베딩 메서드
+- [x] `queueEmbeddingForNote()` — fire-and-forget 트리거 함수
+- [x] `createNoteEmbeddingPipelineService({ prisma, geminiClient? })` — DI 지원
+
+### 콘텐츠 준비
+
+- [x] `buildEmbeddingContent()` — 제목+태그+요약+본문 조합
+- [x] 9500자 절삭 (Gemini 10000자 입력 제한 대응)
+- [x] 태그 없으면 태그 줄 생략
+- [x] 요약 없으면 요약 줄 생략
+
+### 자동 트리거
+
+- [x] POST `/api/app/notes` — 노트 생성 후 `queueEmbeddingForNote()` 호출
+- [x] PUT `/api/app/notes/[id]` — 노트 수정 후 `queueEmbeddingForNote()` 호출
+- [x] fire-and-forget: API 응답 지연 없이 비동기 실행
+- [x] 실패 시 에러 삼키고 `console.warn` 로그
+
+### Fallback 동작
+
+- [x] GEMINI_API_KEY 미설정 → deterministic fallback 즉시 실행
+- [x] Gemini retryable 에러 (API_ERROR/RATE_LIMITED) → deterministic fallback
+- [x] Gemini non-retryable 에러 (INVALID_INPUT) → FAILED 상태 기록
+
+### 테스트 (17개)
+
+- [x] buildEmbeddingContent: 제목+태그+요약+본문 조합 (1)
+- [x] buildEmbeddingContent: 태그 없음 생략 (1)
+- [x] buildEmbeddingContent: 요약 없음 생략 (1)
+- [x] buildEmbeddingContent: 9500자 절삭 (1)
+- [x] rebuildForOwner: Gemini AI 임베딩 사용 (1)
+- [x] rebuildForOwner: Gemini 미설정 시 deterministic fallback (1)
+- [x] rebuildForOwner: retryable 에러 시 fallback 전환 (1)
+- [x] rebuildForOwner: non-retryable 에러 시 FAILED 기록 (1)
+- [x] embedSingleNote: 성공 (1)
+- [x] embedSingleNote: 존재하지 않는 노트 빈 결과 (1)
+- [x] embedSingleNote: 실패 시 FAILED 기록 (1)
+- [x] embedSingleNote: Gemini 미설정 시 fallback 성공 (1)
+- [x] queueEmbeddingForNote: fire-and-forget 호출 (1)
+- [x] queueEmbeddingForNote: 실패 시 에러 삼키기 (1)
+- [x] buildDeterministicEmbeddingVector: 동일 입력 동일 결과 (1)
+- [x] buildDeterministicEmbeddingVector: 다른 입력 다른 결과 (1)
+- [x] buildDeterministicEmbeddingVector: 빈 입력 영벡터 (1)
+
+### T80-2 게이트 4종
+
+- [x] `npm run lint` 통과 (0 errors, 18 warnings)
+- [x] `npm run build` 통과
+- [x] `npx jest --runInBand` 통과 (56 suites, 246 tests)
+- [x] `npm run vercel-build` 통과
+
+---
+
 ## T80-3 — 노트 AI 평가 ✅
 
 ---
