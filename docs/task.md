@@ -121,9 +121,58 @@ T80-1(Gemini 클라이언트 모듈) 완료 후 3개 AI 기능 병렬 진입.
 
 ---
 
-## T80-4 — HR 피드백 LLM ✅ 완료 (병렬 세션, 동일 커밋)
+## T80-4 — HR 피드백 LLM ✅ 완료
 
-T80-3과 동일 커밋(`4ba94ca`)에 포함.
+### 현재 → 목표
+
+| 항목 | 현재 | 목표 |
+|---|---|---|
+| 포트폴리오 피드백 | deterministic 규칙 (5개 체크) | Gemini `gemini-2.0-flash` HR 분석 + deterministic fallback |
+| 이력서 피드백 | deterministic 규칙 (4개 체크) | Gemini `gemini-2.0-flash` HR 분석 + deterministic fallback |
+| 시스템 프롬프트 | 없음 | HR 10년차 시니어 리크루터 페르소나 |
+| contextJson 활용 | 미사용 | 지원 회사/직무/JD 맥락 전달 |
+| 응답 파싱 | 없음 | `parseFeedbackItemsFromLLM()` 공용 파서 |
+
+### 핵심 변경
+
+1. **포트폴리오 HR 피드백** — `buildPortfolioFeedbackItemsWithAI()` (확장된 데이터 조회: 링크, 스킬, 경력, 프로젝트)
+2. **이력서 HR 피드백** — `buildResumeFeedbackItemsWithAI()` (경력 상세: bullets, metrics, techTags)
+3. **HR 프롬프트 빌더** — `buildPortfolioFeedbackPrompt()`, `buildResumeFeedbackPrompt()` (4~5가지 평가 기준)
+4. **공용 LLM 파서** — `parseFeedbackItemsFromLLM()` (코드블록 추출, severity 정규화, 길이 제한)
+5. **contextJson 전달** — `buildFeedbackItemsByTarget()`에 contextJson 파라미터 추가, `runFeedbackRequestForOwner()`에서 전달
+6. **AI 생성 추적** — `evidenceJson: { source: "gemini" }`
+7. **Fallback 패턴** — `withGeminiFallback()` + `getDefaultGeminiClient()` 싱글턴
+
+### 변경 파일 목록
+
+**수정:**
+- `src/modules/feedback/implementation.ts` — HR LLM 포트폴리오/이력서 피드백 추가
+- `src/modules/feedback/interface.ts` — `skill` 모델 PrismaClient 추가
+
+**신규:**
+- `src/modules/feedback/tests/hr-feedback.test.ts` — 11개 테스트
+
+### 완료 기준
+
+- [x] `buildPortfolioFeedbackItemsWithAI()` — Gemini LLM + deterministic fallback
+- [x] `buildResumeFeedbackItemsWithAI()` — Gemini LLM + deterministic fallback
+- [x] `parseFeedbackItemsFromLLM()` — 공용 JSON 파서 (코드블록/severity/길이 제한)
+- [x] HR 시스템 프롬프트 (10년차 시니어 리크루터 페르소나)
+- [x] 포트폴리오 프롬프트 (4가지 평가 기준: 첫인상/완성도/차별화/접근성)
+- [x] 이력서 프롬프트 (5가지 평가 기준: 직무적합/정량화/기술매칭/요약품질/경력서술)
+- [x] contextJson 지원 (targetCompany/targetRole/jobDescription)
+- [x] GEMINI_API_KEY 미설정 → deterministic fallback
+- [x] LLM retryable 에러 → deterministic fallback
+- [x] 테스트 11개 통과
+- [x] 게이트 4종 통과
+
+### 게이트
+
+- [x] `npm run lint` 통과 (0 errors, 6 warnings)
+- [x] `npm run build` 통과
+- [x] `npx jest --runInBand` 통과 (58 suites, 274 tests)
+- [x] `npm run vercel-build` 통과
+- [x] 커밋 `4ba94ca` (T80-3과 병렬 병합)
 
 ---
 

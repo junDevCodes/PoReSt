@@ -141,6 +141,79 @@
 
 ---
 
+## T80-4 — HR 피드백 LLM ✅
+
+---
+
+### 아키텍처
+
+- [x] `buildPortfolioFeedbackItemsWithAI()` — Gemini LLM 포트폴리오 분석 + deterministic fallback
+- [x] `buildResumeFeedbackItemsWithAI()` — Gemini LLM 이력서 분석 + deterministic fallback
+- [x] `buildFeedbackItemsByTarget()` — contextJson 파라미터 추가, PORTFOLIO/RESUME AI 경로 라우팅
+- [x] `getDefaultGeminiClient()` 싱글턴 패턴 (T80-3과 동일)
+
+### LLM 프롬프트
+
+- [x] `HR_SYSTEM_PROMPT` — HR 10년차 시니어 리크루터 페르소나 (한국어)
+- [x] `buildPortfolioFeedbackPrompt()` — 확장 데이터 (링크/스킬/경력/프로젝트) + 4가지 평가 기준
+- [x] `buildResumeFeedbackPrompt()` — 경력 상세 (bullets/metrics/techTags) + 5가지 평가 기준
+- [x] `contextJson` 지원: targetCompany/targetRole (포트폴리오), jobDescription (이력서)
+- [x] `FEEDBACK_JSON_SCHEMA_INSTRUCTION` — JSON 응답 형식 지시
+
+### 공용 LLM 응답 파서
+
+- [x] `parseFeedbackItemsFromLLM()` — 마크다운 코드 블록 자동 제거
+- [x] JSON 배열 추출 (텍스트 앞뒤 설명 있어도 추출)
+- [x] severity 정규화 (대소문자/공백 무관, 알 수 없는 값 → INFO)
+- [x] title 100자 / message 500자 / suggestion 500자 길이 제한
+- [x] 필수 필드(severity/title/message) 누락 항목 자동 필터링
+- [x] suggestion 없으면 null 처리
+- [x] 파싱 실패 시 빈 배열 반환 + console.warn (silent fallback)
+
+### 확장된 데이터 조회
+
+- [x] 포트폴리오: headline, bio, email, isEmailPublic, location, availabilityStatus, links, skills
+- [x] 포트폴리오: 대표 프로젝트 (title, summary) 최대 10개
+- [x] 포트폴리오: 대표 경력 (company, role, isCurrent) 최대 10개
+- [x] 이력서: targetCompany, targetRole, summaryMd
+- [x] 이력서: items (overrideBullets/Metrics/TechTags + experience 원본) sortOrder 순서
+- [x] `safeJsonArray()`, `safeJsonRecord()` — JSON 필드 안전 파싱 유틸리티
+
+### Fallback 동작
+
+- [x] GEMINI_API_KEY 미설정 → deterministic fallback 즉시 실행
+- [x] LLM retryable 에러 (API_ERROR/RATE_LIMITED) → deterministic fallback
+- [x] LLM non-retryable 에러 (INVALID_INPUT) → 에러 전파
+- [x] LLM 응답 파싱 실패 (빈 배열) → EMPTY_RESPONSE(retryable) → fallback 전환
+
+### 추적성
+
+- [x] AI 생성 피드백 `evidenceJson: { source: "gemini" }` 추가
+- [x] deterministic fallback 피드백은 evidenceJson 없음 (기존 동작 유지)
+
+### 테스트 (11개)
+
+- [x] parseFeedbackItemsFromLLM: 정상 JSON 배열 파싱 (1)
+- [x] parseFeedbackItemsFromLLM: 마크다운 코드 블록 파싱 (1)
+- [x] parseFeedbackItemsFromLLM: 둘러싸인 텍스트에서 JSON 추출 (1)
+- [x] parseFeedbackItemsFromLLM: severity 정규화 (1)
+- [x] parseFeedbackItemsFromLLM: 빈 응답 → 빈 배열 (1)
+- [x] parseFeedbackItemsFromLLM: 잘못된 JSON → 빈 배열 (1)
+- [x] parseFeedbackItemsFromLLM: 배열 아닌 객체 → 빈 배열 (1)
+- [x] parseFeedbackItemsFromLLM: 필수 필드 누락 필터링 (1)
+- [x] parseFeedbackItemsFromLLM: title/message 길이 제한 (1)
+- [x] parseFeedbackItemsFromLLM: suggestion 없으면 null (1)
+- [x] parseFeedbackItemsFromLLM: 빈 배열 정상 처리 (1)
+
+### T80-4 게이트 4종
+
+- [x] `npm run lint` 통과 (0 errors, 6 warnings)
+- [x] `npm run build` 통과
+- [x] `npx jest --runInBand` 통과 (58 suites, 274 tests)
+- [x] `npm run vercel-build` 통과
+
+---
+
 ### 매 태스크 종료 시 공통
 
 - [x] 게이트 4종 통과

@@ -274,16 +274,39 @@
 
 ### T80-4: HR 피드백 LLM (2026-03-15) ✅
 
-**범위**: 포트폴리오/이력서 피드백 Gemini LLM 통합 (T80-3과 동일 커밋)
+**범위**: 포트폴리오/이력서 피드백 Gemini LLM 통합 + 공용 LLM 파서 + 11개 테스트
 
 **핵심 변경**:
 
-1. **HR 10년차 시니어 리크루터 페르소나** — HR_SYSTEM_PROMPT
-2. **buildPortfolioFeedbackItemsWithAI()** — 포트폴리오 AI 분석
-3. **buildResumeFeedbackItemsWithAI()** — 이력서 AI 분석
-4. **parseFeedbackItemsFromLLM()** — 공용 LLM 응답 파서
+1. **HR 10년차 시니어 리크루터 페르소나**
+   - `HR_SYSTEM_PROMPT` — 대한민국 IT 채용 담당자 관점 분석
+   - 포트폴리오: 4가지 평가 기준 (첫인상/완성도/차별화/접근성)
+   - 이력서: 5가지 평가 기준 (직무적합/정량화/기술매칭/요약품질/경력서술)
 
-**커밋**: `4ba94ca` (T80-3과 동일)
+2. **포트폴리오 HR 피드백** — `buildPortfolioFeedbackItemsWithAI()`
+   - 확장 데이터 조회: settings(email, location, availabilityStatus) + links + skills + 대표 프로젝트/경력
+   - contextJson 지원: targetCompany/targetRole 맥락 전달
+   - `withGeminiFallback()` + `getDefaultGeminiClient()` 싱글턴
+
+3. **이력서 HR 피드백** — `buildResumeFeedbackItemsWithAI()`
+   - 경력 상세 데이터: overrideBullets/Metrics/TechTags + experience 원본
+   - contextJson 지원: jobDescription(JD) 전달
+   - `safeJsonArray()`, `safeJsonRecord()` JSON 필드 안전 파싱
+
+4. **공용 LLM 파서** — `parseFeedbackItemsFromLLM()`
+   - 마크다운 코드블록 자동 추출, severity 정규화
+   - title 100자 / message·suggestion 500자 제한
+   - 필수 필드 누락 항목 자동 필터링, 파싱 실패 시 빈 배열(silent)
+
+5. **contextJson 전달 체계**
+   - `buildFeedbackItemsByTarget()` 시그니처에 contextJson 추가
+   - `runFeedbackRequestForOwner()`에서 FeedbackRequest.contextJson 조회 후 전달
+
+6. **FeedbackServicePrismaClient** — `skill` 모델 추가 (포트폴리오 기술 스택 조회)
+
+**게이트**: `lint 0 errors / build / jest(58 suites, 274 tests) / vercel-build` 통과
+**검증**: Jest 파서 테스트 11개 통과, 피드백 API 인증 보호(401) 정상
+**커밋**: `4ba94ca` (T80-3과 병렬 병합)
 
 ---
 

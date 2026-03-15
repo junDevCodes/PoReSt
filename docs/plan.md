@@ -276,7 +276,7 @@ createNote/updateNote() 완료 후
 
 - 병렬 세션 각각은 독립적으로 lint/build 통과 확인
 - 통합 시점에 전체 게이트 4종 재실행
-- jest 기준선은 태스크 완료 시마다 갱신 (현재: 57 suites, 263 tests)
+- jest 기준선은 태스크 완료 시마다 갱신 (현재: 58 suites, 274 tests)
 
 ---
 
