@@ -6,119 +6,86 @@
 
 ---
 
-## 현재 태스크: T82 — 포트폴리오 방문 분석 ✅ 완료
+## 현재 태스크: T80-1 — Gemini 클라이언트 모듈 ✅ 완료
 
 ### 배경
 
-T78 완료로 포트폴리오 공개 페이지(홈, 경력, 프로젝트, 기술 스택)가 완성되었다.
-포트폴리오의 실효성을 측정하려면 **방문 데이터 수집 + 분석 대시보드**가 필요하다.
-
-T79(커스텀 레이아웃)와 병렬 실행 — 서로 의존성 없음.
+T79(커스텀 레이아웃) + T82(방문 분석) 완료 후 Wave6(AI Growth) 진입.
+T80-1은 Gemini API 래퍼 모듈로, T80-2(임베딩), T80-3(노트 AI), T80-4(HR 피드백)의 공통 기반.
 
 ### 현재 → 목표
 
 | 항목 | 현재 | 목표 |
 |---|---|---|
-| PageView 모델 | 없음 | Prisma `PageView` 모델 + 인덱스 |
-| 방문 기록 API | 없음 | `POST /api/public/pageviews` (비인증) |
-| 분석 조회 API | 없음 | `GET /api/app/analytics` (인증) |
-| 자동 트래킹 | 없음 | 공개 포트폴리오 레이아웃에 PageViewTracker |
-| 대시보드 | 없음 | `/app/analytics` (요약/차트/분포/유입경로/최근 방문) |
-
-### PageView 스키마
-
-```prisma
-model PageView {
-  id        String   @id @default(cuid())
-  ownerId   String
-  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  pageType  String   // "home" | "experiences" | "projects" | "project_detail"
-  pageSlug  String?
-  referrer  String?  @db.Text
-  createdAt DateTime @default(now())
-
-  @@index([ownerId, createdAt])
-  @@index([ownerId, pageType])
-  @@map("page_views")
-}
-```
+| Gemini SDK | 없음 | `@google/generative-ai` 설치 |
+| 클라이언트 모듈 | 없음 | `src/modules/gemini/` (interface → implementation → http → index) |
+| 임베딩 API | deterministic hash | Gemini `text-embedding-004` (1536차원) + fallback |
+| 텍스트 생성 API | regex 패턴 | Gemini `gemini-2.0-flash` + fallback |
+| Fallback 전략 | 없음 | `withGeminiFallback()` — AI/deterministic 자동 분기 |
+| 환경변수 | 없음 | `GEMINI_API_KEY` (.env.example 등록) |
 
 ### 모듈 구조
 
 ```
-src/modules/pageviews/
-├── interface.ts       — DTO + Service interface + Error class
-├── implementation.ts  — recordPageView, getAnalytics 구현
-├── http.ts           — 에러 응답 헬퍼
-└── index.ts          — 모듈 export
+src/modules/gemini/
+├── interface.ts          — GeminiClient 인터페이스, 에러 클래스, 타입 정의
+├── implementation.ts     — createGeminiClient(), withGeminiFallback(), 싱글턴
+├── http.ts              — API 에러 응답 헬퍼
+├── index.ts             — 모듈 export
+└── tests/
+    └── client.test.ts   — SDK mock 기반 26개 테스트
 ```
 
-### API 설계
+### 핵심 API
 
-**POST /api/public/pageviews** (비인증):
-- Input: `{ publicSlug, pageType, pageSlug?, referrer? }`
-- publicSlug → PortfolioSettings 조회 → ownerId 결정
-- PageView 레코드 생성
-- `201 Created`
+**GeminiClient 인터페이스:**
+- `isConfigured()` — API 키 설정 여부
+- `generateEmbedding(content)` — 텍스트 → 1536차원 벡터
+- `generateText(prompt, options?)` — LLM 텍스트 생성 (systemPrompt, temperature, maxOutputTokens)
 
-**GET /api/app/analytics** (인증):
-- Query: `?days=30` (기본 30일, 최대 90일)
-- 응답: `{ summary, dailyViews, pageTypeBreakdown, topReferrers, recentViews }`
-
-### 대시보드 UI 구성
-
-1. **요약 카드** (4칸): 전체/오늘/이번 주/이번 달 조회수
-2. **일별 차트**: CSS 바 차트 (30일), 호버 툴팁
-3. **페이지별 분포**: 가로 프로그레스 바 + 퍼센트
-4. **유입 경로**: 도메인별 카운트
-5. **최근 방문**: 테이블 (최대 20건)
+**withGeminiFallback(client, aiPath, fallbackPath):**
+- `isConfigured() === false` → fallback 즉시 실행
+- AI 경로 retryable 실패 → fallback 자동 전환 + warn 로그
+- AI 경로 non-retryable 에러 → 에러 전파 (입력 검증 등)
 
 ### 변경 파일 목록
 
-**스키마**:
-- `prisma/schema.prisma` — PageView 모델 + User 관계 추가
+**신규:**
+- `src/modules/gemini/interface.ts`
+- `src/modules/gemini/implementation.ts`
+- `src/modules/gemini/http.ts`
+- `src/modules/gemini/index.ts`
+- `src/modules/gemini/tests/client.test.ts`
 
-**모듈**:
-- `src/modules/pageviews/interface.ts` — 신규
-- `src/modules/pageviews/implementation.ts` — 신규
-- `src/modules/pageviews/http.ts` — 신규
-- `src/modules/pageviews/index.ts` — 신규
-
-**API**:
-- `src/app/api/public/pageviews/route.ts` — POST 기록
-- `src/app/api/app/analytics/route.ts` — GET 분석
-
-**클라이언트 트래킹**:
-- `src/components/portfolio/PageViewTracker.tsx` — 신규
-- `src/app/(public)/portfolio/[publicSlug]/layout.tsx` — 트래커 삽입
-
-**대시보드**:
-- `src/app/(private)/app/analytics/page.tsx` — 서버 컴포넌트
-- `src/app/(private)/app/analytics/AnalyticsPageClient.tsx` — 클라이언트 컴포넌트
-
-**사이드바**:
-- `src/components/app/AppSidebar.tsx` — "방문 분석" 메뉴 추가
+**수정:**
+- `package.json` — `@google/generative-ai` 의존성 추가
+- `.env.example` — `GEMINI_API_KEY` 섹션 추가
 
 ---
 
-## T82 완료 기준
+## T80-1 완료 기준
 
-- PageView 모델이 DB에 생성됨
-- 공개 포트폴리오 페이지 방문 시 PageView 자동 기록
-- `/app/analytics` 대시보드에서 방문 통계 확인 가능
-- 요약(전체/오늘/주/월), 일별 차트, 페이지 분포, 유입 경로, 최근 방문 표시
-- 게이트 4종 통과
+- [x] `@google/generative-ai` SDK 설치
+- [x] GeminiClient 인터페이스 (임베딩 + 텍스트 생성)
+- [x] GEMINI_API_KEY 미설정 시 NOT_CONFIGURED 에러
+- [x] withGeminiFallback() AI/fallback 분기 유틸리티
+- [x] SDK mock 기반 테스트 26개 통과
+- [x] 게이트 4종 통과
 
-## T82 게이트
+## T80-1 게이트
 
 - [x] `npm run lint` 통과 (0 errors, 6 warnings)
 - [x] `npm run build` 통과
-- [x] `npx jest --runInBand` 통과 (54 suites, 203 tests)
-- [x] `npm run vercel-build` 통과 (Zod enum 호환성 수정 포함)
-- [x] push 후 Vercel 배포 성공 (`f797ec4`)
+- [x] `npx jest --runInBand` 통과 (55 suites, 229 tests)
+- [x] `npm run vercel-build` 통과
+- [x] push 후 Vercel 배포 성공 (`1630168`)
 
 ---
 
-## 다음 태스크: T80-1 — Gemini 클라이언트 모듈 (대기)
+## 다음 태스크: T80-2/T80-3/T80-4 — 병렬 가능 (대기)
 
-T79 ✅ + T82 ✅ 완료. plan.md Wave6 참조.
+T80-1 ✅ 완료. plan.md Wave6 참조.
+
+- T80-2: 임베딩 자동화 (Gemini text-embedding-004 → NoteEmbedding)
+- T80-3: 노트 AI 평가 (Gemini gemini-2.0-flash → FeedbackItem)
+- T80-4: HR 피드백 LLM (포트폴리오/이력서 AI 분석)

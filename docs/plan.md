@@ -197,7 +197,7 @@ T52 ✅ → T76~G ✅ → T77 ✅ → T78 ✅
 | T78 | 경력 페이지 + 기술 스택 ✅ | T77 ✅ | 내부 G1~G7 병렬 |
 | T79 | 커스텀 레이아웃 ✅ | T78 ✅ | T82 |
 | T82 | 포트폴리오 방문 분석 ✅ | T78 ✅ | T79 |
-| T80-1 | Gemini 클라이언트 | T79+T82 ✅ | — |
+| T80-1 | Gemini 클라이언트 ✅ | T79+T82 ✅ | — |
 | T80-2 | 임베딩 자동화 | T80-1 | T80-3, T80-4 |
 | T80-3 | 노트 AI 평가 | T80-1 | T80-2, T80-4 |
 | T80-4 | HR 피드백 LLM | T80-1 | T80-2, T80-3 |
@@ -276,7 +276,7 @@ createNote/updateNote() 완료 후
 
 - 병렬 세션 각각은 독립적으로 lint/build 통과 확인
 - 통합 시점에 전체 게이트 4종 재실행
-- jest 기준선은 태스크 완료 시마다 갱신 (현재: 54 suites, 203 tests)
+- jest 기준선은 태스크 완료 시마다 갱신 (현재: 55 suites, 229 tests)
 
 ---
 
@@ -312,9 +312,9 @@ createNote/updateNote() 완료 후
 
 ### M8 (T80)
 
-- [ ] Test-M8-01: Gemini mock 임베딩 성공/실패
+- [x] Test-M8-01: Gemini mock 임베딩 성공/실패
 - [ ] Test-M8-02: NOTE FeedbackRequest → FeedbackItem 생성 (LLM mock)
-- [ ] Test-M8-03: GEMINI_API_KEY 미설정 → fallback 경로
+- [x] Test-M8-03: GEMINI_API_KEY 미설정 → fallback 경로
 - [ ] Test-M8-04: PORTFOLIO/RESUME FeedbackRequest LLM mock
 - [ ] Test-M8-05: AI 이력서 초안 API 입력 검증
 - [ ] Test-M8-06: NoteEdge CANDIDATE 자동 생성

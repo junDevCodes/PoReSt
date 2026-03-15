@@ -180,6 +180,36 @@
 **게이트**: `lint/build/jest(54 suites, 203 tests)/vercel-build` 통과
 **검증**: 프로덕션 API 심층 검증 — 201(정상), 404(미존재 slug), 422(잘못된 pageType), referrer 기록 정상
 
+### T80-1: Gemini 클라이언트 모듈 (2026-03-15) ✅
+
+**범위**: 신규 모듈 + SDK 설치 + 환경변수 등록
+
+**핵심 변경**:
+
+1. **@google/generative-ai SDK 설치**
+   - `package.json` 의존성 추가
+
+2. **Gemini 클라이언트 모듈 신규 구현**
+   - `src/modules/gemini/` — interface, implementation, http, index
+   - `GeminiClient` 인터페이스: `isConfigured()`, `generateEmbedding()`, `generateText()`
+   - 임베딩: `text-embedding-004` (1536차원, NoteEmbedding 호환)
+   - 텍스트 생성: `gemini-2.0-flash` (systemPrompt, temperature, maxOutputTokens)
+
+3. **에러 처리 체계**
+   - NOT_CONFIGURED(503), INVALID_INPUT(422), EMPTY_RESPONSE(502), API_ERROR(502), RATE_LIMITED(429)
+   - `retryable` 플래그로 재시도 가능 여부 구분
+
+4. **Fallback 전략**
+   - `withGeminiFallback(client, aiPath, fallbackPath)` 유틸리티
+   - GEMINI_API_KEY 미설정 → fallback 즉시 실행
+   - AI 경로 retryable 실패 → fallback 자동 전환 + warn 로그
+
+5. **환경변수**
+   - `.env.example`에 `GEMINI_API_KEY` 섹션 추가
+
+**게이트**: `lint/build/jest(55 suites, 229 tests)/vercel-build` 통과
+**검증**: SDK mock 기반 Jest 26개 테스트 전체 통과
+
 ---
 
 ## 현재 진행 맥락
@@ -187,12 +217,12 @@
 ### 태스크 진행 순서
 
 ```
-T52 ✅ → T76~G ✅ → T77 ✅ → T78 ✅ → T79 ✅ ∥ T82 ✅ (병렬) → T80 → T83 ∥ T84 → T85 ∥ T86 → [확장 판단] → T87, T81
+T52 ✅ → T76~G ✅ → T77 ✅ → T78 ✅ → T79 ✅ ∥ T82 ✅ → T80-1 ✅ → T80-2/3/4 → T83 ∥ T84 → T85 ∥ T86 → [확장 판단] → T87, T81
 ```
 
 ### 다음 태스크
 
-T79 + T82 완료. 다음은 T80(AI 기능 고도화 — Gemini 연동) 진입.
+T80-1 완료. 다음은 T80-2(임베딩 자동화), T80-3(노트 AI 평가), T80-4(HR 피드백) 병렬 진입 가능.
 
 ### 전략 결정 사항 (2026-03-15 논의)
 
@@ -208,8 +238,9 @@ T79 + T82 완료. 다음은 T80(AI 기능 고도화 — Gemini 연동) 진입.
 - PDF: `pdf-download.ts` (html2canvas-pro + jsPDF)
 - 이력서 공유: `ResumeShareLink` (nanoid 12자)
 - SEO: sitemap.ts(동적), robots.ts, OG Image(동적), JSON-LD(Person/Article)
-- AI 현재: deterministic 벡터 + regex (T80에서 Gemini 교체 예정)
 - bulletsJson: `string[]`, metricsJson: `{ label: string; value: string }[]`
 - Skills 아이콘: Simple Icons CDN(`cdn.simpleicons.org`) + devicon CDN fallback
 - **layoutJson**: `{ sections: [{ id, visible }] }` — 포트폴리오 홈 섹션 순서/가시성 커스텀
 - **PageView**: `page_views` 테이블, 공개 포트폴리오 자동 트래킹, `/app/analytics` 대시보드
+- **Gemini 클라이언트**: `src/modules/gemini/` — `createGeminiClient()`, `withGeminiFallback()`, GEMINI_API_KEY 기반
+- **AI 현재**: T80-1 완료 (클라이언트 모듈). 기존 deterministic 벡터 + regex는 T80-2/3에서 Gemini로 교체 예정

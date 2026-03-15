@@ -6,118 +6,67 @@
 
 ---
 
-## T79 — 포트폴리오 커스텀 레이아웃 ✅
+## T80-1 — Gemini 클라이언트 모듈 ✅
 
 ---
 
-### 타입/검증 계층
+### 모듈 구조
 
-- [x] `src/modules/portfolio-settings/interface.ts` — LayoutSectionId, LayoutSection, LayoutConfig 타입 정의
-- [x] `LAYOUT_SECTION_IDS` 상수 (`["projects", "experiences", "skills"]`)
-- [x] `DEFAULT_LAYOUT` 기본값 (3개 섹션 전부 visible)
-- [x] `parseLayoutConfig(raw)` — unknown → LayoutConfig 변환, 누락 섹션 자동 보충
-- [x] `src/modules/portfolio-settings/implementation.ts` — Zod 스키마 강화:
-  - `z.object({ sections: z.array(z.object({ id: z.enum(...), visible: z.boolean() })) })`
-  - 중복 섹션 ID refine 검증
-  - optional + nullable 유지
+- [x] `src/modules/gemini/interface.ts` — GeminiClient 인터페이스, 에러 클래스, 타입 상수
+- [x] `src/modules/gemini/implementation.ts` — createGeminiClient(), withGeminiFallback(), 싱글턴
+- [x] `src/modules/gemini/http.ts` — createGeminiErrorResponse()
+- [x] `src/modules/gemini/index.ts` — 모듈 export
 
-### 데이터 플로우 계층
+### 인터페이스 검증
 
-- [x] `src/modules/projects/implementation.ts`:
-  - `findPublicSettingsBySlug` select에 `layoutJson: true` 추가
-  - `buildPublicPortfolioBySettings` 파라미터에 `layoutJson: unknown` 추가
-  - 반환값에 `layoutJson` 포함
-  - `getPublicPortfolio` fallback 경로에도 layoutJson 추가
-- [x] `src/view-models/public-portfolio.ts`:
-  - `PublicHomeViewModel`에 `layout: LayoutConfig` 필드 추가
-  - `toPublicHomeViewModel`에서 `parseLayoutConfig(root.layoutJson)` 호출
+- [x] `GeminiClient.isConfigured()` — API 키 존재 시 true, 미설정/빈 문자열 시 false
+- [x] `GeminiClient.generateEmbedding(content)` — 1536차원 벡터 반환
+- [x] `GeminiClient.generateText(prompt, options?)` — 텍스트 + 모델명 + tokenCount 반환
+- [x] `GeminiTextGenerationOptions` — model, systemPrompt, temperature, maxOutputTokens
 
-### 렌더링 계층
+### 에러 처리
 
-- [x] `src/app/(public)/portfolio/[publicSlug]/page.tsx`:
-  - ProjectsSection, ExperiencesSection, SkillsSection 컴포넌트 추출
-  - `sectionRenderers` 맵 구성 (LayoutSectionId → React.ReactNode)
-  - `viewModel.layout.sections.filter(s => s.visible).map(...)` 동적 렌더링
-  - 프로필 헤더/버튼/소셜 링크는 항상 최상단 (레이아웃 대상 아님)
+- [x] NOT_CONFIGURED (503) — API 키 미설정 시
+- [x] INVALID_INPUT (422) — 빈 텍스트, 길이 초과
+- [x] EMPTY_RESPONSE (502) — SDK 응답 비어있을 때
+- [x] API_ERROR (502, retryable) — SDK 일반 에러
+- [x] RATE_LIMITED (429, retryable) — 429/rate limit 키워드 감지
 
-### 설정 UI 계층
+### Fallback 전략
 
-- [x] `src/app/(private)/app/portfolio/settings/page.tsx`:
-  - `PortfolioSettingsDto`에 `layoutJson: unknown` 추가
-  - `PortfolioSettingsFormState`에 `layoutSections: LayoutSection[]` 추가
-  - `toFormState`에서 `parseLayoutConfig(dto.layoutJson)` 사용
-  - `handleSubmit` payload에 `layoutJson: { sections: form.layoutSections }` 포함
-  - 섹션 레이아웃 편집 UI:
-    - 각 섹션 행: 순서 번호 + 섹션 이름 + 가시성 토글
-    - ▲▼ 버튼으로 순서 변경 (첫/마지막 비활성)
-    - 숨김 섹션 시각적 구분 (opacity 낮춤)
+- [x] `withGeminiFallback()` — isConfigured() false → fallback 즉시 실행
+- [x] `withGeminiFallback()` — AI 경로 retryable 실패 → fallback 자동 전환
+- [x] `withGeminiFallback()` — AI 경로 non-retryable 에러 → 에러 전파
 
-### 동작 검증 (Playwright 7/7 통과)
+### 테스트 (26개)
 
-- [x] 포트폴리오 홈 기본 렌더링 (200, h1 프로필 표시)
-- [x] 섹션 순서 정합 (`대표 프로젝트 → 경력 → 기술 스택` = DEFAULT_LAYOUT)
-- [x] 설정 페이지 레이아웃 편집 UI (▲▼ 버튼 + 가시성 체크박스)
-- [x] 다크모드 렌더링 정상
-- [x] 경력 전용 페이지 `/portfolio/[slug]/experiences` 200
-- [x] 프로젝트 목록 페이지 `/portfolio/[slug]/projects` 200
-- [x] Sitemap에 experiences URL 포함
+- [x] isConfigured: API 키 있음/없음/빈 문자열 (3개)
+- [x] generateEmbedding: 미설정/빈입력/긴입력/성공/빈응답/SDK에러/Rate limit (7개)
+- [x] generateText: 미설정/빈입력/성공/커스텀옵션/빈응답/SDK에러 (6개)
+- [x] GeminiClientError: 타입가드/retryable 플래그 (2개)
+- [x] 싱글턴: 동일 인스턴스/리셋 (2개)
+- [x] withGeminiFallback: fallback/AI/retryable전환/non-retryable전파 (4개)
+- [x] 상수: 임베딩 모델/텍스트 모델 (2개)
+
+### 환경변수
+
+- [x] `.env.example`에 `GEMINI_API_KEY` 섹션 추가
+- [x] `GEMINI_API_KEY` 미설정 시 기존 코드 영향 없음 (독립 모듈)
 
 ---
 
-## T82 — 포트폴리오 방문 분석 ✅
+### 게이트 4종
 
----
-
-### 스키마 & 모듈
-
-- [x] `prisma/schema.prisma` — PageView 모델 추가
-- [x] `src/modules/pageviews/` — interface, implementation, http, index
-- [x] Zod 검증: publicSlug(필수), pageType(enum), pageSlug(max 200), referrer(max 2000)
-
-### API
-
-- [x] `POST /api/public/pageviews` — 비인증 방문 기록 API
-- [x] `GET /api/app/analytics` — 인증 분석 조회 API
-
-### 자동 트래킹
-
-- [x] `PageViewTracker.tsx` — 클라이언트 컴포넌트 (fire-and-forget)
-- [x] 공개 포트폴리오 layout에 삽입
-
-### 대시보드 UI
-
-- [x] `/app/analytics` 서버+클라이언트 컴포넌트
-- [x] AppSidebar에 "방문 분석" 메뉴 추가
-
----
-
-### 통합 게이트 (T79 + T82 합류)
-
-- [x] `npm run lint` 통과 (0 errors, 6 warnings — hooks 내부만)
+- [x] `npm run lint` 통과 (0 errors, 6 warnings)
 - [x] `npm run build` 통과
-- [x] `npx jest --runInBand` 통과 (54 suites, 203 tests)
-- [x] `npm run vercel-build` 통과 (T82 Zod enum 호환성 수정 포함)
-
----
-
-### 프로덕션 배포 검증
-
-- [x] Vercel Production 배포 성공 (`f797ec4`)
-- [x] 포트폴리오 홈 — 프로필/프로젝트/경력/기술 스택 섹션 순서 정합 확인
-- [x] 포트폴리오 홈 — JSON-LD Person 구조화 데이터 확인
-- [x] 경력 전용 페이지 — 200 + "← 프로필로" 링크 + "재직 중" 배지 확인
-- [x] 프로젝트 목록 페이지 — 200 + 카드 그리드 렌더링 확인
-- [x] Sitemap — portfolio/experiences/projects URL 모두 포함 확인
-- [x] POST /api/public/pageviews — 201 Created (방문 기록 동작 확인)
-- [x] POST /api/public/pageviews — 404 NOT_FOUND (존재하지 않는 slug)
-- [x] POST /api/public/pageviews — 422 VALIDATION_ERROR (잘못된 pageType)
-- [x] POST /api/public/pageviews — 201 Created (referrer 포함 기록 정상)
+- [x] `npx jest --runInBand` 통과 (55 suites, 229 tests)
+- [x] `npm run vercel-build` 통과
 
 ---
 
 ### 매 태스크 종료 시 공통
 
 - [x] 게이트 4종 통과
-- [x] Playwright 로컬 브라우저 테스트 7/7 통과 (T79)
-- [x] 프로덕션 배포 + WebFetch 검증 완료
+- [x] Jest SDK mock 기반 테스트 26개 통과
+- [x] Vercel 배포 성공 (`1630168`)
 - [x] `task.md`, `checklist.md`, `history.md`, `plan.md` 문서 동기화
