@@ -1,4 +1,5 @@
 import { ThemeWrapper } from "@/components/portfolio/ThemeWrapper";
+import { PageViewTracker } from "@/components/portfolio/PageViewTracker";
 import { prisma } from "@/lib/prisma";
 
 type PortfolioPublicLayoutProps = {
@@ -24,6 +25,7 @@ export default async function PortfolioPublicLayout({
 
   return (
     <ThemeWrapper publicSlug={resolvedParams.publicSlug}>
+      <PageViewTracker publicSlug={resolvedParams.publicSlug} />
       {children}
     </ThemeWrapper>
   );

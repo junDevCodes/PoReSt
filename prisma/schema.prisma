@@ -161,6 +161,7 @@ model User {
   domainLinks       DomainLink[]
   experienceStories ExperienceStory[]
   companyTargets    CompanyTarget[]
+  pageViews         PageView[]
 
   @@map("users")
 }
@@ -705,6 +706,25 @@ model DomainLink {
   @@index([ownerId, sourceType, sourceId, updatedAt])
   @@index([ownerId, targetType, targetId, updatedAt])
   @@map("domain_links")
+}
+
+// ========== PAGE VIEW (방문 분석) ==========
+
+model PageView {
+  id        String   @id @default(cuid())
+  ownerId   String
+  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  pageType  String   // "home" | "experiences" | "projects" | "project_detail"
+  pageSlug  String?  // project detail 등 slug
+
+  referrer  String?  @db.Text
+
+  createdAt DateTime @default(now())
+
+  @@index([ownerId, createdAt])
+  @@index([ownerId, pageType])
+  @@map("page_views")
 }
 
 // ========== FEEDBACK (자동 피드백 요청/결과) ==========

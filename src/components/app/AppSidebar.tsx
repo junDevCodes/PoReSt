@@ -28,6 +28,7 @@ const NAV_GROUPS: NavItem[][] = [
     { href: "/app/feedback", label: "피드백" },
   ],
   [
+    { href: "/app/analytics", label: "방문 분석" },
     { href: "/app/domain-links", label: "교차 링크" },
     { href: "/app/audit", label: "감사 로그" },
   ],
