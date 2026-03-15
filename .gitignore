@@ -44,4 +44,7 @@ update-plan-names.ps1
 
 # CUSTOM
 AGENTS.md
-plans/
+.mcp.json
+.claude/
+.playwright-mcp/
+screenshots/
