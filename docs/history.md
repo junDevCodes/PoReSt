@@ -308,6 +308,28 @@
 **검증**: Jest 파서 테스트 11개 통과, 피드백 API 인증 보호(401) 정상
 **커밋**: `4ba94ca` (T80-3과 병렬 병합)
 
+### T80-6: 자동 후보 엣지 (2026-03-16) ✅
+
+**범위**: 5개 파일 수정 + 1개 신규 (테스트 18개)
+
+**핵심 변경**:
+
+1. **`generateCandidateEdgesForNote()`** — 단일 노트 임베딩 기반 CANDIDATE 엣지 생성
+   - pgvector 코사인 유사도 + 태그 Jaccard 병합
+   - MAX(임베딩, 태그) 가중치 + 동일 도메인 보너스(+0.1)
+   - fromId < toId 정규화, 기존 엣지 중복 방지, 상위 20개 제한
+
+2. **`queueEmbeddingAndEdgesForNote()`** — 임베딩 → 유사 검색 → 엣지 생성 체인
+   - `embedSingleNote()` 성공 후 `searchSimilarNotesForOwner()` 호출
+   - `EdgeGenerationCallback` 콜백 패턴 (모듈 간 순환 의존 방지)
+   - fire-and-forget, 에러 삼키기 + warn 로그
+
+3. **API 연동** — POST/PUT `/api/app/notes` → `queueEmbeddingAndEdgesForNote()` 교체
+
+**게이트**: `lint(0 errors) / build / jest(59 suites, 292 tests) / vercel-build` 통과
+**검증**: Playwright MCP 로컬 브라우저 테스트 — 홈, 포트폴리오, API 인증/공개 엔드포인트 전체 정상
+**커밋**: `976317b`
+
 ---
 
 ## 현재 진행 맥락
@@ -315,14 +337,15 @@
 ### 태스크 진행 순서
 
 ```
-T52 ✅ → T76~G ✅ → T77 ✅ → T78 ✅ → T79 ✅ ∥ T82 ✅ → T80-1 ✅ → T80-2 ✅ ∥ T80-3 ✅ ∥ T80-4 ✅ → T80-5/6 → T83 ∥ T84 → T85 ∥ T86 → [확장 판단] → T87, T81
+T52 ✅ → T76~G ✅ → T77 ✅ → T78 ✅ → T79 ✅ ∥ T82 ✅ → T80-1 ✅ → T80-2 ✅ ∥ T80-3 ✅ ∥ T80-4 ✅ → T80-5 ∥ T80-6 ✅ → T83 ∥ T84 → T85 ∥ T86 → [확장 판단] → T87, T81
 ```
 
 ### 다음 태스크
 
-T80-2/3/4 완료. 다음:
-- T80-5: AI 이력서 초안 (T80-4 의존)
-- T80-6: 자동 후보 엣지 (T80-2 의존)
+T80-6 완료. T80-5 병렬 진행 중.
+- T80-5 완료 시 M8 종결
+- T83: 엔티티 연결 (Experience ↔ Project ↔ Skill)
+- T84: 지원 이력 트래커 (칸반 + JD 매칭)
 
 ### 전략 결정 사항 (2026-03-15 논의)
 
@@ -346,3 +369,4 @@ T80-2/3/4 완료. 다음:
 - **노트 AI 평가**: `buildNoteFeedbackItemsWithAI()` + `parseNoteFeedbackResponse()` — Gemini LLM + regex fallback
 - **HR 피드백 LLM**: `buildPortfolioFeedbackItemsWithAI()`, `buildResumeFeedbackItemsWithAI()` — HR 페르소나
 - **임베딩 자동화**: Gemini text-embedding-004 → NoteEmbedding UPSERT, deterministic fallback
+- **자동 후보 엣지**: `queueEmbeddingAndEdgesForNote()` → pgvector 유사도 → NoteEdge CANDIDATE 자동 생성

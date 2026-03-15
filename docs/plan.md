@@ -202,7 +202,7 @@ T52 ✅ → T76~G ✅ → T77 ✅ → T78 ✅
 | T80-3 | 노트 AI 평가 ✅ | T80-1 ✅ | T80-2, T80-4 |
 | T80-4 | HR 피드백 LLM ✅ | T80-1 ✅ | T80-2, T80-3 |
 | T80-5 | AI 이력서 초안 | T80-4 | — |
-| T80-6 | 자동 후보 엣지 | T80-2 | — |
+| T80-6 | 자동 후보 엣지 ✅ | T80-2 ✅ | — |
 | T83 | 엔티티 연결 | M8 완료 | T84 |
 | T84 | 지원 이력 트래커 | M8 완료 | T83 |
 | T85 | 추천서/동료 평가 | M9 완료 | T86 |
@@ -276,7 +276,7 @@ createNote/updateNote() 완료 후
 
 - 병렬 세션 각각은 독립적으로 lint/build 통과 확인
 - 통합 시점에 전체 게이트 4종 재실행
-- jest 기준선은 태스크 완료 시마다 갱신 (현재: 58 suites, 274 tests)
+- jest 기준선은 태스크 완료 시마다 갱신 (현재: 59 suites, 292 tests)
 
 ---
 
@@ -317,7 +317,7 @@ createNote/updateNote() 완료 후
 - [x] Test-M8-03: GEMINI_API_KEY 미설정 → fallback 경로
 - [x] Test-M8-04: PORTFOLIO/RESUME FeedbackRequest LLM mock
 - [ ] Test-M8-05: AI 이력서 초안 API 입력 검증
-- [ ] Test-M8-06: NoteEdge CANDIDATE 자동 생성
+- [x] Test-M8-06: NoteEdge CANDIDATE 자동 생성
 
 ### M9 (T82~T83)
 

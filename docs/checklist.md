@@ -1,223 +1,93 @@
 # PoReSt 작업 검증 체크리스트
 
-기준일: 2026-03-15
+기준일: 2026-03-16
 문서 정의: `task.md`의 현재 태스크에 대한 상세 검증 항목. 완료 이력은 `history.md` 참조.
 관련 문서: `task.md`(작업 상세), `plan.md`(전체 계획), `history.md`(완료 이력)
 
 ---
 
-## T80-2 — 임베딩 자동화 ✅
+## T80-6 — 자동 후보 엣지 ✅
 
 ---
 
-### Gemini 통합
+### generateCandidateEdgesForNote
 
-- [x] `rebuildForOwner()` — Gemini text-embedding-004 + deterministic fallback
-- [x] `generateEmbeddingVector()` — `withGeminiFallback()` 패턴 적용
-- [x] `embedSingleNote(ownerId, noteId)` — 단일 노트 임베딩 메서드
-- [x] `queueEmbeddingForNote()` — fire-and-forget 트리거 함수
-- [x] `createNoteEmbeddingPipelineService({ prisma, geminiClient? })` — DI 지원
+- [x] 임베딩 유사 노트 기반 CANDIDATE 엣지 생성 (`status: CANDIDATE`, `origin: AUTO`)
+- [x] MAX(임베딩 코사인, 태그 Jaccard) 가중치 계산
+- [x] 동일 도메인(노트북) 가중치 보너스 +0.1 적용
+- [x] 가중치 상한 1.0 cap
+- [x] 기존 엣지 중복 방지 (normalizePairKey)
+- [x] fromId < toId 정규화
+- [x] 상위 20개 후보만 저장
+- [x] 소스 노트 미존재 → 빈 배열 반환
+- [x] 빈 유사 노트 배열 → 빈 배열 반환 (DB 조회 없음)
+- [x] 삭제된 후보 노트 스킵 (`deletedAt: null` 필터)
+- [x] reason에 임베딩 유사도 포함 (`임베딩 유사도: 0.XXXX`)
+- [x] reason에 태그 교집합 포함 (태그 유사도 > 0인 경우)
+- [x] reason에 동일 도메인 가중치 표시 (해당 시)
+- [x] 태그 없는 노트 쌍에서도 임베딩 점수로 엣지 생성
 
-### 콘텐츠 준비
+### queueEmbeddingAndEdgesForNote
 
-- [x] `buildEmbeddingContent()` — 제목+태그+요약+본문 조합
-- [x] 9500자 절삭 (Gemini 10000자 입력 제한 대응)
-- [x] 태그 없으면 태그 줄 생략
-- [x] 요약 없으면 요약 줄 생략
+- [x] `embedSingleNote()` 성공 (succeeded > 0) 후 유사 검색 실행
+- [x] `searchSimilarNotesForOwner()` 호출 (limit: 10, minScore: 0.5)
+- [x] 유사 노트 있으면 `edgeCallback()` 호출 (noteId + score 전달)
+- [x] 임베딩 실패 시 엣지 콜백 미호출
+- [x] 임베딩 succeeded=0이면 엣지 콜백 미호출
+- [x] 유사 노트 없으면 엣지 콜백 미호출
+- [x] 엣지 콜백 실패 시 에러 삼키고 warn 로그
+- [x] `edgeCallback: null`이면 유사 검색 자체 스킵
+- [x] fire-and-forget 패턴 (API 응답 지연 없음)
 
-### 자동 트리거
+### API 연동
 
-- [x] POST `/api/app/notes` — 노트 생성 후 `queueEmbeddingForNote()` 호출
-- [x] PUT `/api/app/notes/[id]` — 노트 수정 후 `queueEmbeddingForNote()` 호출
-- [x] fire-and-forget: API 응답 지연 없이 비동기 실행
-- [x] 실패 시 에러 삼키고 `console.warn` 로그
+- [x] POST `/api/app/notes` — `queueEmbeddingAndEdgesForNote()` 호출
+- [x] PUT `/api/app/notes/[id]` — `queueEmbeddingAndEdgesForNote()` 호출
+- [x] `EdgeGenerationCallback` 타입으로 notesService.generateCandidateEdgesForNote 연결
 
-### Fallback 동작
+### 테스트 (18개)
 
-- [x] GEMINI_API_KEY 미설정 → deterministic fallback 즉시 실행
-- [x] Gemini retryable 에러 (API_ERROR/RATE_LIMITED) → deterministic fallback
-- [x] Gemini non-retryable 에러 (INVALID_INPUT) → FAILED 상태 기록
+- [x] 임베딩 유사 노트 기반 CANDIDATE 엣지 생성 (1)
+- [x] 빈 유사 노트 배열 → 빈 배열 반환 (1)
+- [x] 소스 노트 미존재 → 빈 배열 반환 (1)
+- [x] 기존 엣지 중복 스킵 (1)
+- [x] 동일 도메인 가중치 보너스 (1)
+- [x] MAX(임베딩, 태그) 가중치 (1)
+- [x] fromId < toId 정규화 (1)
+- [x] 삭제된 후보 노트 스킵 (1)
+- [x] reason에 임베딩 유사도 포함 (1)
+- [x] 태그 없는 노트 임베딩 엣지 생성 (1)
+- [x] 가중치 상한 1.0 (1)
+- [x] 상위 20개 제한 (1)
+- [x] 임베딩 성공 → 유사 검색 → 엣지 콜백 호출 (1)
+- [x] 임베딩 실패 → 엣지 콜백 미호출 (1)
+- [x] succeeded=0 → 엣지 콜백 미호출 (1)
+- [x] 유사 노트 없음 → 엣지 콜백 미호출 (1)
+- [x] 엣지 콜백 실패 → 에러 삼키기 (1)
+- [x] edgeCallback null → 스킵 (1)
 
-### 테스트 (17개)
-
-- [x] buildEmbeddingContent: 제목+태그+요약+본문 조합 (1)
-- [x] buildEmbeddingContent: 태그 없음 생략 (1)
-- [x] buildEmbeddingContent: 요약 없음 생략 (1)
-- [x] buildEmbeddingContent: 9500자 절삭 (1)
-- [x] rebuildForOwner: Gemini AI 임베딩 사용 (1)
-- [x] rebuildForOwner: Gemini 미설정 시 deterministic fallback (1)
-- [x] rebuildForOwner: retryable 에러 시 fallback 전환 (1)
-- [x] rebuildForOwner: non-retryable 에러 시 FAILED 기록 (1)
-- [x] embedSingleNote: 성공 (1)
-- [x] embedSingleNote: 존재하지 않는 노트 빈 결과 (1)
-- [x] embedSingleNote: 실패 시 FAILED 기록 (1)
-- [x] embedSingleNote: Gemini 미설정 시 fallback 성공 (1)
-- [x] queueEmbeddingForNote: fire-and-forget 호출 (1)
-- [x] queueEmbeddingForNote: 실패 시 에러 삼키기 (1)
-- [x] buildDeterministicEmbeddingVector: 동일 입력 동일 결과 (1)
-- [x] buildDeterministicEmbeddingVector: 다른 입력 다른 결과 (1)
-- [x] buildDeterministicEmbeddingVector: 빈 입력 영벡터 (1)
-
-### T80-2 게이트 4종
-
-- [x] `npm run lint` 통과 (0 errors, 18 warnings)
-- [x] `npm run build` 통과
-- [x] `npx jest --runInBand` 통과 (56 suites, 246 tests)
-- [x] `npm run vercel-build` 통과
-
----
-
-## T80-3 — 노트 AI 평가 ✅
-
----
-
-### 아키텍처
-
-- [x] `buildNoteFeedbackItems()` — Gemini LLM 경로 + regex fallback 통합
-- [x] `buildNoteFeedbackItemsRegex()` — 기존 regex 로직 분리 (fallback)
-- [x] `buildNoteFeedbackItemsWithAI()` — Gemini LLM 호출 경로
-- [x] `withGeminiFallback()` — AI/fallback 자동 분기
-
-### LLM 프롬프트
-
-- [x] `NOTE_FEEDBACK_SYSTEM_PROMPT` — 노트 평가 전문가 페르소나
-- [x] 5가지 평가 기준: 완성도, 구조, 근거, 명확성, 태그
-- [x] JSON 배열 출력 형식 지시
-- [x] 최대 5개 항목 제한
-- [x] `buildNoteFeedbackPrompt()` — 노트 정보(제목/태그/요약/본문) 포함
-
-### 응답 파싱
-
-- [x] `parseNoteFeedbackResponse()` — LLM 텍스트 → FeedbackItemDraft[]
-- [x] 코드 블록(`\`\`\`json`) 마커 자동 제거
-- [x] JSON 배열 추출 (텍스트 앞뒤에 설명 있어도 추출)
-- [x] severity 검증 (INFO/WARNING/CRITICAL만 허용)
-- [x] title/message 빈 문자열 필터링
-- [x] 최대 5개 슬라이싱
-- [x] suggestion 없으면 null 처리
-- [x] 파싱 실패 시 에러 throw (not silent)
-
-### Fallback 동작
-
-- [x] GEMINI_API_KEY 미설정 → regex fallback 즉시 실행
-- [x] LLM retryable 에러 (API_ERROR/RATE_LIMITED) → regex fallback
-- [x] LLM non-retryable 에러 (INVALID_INPUT) → 에러 전파
-- [x] LLM 응답 파싱 실패 → GeminiClientError(retryable) → fallback 전환
-- [x] LLM 정상 빈 배열 [] → "AI 점검 통과" INFO 항목
-
-### 추적성
-
-- [x] AI 생성 피드백 `evidenceJson: { source: "gemini" }` 추가
-- [x] Regex fallback 피드백은 evidenceJson 없음 (기존 동작 유지)
-
-### 테스트 (17개)
-
-- [x] parseNoteFeedbackResponse: 유효 JSON 변환 (1)
-- [x] parseNoteFeedbackResponse: 코드 블록 파싱 (1)
-- [x] parseNoteFeedbackResponse: 빈 배열 반환 (1)
-- [x] parseNoteFeedbackResponse: JSON 없는 텍스트 에러 (1)
-- [x] parseNoteFeedbackResponse: 유효하지 않은 JSON 에러 (1)
-- [x] parseNoteFeedbackResponse: 잘못된 severity 필터링 (1)
-- [x] parseNoteFeedbackResponse: 최대 5개 제한 (1)
-- [x] parseNoteFeedbackResponse: 빈 title/message 필터링 (1)
-- [x] parseNoteFeedbackResponse: suggestion 없으면 null (1)
-- [x] parseNoteFeedbackResponse: CRITICAL severity 처리 (1)
-- [x] parseNoteFeedbackResponse: JSON 앞뒤 텍스트 추출 (1)
-- [x] buildNoteFeedbackPrompt: 노트 정보 포함 (1)
-- [x] buildNoteFeedbackPrompt: 태그/요약 없음 처리 (1)
-- [x] buildNoteFeedbackPrompt: 공백 요약 처리 (1)
-- [x] NOTE_FEEDBACK_SYSTEM_PROMPT: 5가지 평가 기준 (1)
-- [x] NOTE_FEEDBACK_SYSTEM_PROMPT: JSON 출력 지시 (1)
-- [x] NOTE_FEEDBACK_SYSTEM_PROMPT: 최대 항목 수 (1)
-
----
-
-### 게이트 4종
-
-- [x] `npm run lint` 통과 (0 errors, 12 warnings)
-- [x] `npm run build` 통과
-- [x] `npx jest --runInBand` 통과 (57 suites, 263 tests)
-- [x] `npm run vercel-build` 통과
-
----
-
-## T80-4 — HR 피드백 LLM ✅
-
----
-
-### 아키텍처
-
-- [x] `buildPortfolioFeedbackItemsWithAI()` — Gemini LLM 포트폴리오 분석 + deterministic fallback
-- [x] `buildResumeFeedbackItemsWithAI()` — Gemini LLM 이력서 분석 + deterministic fallback
-- [x] `buildFeedbackItemsByTarget()` — contextJson 파라미터 추가, PORTFOLIO/RESUME AI 경로 라우팅
-- [x] `getDefaultGeminiClient()` 싱글턴 패턴 (T80-3과 동일)
-
-### LLM 프롬프트
-
-- [x] `HR_SYSTEM_PROMPT` — HR 10년차 시니어 리크루터 페르소나 (한국어)
-- [x] `buildPortfolioFeedbackPrompt()` — 확장 데이터 (링크/스킬/경력/프로젝트) + 4가지 평가 기준
-- [x] `buildResumeFeedbackPrompt()` — 경력 상세 (bullets/metrics/techTags) + 5가지 평가 기준
-- [x] `contextJson` 지원: targetCompany/targetRole (포트폴리오), jobDescription (이력서)
-- [x] `FEEDBACK_JSON_SCHEMA_INSTRUCTION` — JSON 응답 형식 지시
-
-### 공용 LLM 응답 파서
-
-- [x] `parseFeedbackItemsFromLLM()` — 마크다운 코드 블록 자동 제거
-- [x] JSON 배열 추출 (텍스트 앞뒤 설명 있어도 추출)
-- [x] severity 정규화 (대소문자/공백 무관, 알 수 없는 값 → INFO)
-- [x] title 100자 / message 500자 / suggestion 500자 길이 제한
-- [x] 필수 필드(severity/title/message) 누락 항목 자동 필터링
-- [x] suggestion 없으면 null 처리
-- [x] 파싱 실패 시 빈 배열 반환 + console.warn (silent fallback)
-
-### 확장된 데이터 조회
-
-- [x] 포트폴리오: headline, bio, email, isEmailPublic, location, availabilityStatus, links, skills
-- [x] 포트폴리오: 대표 프로젝트 (title, summary) 최대 10개
-- [x] 포트폴리오: 대표 경력 (company, role, isCurrent) 최대 10개
-- [x] 이력서: targetCompany, targetRole, summaryMd
-- [x] 이력서: items (overrideBullets/Metrics/TechTags + experience 원본) sortOrder 순서
-- [x] `safeJsonArray()`, `safeJsonRecord()` — JSON 필드 안전 파싱 유틸리티
-
-### Fallback 동작
-
-- [x] GEMINI_API_KEY 미설정 → deterministic fallback 즉시 실행
-- [x] LLM retryable 에러 (API_ERROR/RATE_LIMITED) → deterministic fallback
-- [x] LLM non-retryable 에러 (INVALID_INPUT) → 에러 전파
-- [x] LLM 응답 파싱 실패 (빈 배열) → EMPTY_RESPONSE(retryable) → fallback 전환
-
-### 추적성
-
-- [x] AI 생성 피드백 `evidenceJson: { source: "gemini" }` 추가
-- [x] deterministic fallback 피드백은 evidenceJson 없음 (기존 동작 유지)
-
-### 테스트 (11개)
-
-- [x] parseFeedbackItemsFromLLM: 정상 JSON 배열 파싱 (1)
-- [x] parseFeedbackItemsFromLLM: 마크다운 코드 블록 파싱 (1)
-- [x] parseFeedbackItemsFromLLM: 둘러싸인 텍스트에서 JSON 추출 (1)
-- [x] parseFeedbackItemsFromLLM: severity 정규화 (1)
-- [x] parseFeedbackItemsFromLLM: 빈 응답 → 빈 배열 (1)
-- [x] parseFeedbackItemsFromLLM: 잘못된 JSON → 빈 배열 (1)
-- [x] parseFeedbackItemsFromLLM: 배열 아닌 객체 → 빈 배열 (1)
-- [x] parseFeedbackItemsFromLLM: 필수 필드 누락 필터링 (1)
-- [x] parseFeedbackItemsFromLLM: title/message 길이 제한 (1)
-- [x] parseFeedbackItemsFromLLM: suggestion 없으면 null (1)
-- [x] parseFeedbackItemsFromLLM: 빈 배열 정상 처리 (1)
-
-### T80-4 게이트 4종
+### T80-6 게이트 4종
 
 - [x] `npm run lint` 통과 (0 errors, 6 warnings)
 - [x] `npm run build` 통과
-- [x] `npx jest --runInBand` 통과 (58 suites, 274 tests)
+- [x] `npx jest --runInBand` 통과 (59 suites, 292 tests)
 - [x] `npm run vercel-build` 통과
+
+---
+
+### Playwright 브라우저 검증
+
+- [x] 홈페이지 정상 렌더링 (타이틀 확인)
+- [x] 포트폴리오 공개 페이지 정상 (프로필/프로젝트/경력/기술 스택)
+- [x] Private API 인증 보호 (notes/edges/analytics → 401)
+- [x] Public API 정상 (pageviews 201, 422, 404)
+- [x] Sitemap XML 200 반환
 
 ---
 
 ### 매 태스크 종료 시 공통
 
 - [x] 게이트 4종 통과
-- [x] Jest 테스트 17개 통과 (note-ai-feedback.test.ts)
-- [x] Vercel 배포 성공 (`4ba94ca`)
-- [x] 프로덕션 검증 (홈, 포트폴리오, 사이트맵)
+- [x] Jest 테스트 18개 통과 (auto-candidate-edges.test.ts)
+- [x] Playwright 브라우저 검증 통과
 - [x] `task.md`, `checklist.md`, `history.md`, `plan.md` 문서 동기화
