@@ -82,8 +82,66 @@
 
 ---
 
+## T83 — 엔티티 연결 (Experience ↔ Project ↔ Skill) ✅ 완료
+
+### 현재 → 목표
+
+| 항목 | 현재 | 목표 |
+|---|---|---|
+| 엔티티 연결 | DomainLink에 PROJECT/EXPERIENCE만 지원 | SKILL 추가 + 양방향 조회 + 공개 조회 |
+| 포트폴리오 표시 | 경력/프로젝트 독립 표시 | 경력→관련 프로젝트 링크 표시 |
+| 워크스페이스 UI | SKILL 옵션 없음 | SKILL 선택 + 연결 관리 |
+| 공개 API | 없음 | GET /api/public/entity-links?slug= |
+
+### 핵심 변경
+
+1. **DomainLinkEntityType에 SKILL 추가**
+   - Prisma 스키마 enum 확장 + `ensureEntityOwnedByOwner` SKILL case
+   - `DomainLinkServicePrismaClient`에 `skill`, `portfolioSettings` 추가
+
+2. **양방향 조회** — `listBidirectionalLinksForOwner()`
+   - OR 조건으로 source/target 양쪽 매칭
+
+3. **공개 엔티티 링크 조회**
+   - `listPublicLinksForOwner(publicSlug)` — PROJECT/EXPERIENCE/SKILL 링크만
+   - `listPublicLinksForEntity(publicSlug, entityType, entityId)` — 특정 엔티티
+
+4. **Public API** — `GET /api/public/entity-links?slug=`
+   - 비인증 공개 포트폴리오 엔티티 연결 조회
+
+5. **Private API 확장** — entityType+entityId 양방향 조회 파라미터
+
+6. **포트폴리오 표시**
+   - 홈/경력 페이지에 "관련 프로젝트:" 링크 pill 표시
+   - DomainLinkEntityType enum 사용 (Prisma 런타임 호환)
+
+7. **워크스페이스 UI** — domain-links 페이지에 SKILL 타입 옵션 추가
+
+### 변경 파일 목록
+
+**수정:**
+- `src/modules/domain-links/interface.ts` — PublicEntityLinkDto, 양방향/공개 조회 메서드
+- `src/modules/domain-links/implementation.ts` — SKILL case + 3개 신규 메서드
+- `src/app/api/app/domain-links/route.ts` — 양방향 조회 파라미터
+- `src/app/(private)/app/domain-links/page.tsx` — SKILL 옵션
+- `src/app/(public)/portfolio/[publicSlug]/page.tsx` — 엔티티 연결 표시
+- `src/app/(public)/portfolio/[publicSlug]/experiences/page.tsx` — 관련 프로젝트
+
+**신규:**
+- `src/app/api/public/entity-links/route.ts` — 공개 API
+- `src/modules/domain-links/tests/entity-links.test.ts` — 13개 테스트
+
+### 게이트
+
+- [x] `npm run lint` 통과 (0 errors, 6 warnings)
+- [x] `npm run build` 통과
+- [x] `npx jest --runInBand` 통과 (62 suites, 359 tests)
+- [x] `npm run vercel-build` 통과
+- [x] push 완료 (`eaa1a24`)
+
+---
+
 ## 다음 태스크
 
-- T83: 엔티티 연결 (Experience ↔ Project ↔ Skill) — 병렬 세션 진행 중
 - T85: 추천서/동료 평가 (M10)
 - T86: 성장 타임라인 (M10)

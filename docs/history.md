@@ -394,6 +394,37 @@
 **게이트**: `lint(0 errors) / build / jest(62 suites, 359 tests) / vercel-build` 통과
 **커밋**: `92ab4d5`
 
+### T83: 엔티티 연결 (Experience ↔ Project ↔ Skill) (2026-03-16) ✅
+
+**범위**: 6개 파일 수정 + 2개 신규 (테스트 13개)
+
+**핵심 변경**:
+
+1. **DomainLinkEntityType SKILL 추가**
+   - Prisma enum 확장 + `ensureEntityOwnedByOwner()` SKILL case
+   - `DomainLinkServicePrismaClient`에 `skill`, `portfolioSettings` 추가
+
+2. **양방향 조회** — `listBidirectionalLinksForOwner()`
+   - OR 조건으로 source 또는 target 어느 쪽이든 매칭
+
+3. **공개 엔티티 링크 조회**
+   - `listPublicLinksForOwner(publicSlug)` — PROJECT/EXPERIENCE/SKILL 범위
+   - `listPublicLinksForEntity(publicSlug, entityType, entityId)` — 특정 엔티티
+
+4. **API**
+   - `GET /api/public/entity-links?slug=` — 비인증 공개 조회
+   - Private API: entityType+entityId 양방향 조회 파라미터 추가
+
+5. **포트폴리오 표시**
+   - 홈/경력 페이지 경력 카드에 "관련 프로젝트:" 링크 pill
+   - `DomainLinkEntityType` enum 사용 (Prisma 런타임 호환 보장)
+
+6. **워크스페이스 UI** — domain-links 페이지 SKILL 타입 옵션
+
+**게이트**: `lint(0 errors) / build / jest(62 suites, 359 tests) / vercel-build` 통과
+**검증**: curl — Public API 200/422, Private API 401, 포트폴리오 홈/경력 200
+**커밋**: `eaa1a24`
+
 ---
 
 ## 현재 진행 맥락
@@ -401,12 +432,11 @@
 ### 태스크 진행 순서
 
 ```
-T52 ✅ → T76~G ✅ → T77 ✅ → T78 ✅ → T79 ✅ ∥ T82 ✅ → T80-1 ✅ → T80-2 ✅ ∥ T80-3 ✅ ∥ T80-4 ✅ → T80-5 ✅ ∥ T80-6 ✅ → T83 ∥ T84 ✅ → T85 ∥ T86 → [확장 판단] → T87, T81
+T52 ✅ → T76~G ✅ → T77 ✅ → T78 ✅ → T79 ✅ ∥ T82 ✅ → T80-1 ✅ → T80-2 ✅ ∥ T80-3 ✅ ∥ T80-4 ✅ → T80-5 ✅ ∥ T80-6 ✅ → T83 ✅ ∥ T84 ✅ → T85 ∥ T86 → [확장 판단] → T87, T81
 ```
 
 ### 다음 태스크
 
-- T83: 엔티티 연결 (Experience ↔ Project ↔ Skill) — 병렬 세션 진행 중
 - T85: 추천서/동료 평가 (M10)
 - T86: 성장 타임라인 (M10)
 
@@ -435,3 +465,4 @@ T52 ✅ → T76~G ✅ → T77 ✅ → T78 ✅ → T79 ✅ ∥ T82 ✅ → T80-1 
 - **자동 후보 엣지**: `queueEmbeddingAndEdgesForNote()` → pgvector 유사도 → NoteEdge CANDIDATE 자동 생성
 - **AI 이력서 초안**: `generateResumeDraft()` → Gemini LLM + 경력/스킬 분석 → Resume+Items 자동 생성
 - **지원 이력 트래커**: `src/modules/job-tracker/` — 칸반 보드 + Gemini JD 매칭 + ApplicationEvent 타임라인
+- **엔티티 연결**: DomainLink + SKILL enum — 양방향 조회 + 공개 조회 + 포트폴리오 "관련 프로젝트" 표시

@@ -118,3 +118,80 @@
 - [x] 게이트 4종 통과
 - [x] Jest 테스트 22개 통과 (job-tracker.test.ts)
 - [x] `task.md`, `checklist.md`, `history.md`, `plan.md` 문서 동기화
+
+---
+
+## T83 — 엔티티 연결 (Experience ↔ Project ↔ Skill) ✅
+
+---
+
+### 스키마
+
+- [x] `DomainLinkEntityType`에 `SKILL` 추가
+- [x] `prisma db push` 정상 반영
+- [x] `prisma generate` 클라이언트 생성
+
+### domain-links 모듈 확장
+
+- [x] `ensureEntityOwnedByOwner()` — SKILL case 추가
+- [x] `DomainLinkServicePrismaClient` — `skill`, `portfolioSettings` 추가
+- [x] `listBidirectionalLinksForOwner()` — OR source/target 양방향 조회
+- [x] `listPublicLinksForEntity()` — publicSlug 기반 특정 엔티티 공개 조회
+- [x] `listPublicLinksForOwner()` — PROJECT/EXPERIENCE/SKILL 링크만 필터
+- [x] `mapPublicLink()` — 공개 링크 DTO 매퍼
+
+### API
+
+- [x] `GET /api/app/domain-links` — entityType+entityId 양방향 조회 파라미터
+- [x] `GET /api/public/entity-links?slug=` — 비인증 공개 조회 (200/422/500)
+
+### 포트폴리오 표시
+
+- [x] 포트폴리오 홈 — 경력 카드에 "관련 프로젝트:" 링크 pill
+- [x] 경력 전용 페이지 — 경력별 관련 프로젝트 링크 pill
+- [x] `DomainLinkEntityType` enum import 사용 (Prisma 런타임 호환)
+
+### 워크스페이스 UI
+
+- [x] domain-links 페이지 SKILL 타입 옵션 추가
+- [x] Skills API 호출 추가 (category/name 라벨)
+
+### 테스트 (13개)
+
+- [x] SKILL 타입 링크 생성 (1)
+- [x] 존재하지 않는 SKILL에 NOT_FOUND (1)
+- [x] Project ↔ Skill 링크 생성 (1)
+- [x] 양방향 조회 source/target 매칭 (1)
+- [x] 양방향 조회 빈 결과 (1)
+- [x] 공개 엔티티 링크 반환 (1)
+- [x] 비공개 포트폴리오 빈 배열 (1)
+- [x] 존재하지 않는 slug 빈 배열 (1)
+- [x] listPublicLinksForOwner PROJECT/EXPERIENCE/SKILL 필터 (1)
+- [x] listPublicLinksForOwner 비공개 빈 배열 (1)
+- [x] Experience → Project 링크 생성 (1)
+- [x] 다른 소유자 엔티티 NOT_FOUND (1)
+- [x] 다른 소유자 링크 삭제 FORBIDDEN (1)
+
+### T83 게이트 4종
+
+- [x] `npm run lint` 통과 (0 errors, 6 warnings)
+- [x] `npm run build` 통과
+- [x] `npx jest --runInBand` 통과 (62 suites, 359 tests)
+- [x] `npm run vercel-build` 통과
+
+### curl 검증
+
+- [x] Public entity-links API 200 (정상)
+- [x] Public entity-links API 422 (slug 누락)
+- [x] Private domain-links API 401 (인증 보호)
+- [x] 포트폴리오 홈 200
+- [x] 경력 페이지 200
+
+---
+
+### 매 태스크 종료 시 공통
+
+- [x] 게이트 4종 통과
+- [x] Jest 테스트 13개 통과 (entity-links.test.ts)
+- [x] curl 검증 5개 통과
+- [x] `task.md`, `checklist.md`, `history.md`, `plan.md` 문서 동기화
