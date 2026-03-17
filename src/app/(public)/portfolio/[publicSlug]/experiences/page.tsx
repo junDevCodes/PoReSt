@@ -124,96 +124,122 @@ export default async function PublicExperiencesPage({ params }: ExperiencesPageP
     <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-6 py-14">
       <Link
         href={profilePath}
-        className="mb-8 inline-flex items-center gap-1 text-sm text-black/65 hover:text-black dark:text-white/65 dark:hover:text-white"
+        className="group mb-8 inline-flex w-fit items-center gap-1 text-sm text-black/65 transition-colors hover:text-black dark:text-white/65 dark:hover:text-white"
       >
-        ← 프로필로
+        <span className="inline-block transition-transform duration-200 group-hover:-translate-x-0.5">&larr;</span>
+        프로필로
       </Link>
 
       <h1 className="text-3xl font-semibold">경력</h1>
 
       {experiences.length === 0 ? (
-        <div className="mt-8 rounded-2xl border border-black/10 bg-white p-6 text-sm text-black/65 dark:border-white/10 dark:bg-[#1e1e1e] dark:text-white/65">
+        <div className="mt-8 rounded-2xl border border-black/10 bg-white p-6 text-sm text-black/65 shadow-sm dark:border-white/10 dark:bg-[#1e1e1e] dark:text-white/65 dark:shadow-none">
           공개된 경력 정보가 없습니다.
         </div>
       ) : (
-        <div className="mt-8 space-y-6">
-          {experiences.map((exp) => {
-            const bullets = parseBullets(exp.bulletsJson);
-            const metrics = parseMetrics(exp.metricsJson);
+        <div className="relative mt-8">
+          {/* 타임라인 세로 연결선 */}
+          <div className="absolute left-[11px] top-2 bottom-2 w-0.5 bg-black/10 dark:bg-white/10" />
 
-            return (
-              <article
-                key={exp.id}
-                className="rounded-2xl border border-black/10 bg-white p-6 dark:border-white/10 dark:bg-[#1e1e1e]"
-              >
-                <div className="flex items-center gap-3">
-                  <h2 className="text-xl font-semibold">{exp.company}</h2>
-                  {exp.isCurrent ? (
-                    <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">
-                      재직 중
-                    </span>
-                  ) : null}
+          <div className="space-y-6">
+            {experiences.map((exp, index) => {
+              const bullets = parseBullets(exp.bulletsJson);
+              const metrics = parseMetrics(exp.metricsJson);
+              const isLast = index === experiences.length - 1;
+
+              return (
+                <div key={exp.id} className="relative pl-10">
+                  {/* 타임라인 도트 */}
+                  <div
+                    className={`absolute left-0 top-6 h-[22px] w-[22px] rounded-full border-[3px] ${
+                      exp.isCurrent
+                        ? "border-emerald-500 bg-emerald-100 dark:border-emerald-400 dark:bg-emerald-900/40"
+                        : "border-black/20 bg-white dark:border-white/30 dark:bg-[#1e1e1e]"
+                    }`}
+                  />
+                  {/* 현재 재직 중 도트 내부 펄스 */}
+                  {exp.isCurrent && (
+                    <div className="absolute left-[7px] top-[31px] h-2 w-2 rounded-full bg-emerald-500 dark:bg-emerald-400" />
+                  )}
+
+                  <article
+                    className={`rounded-2xl border border-black/10 bg-white p-6 shadow-sm transition-shadow duration-200 hover:shadow-md dark:border-white/10 dark:bg-[#1e1e1e] dark:shadow-none dark:hover:border-white/20 ${
+                      isLast ? "" : ""
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <h2 className="text-xl font-semibold">{exp.company}</h2>
+                      {exp.isCurrent ? (
+                        <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">
+                          재직 중
+                        </span>
+                      ) : null}
+                    </div>
+                    <p className="mt-1 text-sm font-medium text-black/75 dark:text-white/75">{exp.role}</p>
+                    <p className="mt-1 flex items-center gap-1.5 text-xs text-black/60 dark:text-white/60">
+                      <svg className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      {formatPeriod(exp.startDate, exp.endDate)}
+                    </p>
+
+                    {exp.summary ? (
+                      <p className="mt-3 text-sm leading-relaxed text-black/70 dark:text-white/70">{exp.summary}</p>
+                    ) : null}
+
+                    {bullets.length > 0 ? (
+                      <ul className="mt-3 list-inside list-disc space-y-1 text-sm text-black/70 dark:text-white/70">
+                        {bullets.map((bullet, i) => (
+                          <li key={i}>{bullet}</li>
+                        ))}
+                      </ul>
+                    ) : null}
+
+                    {metrics.length > 0 ? (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {metrics.map((metric, i) => (
+                          <span
+                            key={i}
+                            className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
+                          >
+                            {metric.label}: {metric.value}
+                          </span>
+                        ))}
+                      </div>
+                    ) : null}
+
+                    {exp.techTags.length > 0 ? (
+                      <div className="mt-3 flex flex-wrap gap-1.5">
+                        {exp.techTags.map((tag) => (
+                          <span
+                            key={tag}
+                            className="rounded-full bg-black/5 px-2.5 py-0.5 text-xs text-black/70 dark:bg-white/10 dark:text-white/70"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    ) : null}
+
+                    {(experienceProjectMap.get(exp.id) ?? []).length > 0 ? (
+                      <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                        <span className="text-xs font-medium text-black/50 dark:text-white/50">관련 프로젝트:</span>
+                        {(experienceProjectMap.get(exp.id) ?? []).map((proj) => (
+                          <Link
+                            key={proj.id}
+                            href={`/portfolio/${encodeURIComponent(resolvedParams.publicSlug)}/projects/${encodeURIComponent(proj.slug)}`}
+                            className="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700 transition-colors hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-300 dark:hover:bg-blue-900/30"
+                          >
+                            {proj.title}
+                          </Link>
+                        ))}
+                      </div>
+                    ) : null}
+                  </article>
                 </div>
-                <p className="mt-1 text-sm font-medium text-black/75 dark:text-white/75">{exp.role}</p>
-                <p className="mt-1 text-xs text-black/60 dark:text-white/60">
-                  {formatPeriod(exp.startDate, exp.endDate)}
-                </p>
-
-                {exp.summary ? (
-                  <p className="mt-3 text-sm text-black/70 dark:text-white/70">{exp.summary}</p>
-                ) : null}
-
-                {bullets.length > 0 ? (
-                  <ul className="mt-3 list-inside list-disc space-y-1 text-sm text-black/70 dark:text-white/70">
-                    {bullets.map((bullet, i) => (
-                      <li key={i}>{bullet}</li>
-                    ))}
-                  </ul>
-                ) : null}
-
-                {metrics.length > 0 ? (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {metrics.map((metric, i) => (
-                      <span
-                        key={i}
-                        className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
-                      >
-                        {metric.label}: {metric.value}
-                      </span>
-                    ))}
-                  </div>
-                ) : null}
-
-                {exp.techTags.length > 0 ? (
-                  <div className="mt-3 flex flex-wrap gap-1.5">
-                    {exp.techTags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="rounded-full bg-black/5 px-2.5 py-0.5 text-xs text-black/70 dark:bg-white/10 dark:text-white/70"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                ) : null}
-
-                {(experienceProjectMap.get(exp.id) ?? []).length > 0 ? (
-                  <div className="mt-3 flex flex-wrap items-center gap-1.5">
-                    <span className="text-xs font-medium text-black/50 dark:text-white/50">관련 프로젝트:</span>
-                    {(experienceProjectMap.get(exp.id) ?? []).map((proj) => (
-                      <Link
-                        key={proj.id}
-                        href={`/portfolio/${encodeURIComponent(resolvedParams.publicSlug)}/projects/${encodeURIComponent(proj.slug)}`}
-                        className="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-300 dark:hover:bg-blue-900/30"
-                      >
-                        {proj.title}
-                      </Link>
-                    ))}
-                  </div>
-                ) : null}
-              </article>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       )}
     </main>
