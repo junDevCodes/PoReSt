@@ -16,6 +16,8 @@ type ExperienceEditor = {
   visibility: Visibility;
   isFeatured: boolean;
   isCurrent: boolean;
+  startDate: string;
+  endDate: string;
   summary: string;
   bulletsText: string;
   metrics: MetricItem[];
@@ -31,6 +33,7 @@ const DEFAULT_CREATE_FORM = {
   company: "",
   role: "",
   startDate: "",
+  endDate: "",
   visibility: "PUBLIC" as Visibility,
   isFeatured: false,
   isCurrent: false,
@@ -56,12 +59,19 @@ function parseMetricsToList(json: unknown): MetricItem[] {
   );
 }
 
+function toDateInputValue(iso: string | null): string {
+  if (!iso) return "";
+  return iso.slice(0, 10);
+}
+
 function createEditor(item: SerializedOwnerExperienceDto): ExperienceEditor {
   return {
     role: item.role,
     visibility: item.visibility,
     isFeatured: item.isFeatured,
     isCurrent: item.isCurrent,
+    startDate: toDateInputValue(item.startDate),
+    endDate: toDateInputValue(item.endDate),
     summary: item.summary ?? "",
     bulletsText: parseBulletsToText(item.bulletsJson),
     metrics: parseMetricsToList(item.metricsJson),
@@ -124,6 +134,10 @@ export function ExperiencesPageClient({ initialExperiences }: ExperiencesPageCli
       startDate: createForm.startDate
         ? new Date(`${createForm.startDate}T00:00:00.000Z`).toISOString()
         : null,
+      endDate:
+        createForm.endDate && !createForm.isCurrent
+          ? new Date(`${createForm.endDate}T00:00:00.000Z`).toISOString()
+          : null,
       visibility: createForm.visibility,
       isFeatured: createForm.isFeatured,
       isCurrent: createForm.isCurrent,
@@ -175,6 +189,13 @@ export function ExperiencesPageClient({ initialExperiences }: ExperiencesPageCli
         visibility: editor.visibility,
         isFeatured: editor.isFeatured,
         isCurrent: editor.isCurrent,
+        startDate: editor.startDate
+          ? new Date(`${editor.startDate}T00:00:00.000Z`).toISOString()
+          : undefined,
+        endDate:
+          editor.endDate && !editor.isCurrent
+            ? new Date(`${editor.endDate}T00:00:00.000Z`).toISOString()
+            : null,
         summary: editor.summary || null,
         bulletsJson: bulletsJson.length > 0 ? bulletsJson : null,
         metricsJson: metricsJson.length > 0 ? metricsJson : null,
@@ -235,14 +256,29 @@ export function ExperiencesPageClient({ initialExperiences }: ExperiencesPageCli
             placeholder="역할"
             className="rounded-lg border border-black/15 bg-white px-3 py-2 text-sm"
           />
-          <input
-            type="date"
-            value={createForm.startDate}
-            onChange={(event) =>
-              setCreateForm((prev) => ({ ...prev, startDate: event.target.value }))
-            }
-            className="rounded-lg border border-black/15 bg-white px-3 py-2 text-sm"
-          />
+          <div>
+            <label className="mb-1 block text-xs font-medium text-black/60">시작일</label>
+            <input
+              type="date"
+              value={createForm.startDate}
+              onChange={(event) =>
+                setCreateForm((prev) => ({ ...prev, startDate: event.target.value }))
+              }
+              className="w-full rounded-lg border border-black/15 bg-white px-3 py-2 text-sm"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-black/60">종료일</label>
+            <input
+              type="date"
+              value={createForm.isCurrent ? "" : createForm.endDate}
+              onChange={(event) =>
+                setCreateForm((prev) => ({ ...prev, endDate: event.target.value }))
+              }
+              disabled={createForm.isCurrent}
+              className="w-full rounded-lg border border-black/15 bg-white px-3 py-2 text-sm disabled:opacity-40"
+            />
+          </div>
           <select
             value={createForm.visibility}
             onChange={(event) =>
@@ -301,7 +337,7 @@ export function ExperiencesPageClient({ initialExperiences }: ExperiencesPageCli
               return (
                 <article key={experience.id} className="rounded-xl border border-black/10 bg-[#faf9f6] p-4">
                   <p className="text-sm font-medium">{experience.company}</p>
-                  <div className="mt-2 grid gap-2 md:grid-cols-[1.2fr_160px_96px_96px_80px_80px]">
+                  <div className="mt-2 grid gap-2 md:grid-cols-[1fr_120px_120px_140px_80px_80px_72px_72px]">
                     <input
                       value={editor.role}
                       onChange={(event) =>
@@ -310,7 +346,33 @@ export function ExperiencesPageClient({ initialExperiences }: ExperiencesPageCli
                           [experience.id]: { ...editor, role: event.target.value },
                         }))
                       }
+                      placeholder="역할"
                       className="rounded-lg border border-black/15 bg-white px-3 py-2 text-sm"
+                    />
+                    <input
+                      type="date"
+                      value={editor.startDate}
+                      onChange={(event) =>
+                        setEditors((prev) => ({
+                          ...prev,
+                          [experience.id]: { ...editor, startDate: event.target.value },
+                        }))
+                      }
+                      title="시작일"
+                      className="rounded-lg border border-black/15 bg-white px-3 py-2 text-sm"
+                    />
+                    <input
+                      type="date"
+                      value={editor.isCurrent ? "" : editor.endDate}
+                      onChange={(event) =>
+                        setEditors((prev) => ({
+                          ...prev,
+                          [experience.id]: { ...editor, endDate: event.target.value },
+                        }))
+                      }
+                      disabled={editor.isCurrent}
+                      title="종료일"
+                      className="rounded-lg border border-black/15 bg-white px-3 py-2 text-sm disabled:opacity-40"
                     />
                     <select
                       value={editor.visibility}
