@@ -22,6 +22,17 @@ function formatDateLabel(value: string): string {
   return parsed.toISOString().slice(0, 10);
 }
 
+function statusBadge(status: string) {
+  switch (status) {
+    case "SUBMITTED":
+      return { label: "제출됨", cls: "bg-emerald-100 text-emerald-800 border-emerald-200" };
+    case "ARCHIVED":
+      return { label: "보관됨", cls: "bg-amber-100 text-amber-800 border-amber-200" };
+    default:
+      return { label: "초안", cls: "bg-gray-100 text-gray-700 border-gray-200" };
+  }
+}
+
 export function ResumesPageClient({ initialResumes }: ResumesPageClientProps) {
   const [resumes, setResumes] = useState<SerializedOwnerResumeListItemDto[]>(initialResumes);
   const [isLoading, setIsLoading] = useState(false);
@@ -190,50 +201,66 @@ export function ResumesPageClient({ initialResumes }: ResumesPageClientProps) {
           <EmptyBlock message="등록된 이력서가 없습니다." className="mt-4" />
         ) : (
           <div className="mt-4 space-y-3">
-            {resumes.map((resume) => (
-              <article
-                key={resume.id}
-                className="rounded-xl border border-black/10 bg-[#faf9f6] p-4"
-              >
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <h3 className="text-lg font-semibold">{resume.title}</h3>
-                    <p className="mt-1 text-xs text-black/60">
-                      상태: {resume.status} · 항목 수: {resume.itemCount} · 수정일{" "}
-                      {formatDateLabel(resume.updatedAt)}
-                    </p>
-                    <p className="mt-2 text-sm text-black/70">
-                      {resume.targetCompany ?? "회사 미지정"} / {resume.targetRole ?? "직무 미지정"}
-                      {resume.level ? ` / ${resume.level}` : ""}
-                    </p>
+            {resumes.map((resume) => {
+              const badge = statusBadge(resume.status);
+              return (
+                <article
+                  key={resume.id}
+                  className="rounded-xl border border-black/10 bg-[#faf9f6] p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+                >
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="text-lg font-semibold">{resume.title}</h3>
+                        <span
+                          className={`inline-flex rounded-full border px-2.5 py-0.5 text-xs font-medium ${badge.cls}`}
+                        >
+                          {badge.label}
+                        </span>
+                      </div>
+                      <p className="mt-1.5 text-sm text-black/70">
+                        {resume.targetCompany ?? "회사 미지정"}
+                        <span className="mx-1.5 text-black/60">/</span>
+                        {resume.targetRole ?? "직무 미지정"}
+                        {resume.level ? (
+                          <>
+                            <span className="mx-1.5 text-black/60">/</span>
+                            {resume.level}
+                          </>
+                        ) : null}
+                      </p>
+                      <p className="mt-1 text-xs text-black/60">
+                        항목 {resume.itemCount}개 · 수정일 {formatDateLabel(resume.updatedAt)}
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Link
+                        href={`/app/resumes/${resume.id}/edit`}
+                        className="rounded-lg border border-emerald-300 px-3 py-2 text-sm text-emerald-800 transition-colors hover:bg-emerald-50"
+                      >
+                        편집
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => void handlePdfDownload(resume)}
+                        disabled={printingId === resume.id}
+                        className="rounded-lg border border-sky-300 px-3 py-2 text-sm text-sky-800 transition-colors hover:bg-sky-50 disabled:opacity-60"
+                      >
+                        {printingId === resume.id ? "준비 중..." : "PDF"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPendingDeleteResume(resume)}
+                        disabled={deletingId === resume.id}
+                        className="rounded-lg border border-rose-300 px-3 py-2 text-sm text-rose-800 transition-colors hover:bg-rose-50 disabled:opacity-60"
+                      >
+                        {deletingId === resume.id ? "삭제 중..." : "삭제"}
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    <Link
-                      href={`/app/resumes/${resume.id}/edit`}
-                      className="rounded-lg border border-emerald-300 px-3 py-2 text-sm text-emerald-800"
-                    >
-                      편집
-                    </Link>
-                    <button
-                      type="button"
-                      onClick={() => void handlePdfDownload(resume)}
-                      disabled={printingId === resume.id}
-                      className="rounded-lg border border-sky-300 px-3 py-2 text-sm text-sky-800 disabled:opacity-60"
-                    >
-                      {printingId === resume.id ? "준비 중..." : "PDF 다운로드"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPendingDeleteResume(resume)}
-                      disabled={deletingId === resume.id}
-                      className="rounded-lg border border-rose-300 px-3 py-2 text-sm text-rose-800 disabled:opacity-60"
-                    >
-                      {deletingId === resume.id ? "삭제 중..." : "삭제"}
-                    </button>
-                  </div>
-                </div>
-              </article>
-            ))}
+                </article>
+              );
+            })}
           </div>
         )}
       </section>

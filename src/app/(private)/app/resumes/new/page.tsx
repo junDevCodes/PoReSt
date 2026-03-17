@@ -5,8 +5,6 @@ import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { parseApiResponse } from "@/app/(private)/app/_lib/admin-api";
 
-type ResumeStatus = "DRAFT" | "SUBMITTED" | "ARCHIVED";
-
 type OwnerResumeDetailDto = {
   id: string;
 };
@@ -17,7 +15,6 @@ const DEFAULT_FORM = {
   targetRole: "",
   level: "",
   summaryMd: "",
-  status: "DRAFT" as ResumeStatus,
 };
 
 export default function NewResumePage() {
@@ -40,7 +37,7 @@ export default function NewResumePage() {
         targetRole: form.targetRole || null,
         level: form.level || null,
         summaryMd: form.summaryMd || null,
-        status: form.status,
+        status: "DRAFT",
       }),
     });
     const parsed = await parseApiResponse<OwnerResumeDetailDto>(response);
@@ -124,20 +121,15 @@ export default function NewResumePage() {
             </label>
           </div>
 
-          <label className="flex flex-col gap-2 text-sm">
-            <span>상태</span>
-            <select
-              value={form.status}
-              onChange={(event) =>
-                setForm((prev) => ({ ...prev, status: event.target.value as ResumeStatus }))
-              }
-              className="rounded-lg border border-black/15 bg-white px-3 py-2"
-            >
-              <option value="DRAFT">DRAFT</option>
-              <option value="SUBMITTED">SUBMITTED</option>
-              <option value="ARCHIVED">ARCHIVED</option>
-            </select>
-          </label>
+          <div className="flex items-center gap-3 text-sm">
+            <span className="font-medium text-black/70">상태</span>
+            <span className="inline-flex rounded-full border border-gray-200 bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700">
+              초안 (DRAFT)
+            </span>
+            <span className="text-xs text-black/45">
+              생성 후 편집 페이지에서 상태를 변경할 수 있습니다.
+            </span>
+          </div>
 
           <label className="flex flex-col gap-2 text-sm">
             <span>요약(Markdown)</span>
