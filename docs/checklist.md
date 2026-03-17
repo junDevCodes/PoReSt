@@ -1,72 +1,102 @@
 # PoReSt 작업 검증 체크리스트
 
-기준일: 2026-03-17
+기준일: 2026-03-18
 문서 정의: `task.md`의 현재 태스크에 대한 상세 검증 항목. 완료 이력은 `history.md` 참조.
 관련 문서: `task.md`(작업 상세), `plan.md`(전체 계획), `history.md`(완료 이력)
 
 ---
 
-## T88 — 포트폴리오 프로덕션 폴리시
+## T89 — 이력서 편집/공유 UX 프로덕션 폴리시
 
 ---
 
-### Session A — 포트폴리오 홈 + 공통 (11개)
+### Session A — 공유 페이지 + PDF (5개)
 
-**수정 파일:** `page.tsx`(홈), `ThemeWrapper.tsx`, `globals.css`
+**수정 파일:** `_lib/format-resume-data.ts`(신규), `share/[token]/page.tsx`, `_lib/pdf.ts`
 
-#### A. 프로필 헤더
+#### A1. 데이터 포맷 유틸리티
 
-- [x] 아바타 크기 확대 (h-28 w-28) + ring/shadow 데코레이션
-- [x] 이름/헤드라인 타이포그래피 개선 (weight, size, spacing)
-- [x] 소셜 링크 아이콘 버튼화 (hover 효과 + 라운드 배경)
+- [x] `parseBullets(json)` → string[] 안전 변환 (null/undefined/비배열 → 빈 배열)
+- [x] `parseMetrics(json)` → {key,value}[] 안전 변환 (null/비객체 → 빈 배열)
+- [x] 테스트 작성 (정상 입력 + 엣지 케이스: null, 숫자, 중첩 객체) — 16개
 
-#### C. 섹션/레이아웃
+#### A2~A3. 공유 페이지 리디자인 + 포맷 렌더링
 
-- [x] 섹션 간 시각 분리 (구분선 또는 accent bar)
-- [x] 기술 스택: pill 크기 + 카테고리별 색상 구분
-- [x] 페이지 하단 footer (크레딧 + 공유 유도)
-- [x] 추천서: 별점 SVG + 인용 부호 장식
+- [x] 다크 고정 배경 → 크림 배경 + 프로급 카드 레이아웃
+- [x] bullets: `<ul><li>` 서식 리스트 (JSON 평문 제거)
+- [x] metrics: key-value 인라인 표시 (JSON 평문 제거)
+- [x] summary: whitespace-pre-wrap 텍스트 스타일
+- [x] 기술 태그: pill 배지 표시
+- [x] experience.summary 표시 (기존 미표시)
 
-#### D. 반응형/모바일
+#### A4. PDF HTML 리디자인
 
-- [x] 모바일 헤더: 375px에서 텍스트 숨기기 → 아이콘만
-- [x] 모바일 프로필 여백 최적화
+- [x] bullets: `<ul><li>` 서식 리스트 (기존 `<pre>` JSON 제거)
+- [x] metrics: key-value 표시 (기존 `<pre>` JSON 제거)
+- [x] summary: white-space: pre-wrap (기존 평문)
+- [x] 기술 태그: pill 또는 쉼표 구분 표시
+- [x] 타이포그래피: 헤더 계층 + 색상 강조 + 여백
 
-#### F. 마이크로 인터랙션
+#### A5. 공유 페이지 인쇄 CSS
 
-- [x] 섹션별 fade-in 진입 애니메이션 (CSS only, globals.css keyframes)
-- [x] 버튼/링크 hover 개선 (scale, underline offset, 화살표 이동)
-
-#### Session A 다크모드
-
-- [x] Session A 변경 사항 다크모드 대응 확인
-
----
-
-### Session B — 하위 페이지 (3개) ✅
-
-**수정 파일:** `experiences/page.tsx`, `projects/page.tsx`, `projects/[slug]/page.tsx`
-
-#### B. 카드 시스템 (하위 페이지)
-
-- [x] 프로젝트 카드: shadow + 기술 태그 pill + hover 변형 + 전체 클릭 영역
-- [x] 경력 카드: shadow + 좌측 타임라인 연결선 (세로 라인 + 도트)
-- [x] 프로젝트 상세: shadow + 빈 섹션 숨기기 + 섹션 제목 아이콘
-
-#### Session B 다크모드
-
-- [x] Session B 변경 사항 다크모드 대응 확인
+- [x] `@media print` 기본 스타일 (배경 숨기기, 깨끗한 출력)
 
 ---
 
-### Session C — 워크스페이스 (2개)
+### Session B — 편집 페이지 UX (4개)
 
-**수정 파일:** `ExperiencesPageClient.tsx`
+**수정 파일:** `[id]/edit/page.tsx`
 
-#### E. 경력 편집 UX
+#### B6. bullets 구조화 편집기
 
-- [x] 경력 생성 폼: endDate 입력 추가 (isCurrent 체크 시 비활성)
-- [x] 경력 편집 폼: startDate/endDate 수정 필드 추가
+- [x] JSON textarea → 배열 입력 UI (각 행: input + 삭제 버튼)
+- [x] [항목 추가] 버튼
+- [x] 기존 JSON 데이터 파싱하여 행 초기화
+- [x] 저장 시 string[] → JSON 직렬화
+
+#### B7. metrics 구조화 편집기
+
+- [x] JSON textarea → key-value 쌍 입력 UI (각 행: key + value + 삭제)
+- [x] [항목 추가] 버튼
+- [x] 기존 JSON 데이터 파싱하여 행 초기화
+- [x] 저장 시 Record<string,string> → JSON 직렬화
+
+#### B8. 프리뷰 포맷 렌더링
+
+- [x] 프리뷰 bullets: 마커 리스트 (JSON 평문 제거)
+- [x] 프리뷰 metrics: 키-값 인라인 (JSON 평문 제거)
+- [x] 프리뷰 기술 태그: pill 배지
+
+#### B9. 공유 링크 인라인 관리
+
+- [x] 편집 페이지에 "공유 링크" 섹션 추가
+- [x] 새 공유 링크 생성 버튼 (POST API 호출)
+- [x] 기존 링크 목록 (토큰, 생성일, 상태)
+- [x] 클립보드 복사 버튼 (full URL)
+- [x] 취소(revoke) 버튼 (DELETE API 호출)
+
+---
+
+### Session C — 목록 + 생성 페이지 (3개)
+
+**수정 파일:** `ResumesPageClient.tsx`, `new/page.tsx`
+
+#### C10. 목록 카드 상태 배지 + hover
+
+- [x] 상태 배지 색상: DRAFT(회색) / SUBMITTED(에메랄드) / ARCHIVED(앰버)
+- [x] 카드 hover 효과 (shadow-md + -translate-y-0.5)
+- [x] 회사/직무 정보 레이아웃 개선
+
+#### C11. 생성 페이지 상태 고정
+
+- [x] 상태 드롭다운 제거 → DRAFT 고정 전송
+- [x] 안내 문구 추가
+
+#### C12. 모바일 반응형
+
+- [x] 목록 버튼 줄바꿈 (375px 이하)
+- [x] 편집 항목 세로 스택 (md 이하)
+- [x] 공유 페이지 여백 최적화 (좁은 화면) — px-4 sm:px-6 적용
 
 ---
 
@@ -79,7 +109,7 @@
 - [x] `npm run build` 통과
 
 **Session B 게이트:**
-- [x] `npm run lint` 통과 (0 errors, 8 warnings)
+- [x] `npm run lint` 통과
 - [x] `npm run build` 통과
 
 **Session C 게이트:**
@@ -90,21 +120,21 @@
 
 - [x] `npm run lint` 통과 (0 errors, 8 warnings)
 - [x] `npm run build` 통과 (Next.js 16.1.6 Turbopack)
-- [x] `npx jest --runInBand` 통과 (64 suites, 413 tests)
+- [x] `npx jest --runInBand` 통과 (65 suites, 429 tests)
 - [x] `npm run vercel-build` 통과
 
-### Playwright 시각 검증 (통합 후)
+### Playwright 시각 검증 (배포 후)
 
-- [ ] 포트폴리오 홈 데스크톱 (라이트/다크)
-- [ ] 포트폴리오 홈 모바일 375px (라이트/다크)
-- [ ] 경력 페이지 데스크톱
-- [ ] 프로젝트 목록 데스크톱
-- [ ] 프로젝트 상세 데스크톱
+- [ ] 공유 페이지 크림 배경 + 포맷 렌더링 정상
+- [ ] 공유 페이지 인쇄 미리보기 (Ctrl+P) 정상
+- [ ] 편집 페이지 구조화 편집기 동작
+- [ ] 편집 페이지 공유 링크 관리 동작
+- [ ] 목록 페이지 상태 배지 + hover
 
 ---
 
 ### 매 태스크 종료 시 공통
 
 - [x] 통합 게이트 4종 통과
-- [ ] Playwright 시각 검증 5개 통과
+- [ ] Playwright 시각 검증 통과 (배포 후 진행)
 - [x] `task.md`, `checklist.md`, `history.md`, `plan.md` 문서 동기화

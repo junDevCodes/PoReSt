@@ -1,173 +1,177 @@
 # PoReSt 작업 상세 계획서
 
-기준일: 2026-03-17
+기준일: 2026-03-18
 문서 정의: `plan.md`에서 할당된 현재 기능 단위의 작업 상세 설계. 완료 시 `history.md`로 이동.
 관련 문서: `plan.md`(전체 계획), `checklist.md`(검증 체크리스트), `history.md`(완료 이력)
 
 ---
 
-## T88 — 포트폴리오 프로덕션 폴리시
+## T89 — 이력서 편집/공유 UX 프로덕션 폴리시 ✅
 
-### 진단 결과 (2026-03-17 프로덕션 스크린샷 기반)
+> **완료**: 2026-03-18 | 통합 게이트 통과 (65 suites, 429 tests) | Playwright 시각 검증 배포 후 예정
 
-현재 포트폴리오는 **기능은 동작하지만 와이어프레임 수준**의 디자인이다.
-"HR이 10초 안에 인상 받는" 수준이 목표.
+### 진단 결과 (2026-03-18 코드 리뷰 기반)
+
+현재 이력서 시스템은 **기능은 완비(CRUD, 공유, AI 초안)되었으나 UX가 개발자 도구 수준**이다.
+채용담당자가 공유 링크를 열었을 때 "이 사람은 디테일이 좋다"고 느끼는 수준이 목표.
 
 ### 현재 → 목표
 
 | 항목 | 현재 | 목표 |
 |---|---|---|
-| 카드 디자인 | 테두리만 있는 flat 카드 | shadow + hover + depth |
-| 프로필 헤더 | 작은 아바타 + 평면 텍스트 | 시각적 계층, 브랜딩 느낌 |
-| 섹션 구분 | mt-14 간격만 | 시각적 분리 (그라데이션/구분선) |
-| 인터랙션 | 없음 (정적) | hover, transition, 마이크로 애니메이션 |
-| 프로젝트 카드 | 텍스트만 나열 | 기술 태그 pill + hover 효과 |
-| 경력 카드 | 기본 정보만 | 타임라인 연결선 + 시각 보강 |
-| 기술 스택 | 텍스트 pill만 | 브랜드 아이콘 크기 확대 + 카테고리 색상 |
-| 모바일 헤더 | 인쇄/PDF 텍스트 깨짐 | 아이콘만 표시 (375px) |
-| 페이지 하단 | 콘텐츠 끝나면 빈 공간 | footer 또는 CTA |
-| 프로젝트 상세 | 5개 섹션 동일 카드 | 빈 섹션 숨기기 + 섹션별 아이콘 |
-| 페이지 전환 | 즉시 전환 (깜빡임) | loading skeleton 또는 fade |
+| 공유 페이지 배경 | 다크 고정 (흰 텍스트) | 크림/라이트 배경, 포트폴리오 스타일 통일 |
+| bullets 표현 | `JSON.stringify()` 평문 | `<ul><li>` 서식 리스트 |
+| metrics 표현 | `JSON.stringify()` 평문 | key: value 정돈된 표 |
+| summary 렌더링 | `<pre>` 평문 | 줄바꿈 + 기본 타이포그래피 |
+| PDF 출력 | JSON 평문 + 기본 CSS | 프로 이력서 레이아웃 |
+| 편집 - bullets/metrics | JSON textarea 직접 입력 | 배열/키값 구조화 폼 |
+| 편집 - 공유 링크 | 별도 API 호출 필요 | 편집 페이지 내 인라인 관리 |
+| 편집 - 프리뷰 | JSON 평문 표시 | 포맷 적용된 실제 이력서 미리보기 |
+| 목록 - 상태 표시 | 텍스트 (DRAFT/SUBMITTED) | 색상 배지 |
+| 생성 - 상태 선택 | 3개 모두 선택 가능 | DRAFT 고정 (편집에서만 변경) |
+| 카드 인터랙션 | 없음 | hover shadow + translateY |
 
-### 핵심 변경 (17개 항목)
+### 핵심 원칙
 
-#### A. 프로필 헤더 개선 (3개)
+- **외부 노출 먼저**: 공유 페이지 + PDF → HR이 직접 보는 화면이 최우선
+- **데이터 렌더러 공유**: bullets/metrics 파싱 로직을 한 곳에 작성, 공유 페이지·편집 프리뷰·PDF 3곳에서 재사용
+- **기존 API/스키마 변경 없음**: UI 레이어만 개선
+- **기존 테스트 보호**: 64 suites, 413 tests 기준선 유지
 
-1. **아바타 크기 확대 + 데코레이션**
-   - `h-20 w-20` → `h-28 w-28` + ring/shadow
-   - 다크모드 ring 색상 조정
+---
 
-2. **프로필 정보 시각 계층 강화**
-   - 이름: font-weight + letter-spacing 조정
-   - 헤드라인: text-lg → text-xl, 색상 대비 강화
-   - 가용성 배지/위치/이메일: 아이콘 크기 통일 + gap 조정
+### 핵심 변경 (12개 항목)
 
-3. **소셜 링크 스타일 개선**
-   - 아이콘 버튼화 (hover 효과 + 라운드 배경)
+#### A. 데이터 렌더 유틸 + 공유 페이지 + PDF (5개)
 
-#### B. 카드 시스템 개선 (4개)
+1. **데이터 포맷 유틸리티 생성** (`_lib/format-resume-data.ts`)
+   - `parseBullets(json: unknown): string[]` — unknown → 안전한 문자열 배열
+   - `parseMetrics(json: unknown): Array<{key: string, value: string}>` — unknown → 키-값 쌍 배열
+   - 방어적 파싱: null, undefined, 잘못된 타입 → 빈 배열 반환
+   - 테스트 작성 (파서 안전성 검증)
 
-4. **공통 카드 스타일 업그레이드**
-   - `shadow-sm` 추가 (라이트모드)
-   - `hover:shadow-md transition-shadow duration-200`
-   - 다크모드: `dark:shadow-none` 유지, border 강조
+2. **공유 페이지 레이아웃 리디자인**
+   - 다크 고정 배경 → 크림 배경 (`bg-[#fdfcf9]`) + 포트폴리오 스타일 통일
+   - 헤더: 이력서 제목 + 대상 회사/직무/레벨 + 수정일
+   - 카드 시스템: 경력 항목별 `shadow-sm` 카드 + 좌측 번호 인디케이터
+   - 다크모드 미지원 (라이트 전용 — 공식 이력서는 밝은 배경이 표준)
 
-5. **프로젝트 카드 개선**
-   - 기술 스택 태그 pill 표시
-   - hover 시 scale 또는 translateY 미세 변형
-   - 상세 보기 링크 → 카드 전체 클릭 영역
+3. **공유 페이지 데이터 포맷 렌더링**
+   - bullets: `<ul>` 마커 리스트 (disc, 14px 기준)
+   - metrics: 키-값 인라인 배지 (key: value 형태)
+   - summary: `whitespace-pre-wrap` + 기본 텍스트 스타일
+   - 기술 태그: pill 배지 (포트폴리오 스타일 매칭)
+   - 경력 요약(experience.summary) 표시
 
-6. **경력 카드 개선**
-   - 좌측 타임라인 연결선 (세로 라인 + 도트)
-   - 기간 포맷 시각 보강
+4. **PDF HTML 프로급 리디자인**
+   - bullets: `<ul><li>` 서식 리스트 (JSON 평문 제거)
+   - metrics: `<dl><dt><dd>` 또는 table 형태 키-값
+   - summary: `white-space: pre-wrap` + 기본 타이포
+   - 기술 태그: 쉼표 구분 → pill 형태
+   - 경력 요약(experience.summary) 포함
+   - 타이포그래피: 헤더 계층(h1/h2/h3) + 색상 강조 + 여백 최적화
 
-7. **프로젝트 상세 섹션 개선**
-   - 빈 섹션 숨기기 (placeholder 텍스트 제거)
-   - 섹션 제목에 아이콘 추가 (Problem: 🎯, Approach: 💡 등)
+5. **공유 페이지 인쇄 대응**
+   - `@media print` CSS 추가 (공유 페이지에서 Ctrl+P 시 깨끗한 출력)
+   - 불필요 요소(헤더 네비, 배경색) 숨기기
 
-#### C. 섹션/레이아웃 개선 (4개)
+#### B. 편집 페이지 UX (4개)
 
-8. **섹션 간 시각 분리**
-   - 구분선 또는 여백 + 배경색 교대
-   - 섹션 제목 스타일 통일 (underline 또는 좌측 accent bar)
+6. **bullets 구조화 편집기**
+   - JSON textarea → 배열 편집 UI 전환
+   - 각 항목: 텍스트 input + [삭제] 버튼
+   - [항목 추가] 버튼으로 행 추가
+   - 내부적으로 `string[]` 유지 → 저장 시 JSON 직렬화
+   - 기존 JSON 데이터가 있으면 파싱하여 행 분리
 
-9. **기술 스택 섹션 개선**
-   - pill 크기 확대 + 아이콘 크기 조정
-   - 카테고리별 색상 구분 (Frontend: blue, Backend: green 등)
+7. **metrics 구조화 편집기**
+   - JSON textarea → key-value 쌍 편집 UI
+   - 각 행: key input + value input + [삭제] 버튼
+   - [항목 추가] 버튼으로 쌍 추가
+   - 내부적으로 `Record<string, string>` 유지 → 저장 시 JSON 직렬화
+   - 기존 JSON 데이터가 있으면 파싱하여 행 분리
 
-10. **페이지 하단 footer/CTA**
-    - 공유/연락 유도 영역
-    - "이 포트폴리오는 PoReSt로 만들어졌습니다" 크레딧
+8. **프리뷰 섹션 포맷 렌더링**
+   - 기존 `JSON.stringify()` 표시 → 포맷 유틸 적용
+   - bullets: 마커 리스트
+   - metrics: 키-값 인라인
+   - summary: 줄바꿈 보존
+   - 기술 태그: pill 배지
 
-11. **추천서 섹션 개선**
-    - 별점 시각화 (SVG 별)
-    - 카드 디자인 + 인용 부호 장식
+9. **공유 링크 인라인 관리**
+   - 편집 페이지에 "공유 링크" 섹션 추가
+   - [새 공유 링크 생성] 버튼 (API: POST `/api/app/resumes/[id]/share-links`)
+   - 기존 링크 목록 (토큰, 생성일, 만료일, 상태)
+   - 클립보드 복사 버튼 (full URL: `/resume/share/[token]`)
+   - [취소] 버튼 (API: DELETE `/api/app/resumes/[id]/share-links`)
 
-#### D. 반응형/모바일 (2개)
+#### C. 목록 + 생성 페이지 (3개)
 
-12. **모바일 헤더 최적화**
-    - 375px에서 "인쇄", "PDF 저장" 텍스트 숨기기 → 아이콘만
-    - 버튼 간격 조정
+10. **목록 카드 상태 배지 + hover**
+    - 상태별 색상 배지: DRAFT(회색) / SUBMITTED(에메랄드) / ARCHIVED(앰버)
+    - 카드 `shadow-sm` + `hover:shadow-md` + `hover:-translate-y-0.5` + `transition`
+    - 회사/직무 정보 계층 개선 (현재 한 줄 → 2줄 분리)
 
-13. **모바일 프로필 레이아웃**
-    - 아바타 + 이름 수직 정렬 (현재도 동작하지만 여백 최적화)
+11. **생성 페이지 상태 고정**
+    - 상태 드롭다운 제거 → DRAFT 고정 (서버에 status: "DRAFT" 전송)
+    - 안내 문구: "생성 후 편집 페이지에서 상태를 변경할 수 있습니다."
 
-#### E. 워크스페이스 경력 편집 UX (1개)
+12. **모바일 반응형 보강**
+    - 목록: 375px에서 버튼 줄바꿈 (`flex-wrap` + gap 조정)
+    - 편집: 항목 편집기 세로 스택 (md 이하에서 grid → 단일 컬럼)
+    - 공유: 본문 `px-4` (기존 `px-6` → 좁은 화면 여백 확보)
 
-16. **경력 날짜 필드 보완**
-    - 생성 폼: `endDate` input 추가 (isCurrent 체크 시 disabled)
-    - 편집 폼: `startDate`, `endDate` 수정 필드 추가
-    - 스키마/API는 이미 지원 — UI만 누락
-
-#### F. 마이크로 인터랙션 (2개)
-
-17. **페이지 진입 애니메이션**
-    - 섹션별 fade-in + slide-up (CSS animation, 라이브러리 없이)
-
-18. **링크/버튼 hover 개선**
-    - CTA 버튼: hover scale + 색상 전환
-    - 텍스트 링크: underline offset 애니메이션
-    - 뒤로가기 링크: 화살표 이동 애니메이션
+---
 
 ### 병렬 실행 구조
 
 파일 충돌 기준으로 3개 세션 동시 실행 가능.
 
 ```
-Session A (포트폴리오 홈 + 공통)     Session B (하위 페이지)          Session C (워크스페이스)
-───────────────────────────        ──────────────────────        ──────────────────────
-A1. 아바타 데코레이션               B5. 프로젝트 카드 개선           E16. 경력 날짜 필드 보완
-A2. 프로필 시각 계층                B6. 경력 카드 타임라인
-A3. 소셜 링크 스타일                B7. 프로젝트 상세 빈 섹션
-C8. 섹션 간 시각 분리
-C9. 기술 스택 섹션
-C10. footer/CTA
-C11. 추천서 섹션
-D12. 모바일 헤더 최적화
-D13. 모바일 프로필 여백
-F17. 진입 애니메이션
-F18. hover 개선
-        ↘               통합 게이트 (lint/build/jest/vercel-build)              ↙
+Session A (공유 + PDF) ✅            Session B (편집 UX) ✅          Session C (목록 + 생성) ✅
+──────────────────────              ──────────────────────          ──────────────────────
+A1. format-resume-data 유틸 ✅      B6. bullets 구조화 편집기 ✅     C10. 상태 배지 + hover ✅
+A2. 공유 페이지 리디자인 ✅         B7. metrics 구조화 편집기 ✅     C11. 생성 페이지 상태 고정 ✅
+A3. 공유 데이터 포맷 렌더 ✅        B8. 프리뷰 포맷 렌더링 ✅       C12. 모바일 반응형 ✅ (목록 완료, 편집/공유 → B/A)
+A4. PDF HTML 리디자인 ✅            B9. 공유 링크 인라인 관리 ✅
+A5. 공유 인쇄 CSS ✅
+          ↘                통합 게이트 ✅ (lint/build/jest/vercel-build)           ↙
 ```
 
-#### 세션별 수정 파일 (충돌 없음)
+### 세션별 수정 파일 (충돌 없음)
 
 | 세션 | 수정 파일 | 항목 수 |
 |---|---|---|
-| **Session A** | `page.tsx`(홈), `ThemeWrapper.tsx`, `globals.css` | 11개 |
-| **Session B** | `experiences/page.tsx`, `projects/page.tsx`, `projects/[slug]/page.tsx` | 3개 |
-| **Session C** | `ExperiencesPageClient.tsx` | 1개 (+ 생성폼 endDate, 편집폼 날짜) |
+| **Session A** | `_lib/format-resume-data.ts`(신규), `share/[token]/page.tsx`, `_lib/pdf.ts` | 5개 |
+| **Session B** | `[id]/edit/page.tsx` | 4개 |
+| **Session C** | `ResumesPageClient.tsx`, `new/page.tsx` | 3개 |
 
-#### 의존성
+### 의존성
 
-- **A → B**: Session B의 카드 스타일은 Tailwind 유틸리티 클래스 직접 적용 (globals.css 의존 없음)
 - **A ∥ B ∥ C**: 3개 세션 완전 독립 실행 가능
+- **B → A (선택적)**: Session B의 프리뷰 포맷 렌더링에서 `format-resume-data.ts` import 가능
+  - B가 A보다 먼저 완료되면 인라인으로 동일 로직 구현 → A 완료 후 import 교체
+  - 또는 A 먼저 완료 후 B에서 바로 import
 - **통합**: 3개 세션 모두 완료 후 게이트 4종 재실행
-
-#### B4 (공통 카드 스타일) 처리
-
-공통 카드 스타일 업그레이드(shadow/hover/transition)는 각 세션에서 **Tailwind 유틸리티 클래스를 직접 적용**하는 방식으로 처리.
-globals.css에 공통 클래스 추가 불필요 → 세션 간 의존성 제거.
 
 ### 변경 파일 목록
 
-**Session A (포트폴리오 홈 + 공통):**
-- `src/app/(public)/portfolio/[publicSlug]/page.tsx` — 프로필, 섹션, footer, 추천서
-- `src/components/portfolio/ThemeWrapper.tsx` — 모바일 헤더
-- `src/app/(public)/globals.css` — 애니메이션 keyframes + 다크모드
+**Session A (공유 + PDF):**
+- `src/app/(private)/app/resumes/_lib/format-resume-data.ts` — 신규: 데이터 포맷 유틸
+- `src/app/(private)/app/resumes/_lib/__tests__/format-resume-data.test.ts` — 신규: 테스트
+- `src/app/(public)/resume/share/[token]/page.tsx` — 공유 페이지 리디자인
+- `src/app/(private)/app/resumes/_lib/pdf.ts` — PDF HTML 리디자인
 
-**Session B (하위 페이지):**
-- `src/app/(public)/portfolio/[publicSlug]/experiences/page.tsx` — 경력 타임라인
-- `src/app/(public)/portfolio/[publicSlug]/projects/page.tsx` — 프로젝트 카드
-- `src/app/(public)/portfolio/[publicSlug]/projects/[slug]/page.tsx` — 상세 빈 섹션
+**Session B (편집 UX):**
+- `src/app/(private)/app/resumes/[id]/edit/page.tsx` — 구조화 편집기 + 공유 링크 관리
 
-**Session C (워크스페이스):**
-- `src/app/(private)/app/experiences/ExperiencesPageClient.tsx` — 날짜 필드
+**Session C (목록 + 생성):**
+- `src/app/(private)/app/resumes/ResumesPageClient.tsx` — 상태 배지 + hover
+- `src/app/(private)/app/resumes/new/page.tsx` — 상태 고정 + 정리
 
 ### 제약 사항
 
-- 외부 CSS/JS 라이브러리 추가 금지 (Tailwind CSS만 사용)
-- 기존 데이터 모델/API 변경 없음
-- 기존 테스트 깨뜨리지 않음
-- 다크모드 일관성 유지
-- 공통 카드 스타일은 Tailwind 유틸리티 직접 적용 (globals.css 공유 클래스 금지 → 세션 독립성 보장)
+- 외부 라이브러리 추가 금지 (Tailwind + 기존 스택만 사용)
+- 기존 데이터 모델/API/Prisma 스키마 변경 없음
+- 기존 테스트 깨뜨리지 않음 (64 suites, 413 tests 기준선)
+- 기존 `_lib/compare.ts`, `_lib/reorder.ts`, `_lib/sync.ts` 유지 (import 경로 불변)

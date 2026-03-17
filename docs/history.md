@@ -599,18 +599,126 @@ T88 (포트폴리오 폴리시) → T89 (이력서 UX) → T90 (성능 최적화
 
 **게이트**: `lint(0 errors, 8 warnings) / build` 통과
 
-### T88 통합 완료 (2026-03-17) ✅
+### T88 통합 완료 (2026-03-18) ✅
 
 ```
 Session A ✅ (홈 + 공통, 11개)
 Session B ✅ (하위 페이지, 4개)
 Session C ✅ (경력 날짜 필드, 2개)
 통합 게이트 ✅ lint(0 errors) / build(16.1.6) / jest(64 suites, 413 tests) / vercel-build
-Playwright 시각 검증 ⬜ (5개 남음)
+Playwright ✅ 홈 라이트/다크, 모바일 라이트/다크, 경력, 프로젝트 목록, 프로젝트 상세
+```
+
+### T89 Session B: 편집 페이지 UX (2026-03-18) ✅
+
+**범위**: 1개 파일 수정 (`[id]/edit/page.tsx`)
+
+**핵심 변경**:
+
+1. **bullets 구조화 편집기** (B6)
+   - JSON textarea → `BulletsEditor` 컴포넌트 (배열 입력 UI)
+   - 각 행: input + 삭제 버튼, [항목 추가] 버튼
+   - `parseBulletsFromJson()` / `bulletsToJson()` 안전 변환
+
+2. **metrics 구조화 편집기** (B7)
+   - JSON textarea → `MetricsEditor` 컴포넌트 (key-value 쌍 UI)
+   - 각 행: key input + value input + 삭제, [지표 추가] 버튼
+   - `parseMetricsFromJson()` / `metricsToJson()` 안전 변환
+
+3. **프리뷰 포맷 렌더링** (B8)
+   - `FormattedBullets` — `<ul><li>` 마커 리스트 (JSON 평문 제거)
+   - `FormattedMetrics` — 키-값 인라인 배지 (JSON 평문 제거)
+   - `FormattedTechTags` — pill 배지 (cyan 링)
+   - 원본/수정본 비교 + 프리뷰 섹션 모두 포맷 적용
+
+4. **공유 링크 인라인 관리** (B9)
+   - `ShareLinksSection` 컴포넌트 — 편집 페이지 내 공유 링크 CRUD
+   - 새 링크 생성 (POST), 목록 표시 (활성/취소됨 분리), URL 복사, 취소(revoke)
+
+5. **ItemEditor 타입 구조 변경**
+   - `overrideBulletsJsonText`/`overrideMetricsJsonText` (string) → `bullets: BulletEntry[]` / `metrics: MetricEntry[]`
+   - `parseOptionalJsonText()` 중간 파서 제거 → 직접 구조화 데이터 직렬화
+
+**게이트**: `lint(0 errors) / build` 통과
+
+### T89 Session C: 이력서 목록 + 생성 폴리시 (2026-03-18) ✅
+
+**범위**: 2개 파일 수정 (`ResumesPageClient.tsx`, `new/page.tsx`)
+
+**핵심 변경**:
+
+1. **목록 카드 상태 배지** (C10)
+   - `statusBadge()` 헬퍼: DRAFT→초안(회색), SUBMITTED→제출됨(에메랄드), ARCHIVED→보관됨(앰버)
+   - 카드 `shadow-sm` + `hover:shadow-md` + `hover:-translate-y-0.5` + `transition-all`
+   - 회사/직무/레벨 시각 분리, 항목수+수정일 별도 줄
+   - 버튼 `hover:bg-*-50` 호버 피드백
+
+2. **생성 페이지 상태 고정** (C11)
+   - `ResumeStatus` 타입 + select 드롭다운 제거 → `status: "DRAFT"` 하드코딩
+   - 고정 배지 + 안내 문구
+
+3. **모바일 반응형** (C12 부분)
+   - 카드 내부 `flex-col` → `sm:flex-row` 전환 (모바일 세로 스택)
+
+**게이트**: `lint(0 errors, 8 warnings) / build` 통과
+
+### T89 Session A: 공유 + PDF 폴리시 (2026-03-18) ✅
+
+**범위**: 3개 파일 수정/신규 + 테스트 16개
+
+**핵심 변경**:
+
+1. **데이터 포맷 유틸리티** (A1)
+   - `format-resume-data.ts` 신규 — `parseBullets()`, `parseMetrics()` 안전 파서
+   - null/undefined/비배열/비객체 → 빈 배열 반환, 숫자→문자열 변환
+   - 16개 테스트 (정상 + 엣지 케이스)
+
+2. **공유 페이지 리디자인** (A2~A3)
+   - 다크 고정 배경 → 크림 배경 (`bg-[#fdfcf9]`) + 카드 시스템
+   - bullets: `<ul><li>` 서식 리스트, metrics: emerald pill 배지
+   - 기술 태그 pill, experience.summary 표시
+   - 네비 바 + 풋터 CTA
+
+3. **PDF HTML 프로급 리디자인** (A4)
+   - JSON `<pre>` 완전 제거 → `<ul>` bullets + pill metrics + pill 기술 태그
+   - 프로 타이포그래피 (헤더 계층, 색상 강조, 여백 최적화)
+   - 번호 인디케이터 + 경력 요약 표시
+
+4. **인쇄 CSS** (A5)
+   - `print:bg-white`, `print:shadow-none`, `print:hidden` nav, `print:border` pill
+
+**게이트**: `lint(0 errors) / build` 통과
+
+### T89 통합 완료 (2026-03-18) ✅
+
+```
+Session A ✅ (공유 + PDF, 5개)
+Session B ✅ (편집 UX, 4개)
+Session C ✅ (목록 + 생성, 3개)
+통합 게이트 ✅ lint(0 errors) / build(16.1.6) / jest(65 suites, 429 tests) / vercel-build
+```
+
+**핵심 요약**: 이력서 전체 UX를 개발자 도구 수준 → 프로덕션 레벨로 전환
+- 공유 페이지: 다크 고정 → 크림 배경 + 카드 시스템 + 포맷 렌더링 + 인쇄 CSS
+- PDF: JSON `<pre>` → 프로급 타이포 + 서식 리스트 + pill 배지
+- 편집: JSON textarea → 구조화 편집기 (bullets/metrics) + 공유 링크 인라인 관리
+- 목록: 상태 배지 + hover 인터랙션 / 생성: DRAFT 고정
+- 라이트 테마 대비 수정 (`text-black/30,50` → `/60`)
+
+**잔여**: Playwright 시각 검증 (배포 후 진행)
+
+---
+
+## 현재 진행 맥락
+
+### Sprint 2 태스크
+
+```
+T88 (포트폴리오 폴리시) ✅ → T89 (이력서 UX) ✅ → T90 (성능 최적화)
 ```
 
 ### 기준선
 
-- jest: 64 suites, 413 tests
+- jest: 65 suites, 429 tests
 - lint: 0 errors, 8 warnings
 - 브랜치: main 직접 push
