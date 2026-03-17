@@ -121,11 +121,14 @@ function ProjectsSection({
   userProjectsPath: string;
 }) {
   return (
-    <section className="mt-14">
+    <section className="animate-fade-in-up mt-16">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-semibold">대표 프로젝트</h2>
-        <Link className="text-sm font-medium text-black/70 hover:text-black dark:text-white/70 dark:hover:text-white" href={userProjectsPath}>
-          전체 보기
+        <h2 className="text-2xl font-bold">
+          <span className="mr-2 inline-block h-6 w-1 rounded-full bg-black/80 align-middle dark:bg-white/80" />
+          대표 프로젝트
+        </h2>
+        <Link className="group text-sm font-medium text-black/60 transition-colors hover:text-black dark:text-white/60 dark:hover:text-white" href={userProjectsPath}>
+          전체 보기 <span className="link-arrow">→</span>
         </Link>
       </div>
 
@@ -136,18 +139,31 @@ function ProjectsSection({
       ) : (
         <div className="mt-6 grid gap-4 md:grid-cols-3">
           {viewModel.featuredProjects.map((project) => (
-            <article key={project.id} className="rounded-2xl border border-black/10 bg-white p-5 dark:border-white/10 dark:bg-[#1e1e1e]">
-              <h3 className="text-lg font-semibold">{project.title}</h3>
-              <p className="mt-2 line-clamp-3 text-sm text-black/65 dark:text-white/65">
-                {project.description ?? "설명 정보가 없습니다."}
-              </p>
-              <p className="mt-3 text-xs text-black/60 dark:text-white/60">
-                {project.techStack.length > 0 ? project.techStack.join(" · ") : "기술 스택 정보 없음"}
-              </p>
-              <Link href={project.publicPath} className="mt-4 inline-flex text-sm font-semibold text-black/80 hover:text-black dark:text-white/80 dark:hover:text-white">
-                상세 보기
-              </Link>
-            </article>
+            <Link key={project.id} href={project.publicPath} className="group block">
+              <article className="h-full rounded-2xl border border-black/10 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-white/10 dark:bg-[#1e1e1e] dark:shadow-none dark:hover:border-white/20">
+                <h3 className="text-lg font-semibold group-hover:text-black/90 dark:group-hover:text-white/90">{project.title}</h3>
+                <p className="mt-2 line-clamp-3 text-sm text-black/65 dark:text-white/65">
+                  {project.description ?? "설명 정보가 없습니다."}
+                </p>
+                {project.techStack.length > 0 ? (
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {project.techStack.slice(0, 5).map((tech) => (
+                      <span key={tech} className="rounded-full bg-black/5 px-2.5 py-0.5 text-xs text-black/60 dark:bg-white/10 dark:text-white/60">
+                        {tech}
+                      </span>
+                    ))}
+                    {project.techStack.length > 5 ? (
+                      <span className="rounded-full bg-black/5 px-2.5 py-0.5 text-xs text-black/45 dark:bg-white/10 dark:text-white/45">
+                        +{project.techStack.length - 5}
+                      </span>
+                    ) : null}
+                  </div>
+                ) : null}
+                <span className="mt-4 inline-flex items-center text-sm font-semibold text-black/70 transition-colors group-hover:text-black dark:text-white/70 dark:group-hover:text-white">
+                  상세 보기 <span className="link-arrow ml-1">→</span>
+                </span>
+              </article>
+            </Link>
           ))}
         </div>
       )}
@@ -171,16 +187,20 @@ function ExperiencesSection({
   if (viewModel.featuredExperiences.length === 0) return null;
 
   return (
-    <section className="mt-14">
+    <section className="animate-fade-in-up mt-16">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-semibold">경력</h2>
-        <Link className="text-sm font-medium text-black/70 hover:text-black dark:text-white/70 dark:hover:text-white" href={experiencesPath}>
-          전체 보기
+        <h2 className="text-2xl font-bold">
+          <span className="mr-2 inline-block h-6 w-1 rounded-full bg-black/80 align-middle dark:bg-white/80" />
+          경력
+        </h2>
+        <Link className="group text-sm font-medium text-black/60 transition-colors hover:text-black dark:text-white/60 dark:hover:text-white" href={experiencesPath}>
+          전체 보기 <span className="link-arrow">→</span>
         </Link>
       </div>
-      <div className="mt-6 space-y-4">
+      <div className="relative mt-6 space-y-4 pl-6 before:absolute before:left-[7px] before:top-2 before:bottom-2 before:w-px before:bg-black/10 dark:before:bg-white/10">
         {viewModel.featuredExperiences.map((exp) => (
-          <article key={exp.id} className="rounded-2xl border border-black/10 bg-white p-5 dark:border-white/10 dark:bg-[#1e1e1e]">
+          <article key={exp.id} className="relative rounded-2xl border border-black/10 bg-white p-5 shadow-sm transition-shadow duration-200 hover:shadow-md dark:border-white/10 dark:bg-[#1e1e1e] dark:shadow-none dark:hover:border-white/20">
+            <span className="absolute -left-6 top-6 h-3 w-3 rounded-full border-2 border-black/20 bg-[#f6f5f2] dark:border-white/20 dark:bg-[#111111]" />
             <div className="flex items-center gap-3">
               <h3 className="text-lg font-semibold">{exp.company}</h3>
               {exp.isCurrent ? (
@@ -189,8 +209,8 @@ function ExperiencesSection({
                 </span>
               ) : null}
             </div>
-            <p className="mt-1 text-sm text-black/75 dark:text-white/75">{exp.role}</p>
-            <p className="mt-1 text-xs text-black/60 dark:text-white/60">{exp.period}</p>
+            <p className="mt-1 text-sm font-medium text-black/75 dark:text-white/75">{exp.role}</p>
+            <p className="mt-1 text-xs text-black/50 dark:text-white/50">{exp.period}</p>
             {exp.summary ? (
               <p className="mt-2 text-sm text-black/65 dark:text-white/65">{exp.summary}</p>
             ) : null}
@@ -222,12 +242,27 @@ function ExperiencesSection({
       </div>
       <Link
         href={experiencesPath}
-        className="mt-4 inline-flex text-sm font-semibold text-black/80 hover:text-black dark:text-white/80 dark:hover:text-white"
+        className="group mt-4 inline-flex text-sm font-semibold text-black/70 transition-colors hover:text-black dark:text-white/70 dark:hover:text-white"
       >
-        경력 전체 보기 →
+        경력 전체 보기 <span className="link-arrow ml-1">→</span>
       </Link>
     </section>
   );
+}
+
+const CATEGORY_CLASS_MAP: Record<string, string> = {
+  Frontend: "skill-cat-frontend",
+  Backend: "skill-cat-backend",
+  DevOps: "skill-cat-devops",
+  Mobile: "skill-cat-mobile",
+  Database: "skill-cat-database",
+};
+
+function getSkillCategoryClass(category: string): string {
+  for (const [key, cls] of Object.entries(CATEGORY_CLASS_MAP)) {
+    if (category.toLowerCase().includes(key.toLowerCase())) return cls;
+  }
+  return "skill-cat-other";
 }
 
 function SkillsSection({
@@ -238,21 +273,24 @@ function SkillsSection({
   if (skillGroups.size === 0) return null;
 
   return (
-    <section className="mt-14">
-      <h2 className="text-2xl font-semibold">기술 스택</h2>
+    <section className="animate-fade-in-up mt-16">
+      <h2 className="text-2xl font-bold">
+        <span className="mr-2 inline-block h-6 w-1 rounded-full bg-black/80 align-middle dark:bg-white/80" />
+        기술 스택
+      </h2>
       <div className="mt-6 space-y-5">
         {Array.from(skillGroups.entries()).map(([category, items]) => (
           <div key={category}>
-            <h3 className="mb-2 text-sm font-semibold text-black/60 dark:text-white/60">{category}</h3>
+            <h3 className="mb-3 text-sm font-bold uppercase tracking-wider text-black/50 dark:text-white/50">{category}</h3>
             <div className="flex flex-wrap gap-2">
               {items.map((skill) => (
                 <span
                   key={skill.id}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-black/5 px-3 py-1.5 text-sm text-black/80 dark:bg-white/10 dark:text-white/80"
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-medium ${getSkillCategoryClass(category)}`}
                 >
                   {skill.name}
                   {skill.level !== null ? (
-                    <span className="text-xs text-black/40 dark:text-white/40">
+                    <span className="text-xs opacity-50">
                       {"●".repeat(skill.level)}{"○".repeat(5 - skill.level)}
                     </span>
                   ) : null}
@@ -266,6 +304,23 @@ function SkillsSection({
   );
 }
 
+function StarRating({ rating }: { rating: number }) {
+  return (
+    <div className="flex gap-0.5">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <svg key={i} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" className="h-4 w-4">
+          <path
+            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+            fill={i < rating ? "#f59e0b" : "none"}
+            stroke={i < rating ? "#f59e0b" : "#d1d5db"}
+            strokeWidth="1"
+          />
+        </svg>
+      ))}
+    </div>
+  );
+}
+
 function TestimonialsSection({
   testimonials,
 }: {
@@ -274,12 +329,19 @@ function TestimonialsSection({
   if (testimonials.length === 0) return null;
 
   return (
-    <section className="mt-14">
-      <h2 className="text-2xl font-semibold">추천서</h2>
-      <div className="mt-6 space-y-4">
+    <section className="animate-fade-in-up mt-16">
+      <h2 className="text-2xl font-bold">
+        <span className="mr-2 inline-block h-6 w-1 rounded-full bg-black/80 align-middle dark:bg-white/80" />
+        추천서
+      </h2>
+      <div className="mt-6 grid gap-4 md:grid-cols-2">
         {testimonials.map((t) => (
-          <div key={t.id} className="rounded-2xl border border-black/10 bg-white p-5 dark:border-white/10 dark:bg-[#1e1e1e]">
-            <div className="flex items-start justify-between">
+          <div key={t.id} className="relative rounded-2xl border border-black/10 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-[#1e1e1e] dark:shadow-none">
+            <span className="absolute top-4 right-5 text-4xl leading-none text-black/5 dark:text-white/5">&ldquo;</span>
+            <p className="relative whitespace-pre-wrap text-sm leading-relaxed text-black/70 dark:text-white/70">
+              {t.content}
+            </p>
+            <div className="mt-4 flex items-center justify-between border-t border-black/5 pt-4 dark:border-white/5">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-black/5 text-sm font-semibold text-black/60 dark:bg-white/10 dark:text-white/60">
                   {t.authorName.charAt(0).toUpperCase()}
@@ -291,15 +353,8 @@ function TestimonialsSection({
                   </p>
                 </div>
               </div>
-              {t.rating ? (
-                <span className="text-sm text-amber-500">
-                  {"★".repeat(t.rating)}{"☆".repeat(5 - t.rating)}
-                </span>
-              ) : null}
+              {t.rating ? <StarRating rating={t.rating} /> : null}
             </div>
-            <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-black/70 dark:text-white/70">
-              {t.content}
-            </p>
           </div>
         ))}
       </div>
@@ -424,35 +479,35 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
     <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-6 py-14">
       <JsonLd data={personJsonLd} />
       {/* Profile header — always first */}
-      <div className="flex items-start gap-5">
+      <div className="animate-fade-in-up flex flex-col items-center gap-5 sm:flex-row sm:items-start">
         {viewModel.profile.avatarUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={viewModel.profile.avatarUrl}
             alt={`${displayName} 프로필 이미지`}
-            className="h-20 w-20 shrink-0 rounded-full object-cover"
+            className="h-28 w-28 shrink-0 rounded-full object-cover ring-4 ring-black/5 shadow-lg dark:ring-white/10"
           />
         ) : (
-          <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-black/10 text-2xl font-semibold text-black/65 dark:bg-white/10 dark:text-white/65">
+          <div className="flex h-28 w-28 shrink-0 items-center justify-center rounded-full bg-black/10 text-3xl font-semibold text-black/65 ring-4 ring-black/5 shadow-lg dark:bg-white/10 dark:text-white/65 dark:ring-white/10">
             {avatarInitial}
           </div>
         )}
-        <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-black/65 dark:text-white/65">Portfolio</p>
-          <h1 className="mt-1 text-4xl font-semibold">{displayName}</h1>
-          <p className="mt-2 text-lg text-black/75 dark:text-white/75">
+        <div className="text-center sm:text-left">
+          <p className="text-xs uppercase tracking-[0.3em] text-black/50 dark:text-white/50">Portfolio</p>
+          <h1 className="mt-1 text-4xl font-bold tracking-tight">{displayName}</h1>
+          <p className="mt-2 text-xl text-black/75 dark:text-white/75">
             {getProfileDescription(viewModel.profile.headline)}
           </p>
-          <div className="mt-2 flex flex-wrap items-center gap-3">
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-3 sm:justify-start">
             {viewModel.profile.availabilityStatus === "OPEN" ? (
               <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
                 채용 제안 환영합니다
               </span>
             ) : null}
             {viewModel.profile.location ? (
-              <span className="flex items-center gap-1 text-xs text-black/65 dark:text-white/65">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="h-3.5 w-3.5">
+              <span className="flex items-center gap-1.5 text-xs text-black/60 dark:text-white/60">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="h-4 w-4">
                   <path fillRule="evenodd" d="M8 1.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2.5 7a5.5 5.5 0 1 1 11 0 5.5 5.5 0 0 1-11 0Zm5 2.25a.75.75 0 0 0 0 1.5h1a.75.75 0 0 0 0-1.5h-1ZM8 4a.75.75 0 0 1 .75.75v3a.75.75 0 0 1-1.5 0v-3A.75.75 0 0 1 8 4Z" clipRule="evenodd" />
                 </svg>
                 {viewModel.profile.location}
@@ -461,9 +516,9 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
             {viewModel.profile.isEmailPublic && viewModel.profile.email ? (
               <a
                 href={`mailto:${viewModel.profile.email}`}
-                className="flex items-center gap-1 text-xs text-black/65 hover:text-black dark:text-white/65 dark:hover:text-white"
+                className="flex items-center gap-1.5 text-xs text-black/60 transition-colors hover:text-black dark:text-white/60 dark:hover:text-white"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="h-3.5 w-3.5">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="h-4 w-4">
                   <path d="M2.5 3A1.5 1.5 0 0 0 1 4.5v.793c.026.009.051.02.076.032L7.674 8.51c.206.1.446.1.652 0l6.598-3.185A.755.755 0 0 1 15 5.293V4.5A1.5 1.5 0 0 0 13.5 3h-11Z" />
                   <path d="M15 6.954 8.978 9.86a2.25 2.25 0 0 1-1.956 0L1 6.954V11.5A1.5 1.5 0 0 0 2.5 13h11a1.5 1.5 0 0 0 1.5-1.5V6.954Z" />
                 </svg>
@@ -475,15 +530,15 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
       </div>
 
       {viewModel.profile.bio ? (
-        <p className="mt-6 max-w-3xl whitespace-pre-wrap text-sm leading-7 text-black/70 dark:text-white/70">
+        <p className="animate-fade-in-up-delay-1 mt-6 max-w-3xl whitespace-pre-wrap text-sm leading-7 text-black/70 dark:text-white/70">
           {viewModel.profile.bio}
         </p>
       ) : null}
 
-      <div className="mt-8 flex flex-wrap gap-3">
+      <div className="animate-fade-in-up-delay-2 mt-8 flex flex-wrap justify-center gap-3 sm:justify-start">
         <Link
           href={userProjectsPath}
-          className="rounded-full bg-black px-5 py-3 text-sm font-semibold text-white dark:bg-white dark:text-black"
+          className="rounded-full bg-black px-5 py-3 text-sm font-semibold text-white transition-transform hover:scale-[1.03] active:scale-[0.98] dark:bg-white dark:text-black"
         >
           프로젝트 보기
         </Link>
@@ -492,7 +547,7 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
             href={`/resume/share/${viewModel.profile.featuredResumeShareToken}`}
             target="_blank"
             rel="noreferrer"
-            className="rounded-full border border-black/20 px-5 py-3 text-sm font-semibold text-black/80 hover:bg-black/5 dark:border-white/20 dark:text-white/80 dark:hover:bg-white/5"
+            className="rounded-full border border-black/20 px-5 py-3 text-sm font-semibold text-black/80 transition-colors hover:bg-black/5 dark:border-white/20 dark:text-white/80 dark:hover:bg-white/5"
           >
             이력서 보기
           </a>
@@ -501,7 +556,7 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
             href={viewModel.profile.resumeUrl}
             target="_blank"
             rel="noreferrer"
-            className="rounded-full border border-black/20 px-5 py-3 text-sm font-semibold text-black/80 hover:bg-black/5 dark:border-white/20 dark:text-white/80 dark:hover:bg-white/5"
+            className="rounded-full border border-black/20 px-5 py-3 text-sm font-semibold text-black/80 transition-colors hover:bg-black/5 dark:border-white/20 dark:text-white/80 dark:hover:bg-white/5"
           >
             이력서 다운로드
           </a>
@@ -509,14 +564,14 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
       </div>
 
       {viewModel.profile.links.length > 0 ? (
-        <section className="mt-6 flex flex-wrap gap-3">
+        <section className="animate-fade-in-up-delay-3 mt-6 flex flex-wrap justify-center gap-2 sm:justify-start">
           {viewModel.profile.links.map((link) => (
             <a
               key={`${link.label}-${link.url}`}
               href={link.url}
               target="_blank"
               rel="noreferrer"
-              className="flex items-center gap-1.5 rounded-full border border-black/20 px-4 py-2 text-sm text-black/75 hover:text-black dark:border-white/20 dark:text-white/75 dark:hover:text-white"
+              className="flex items-center gap-1.5 rounded-full border border-black/15 bg-white/60 px-4 py-2 text-sm text-black/70 shadow-sm transition-all hover:shadow-md hover:text-black dark:border-white/15 dark:bg-white/5 dark:text-white/70 dark:shadow-none dark:hover:bg-white/10 dark:hover:text-white"
             >
               <SocialIcon type={link.type} />
               {link.label}
@@ -529,6 +584,38 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
       {viewModel.layout.sections
         .filter((s) => s.visible)
         .map((s) => sectionRenderers[s.id])}
+
+      {/* Footer */}
+      <footer className="mt-20 border-t border-black/8 pt-8 pb-6 dark:border-white/8">
+        <div className="flex flex-col items-center gap-4 text-center">
+          <p className="text-sm text-black/50 dark:text-white/50">
+            관심이 있으시다면 편하게 연락해 주세요
+          </p>
+          <div className="flex gap-3">
+            {viewModel.profile.isEmailPublic && viewModel.profile.email ? (
+              <a
+                href={`mailto:${viewModel.profile.email}`}
+                className="rounded-full bg-black px-5 py-2.5 text-sm font-semibold text-white transition-transform hover:scale-[1.03] active:scale-[0.98] dark:bg-white dark:text-black"
+              >
+                이메일 보내기
+              </a>
+            ) : null}
+            {viewModel.profile.links.length > 0 ? (
+              <a
+                href={viewModel.profile.links[0].url}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-full border border-black/20 px-5 py-2.5 text-sm font-semibold text-black/80 transition-colors hover:bg-black/5 dark:border-white/20 dark:text-white/80 dark:hover:bg-white/5"
+              >
+                {viewModel.profile.links[0].label}
+              </a>
+            ) : null}
+          </div>
+          <p className="mt-4 text-xs text-black/30 dark:text-white/30">
+            이 포트폴리오는 PoReSt로 만들어졌습니다
+          </p>
+        </div>
+      </footer>
     </main>
   );
 }

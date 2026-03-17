@@ -81,7 +81,7 @@ export function ThemeWrapper({ publicSlug, children }: ThemeWrapperProps) {
               aria-label="인쇄"
             >
               <PrintIcon />
-              <span>인쇄</span>
+              <span className="hidden sm:inline">인쇄</span>
             </button>
             <button
               type="button"
@@ -91,7 +91,7 @@ export function ThemeWrapper({ publicSlug, children }: ThemeWrapperProps) {
               aria-label="PDF 저장"
             >
               <DownloadIcon />
-              <span>{isDownloadingPdf ? "생성 중..." : "PDF 저장"}</span>
+              <span className="hidden sm:inline">{isDownloadingPdf ? "생성 중..." : "PDF 저장"}</span>
             </button>
             <button
               type="button"
