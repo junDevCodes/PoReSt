@@ -1,3 +1,5 @@
+import { parseBullets, parseMetrics } from "./format-resume-data";
+
 export type ResumePdfPreview = {
   resume: {
     title: string;
@@ -44,14 +46,6 @@ function formatDateLabel(value: string): string {
   return parsed.toISOString().slice(0, 10);
 }
 
-function toJsonText(value: unknown): string {
-  try {
-    return JSON.stringify(value, null, 2);
-  } catch {
-    return "null";
-  }
-}
-
 function toSafeText(value: string | null | undefined): string {
   if (!value) {
     return "-";
@@ -70,28 +64,67 @@ export function createResumePdfFileName(title: string): string {
   return `resume-${base}.pdf`;
 }
 
+function buildBulletsHtml(json: unknown): string {
+  const items = parseBullets(json);
+  if (items.length === 0) return "";
+  const lis = items.map((b) => `<li>${escapeHtml(b)}</li>`).join("");
+  return `
+    <div class="section-label">주요 성과</div>
+    <ul class="bullets">${lis}</ul>
+  `;
+}
+
+function buildMetricsHtml(json: unknown): string {
+  const entries = parseMetrics(json);
+  if (entries.length === 0) return "";
+  const pills = entries
+    .map((m) => `<span class="metric-pill"><strong>${escapeHtml(m.key)}</strong> ${escapeHtml(m.value)}</span>`)
+    .join(" ");
+  return `
+    <div class="section-label">성과 지표</div>
+    <div class="metrics">${pills}</div>
+  `;
+}
+
+function buildTechTagsHtml(tags: string[]): string {
+  if (tags.length === 0) return "";
+  const pills = tags.map((t) => `<span class="tech-pill">${escapeHtml(t)}</span>`).join(" ");
+  return `<div class="tech-tags">${pills}</div>`;
+}
+
 export function buildResumePdfHtml(preview: ResumePdfPreview): string {
   const title = toSafeText(preview.resume.title);
   const updatedAt = escapeHtml(formatDateLabel(preview.resume.updatedAt));
-  const company = toSafeText(preview.resume.targetCompany);
-  const role = toSafeText(preview.resume.targetRole);
-  const level = toSafeText(preview.resume.level);
-  const summary = toSafeText(preview.resume.summaryMd);
+
+  const metaItems: string[] = [];
+  if (preview.resume.targetCompany) metaItems.push(escapeHtml(preview.resume.targetCompany));
+  if (preview.resume.targetRole) metaItems.push(escapeHtml(preview.resume.targetRole));
+  if (preview.resume.level) metaItems.push(escapeHtml(preview.resume.level));
+  const metaLine = metaItems.length > 0 ? metaItems.join(" · ") : "";
+
+  const summaryHtml = preview.resume.summaryMd
+    ? `<div class="summary-block"><div class="section-label">요약</div><p class="summary-text">${toSafeText(preview.resume.summaryMd)}</p></div>`
+    : "";
+
   const itemsHtml = preview.items
-    .map((item) => {
-      const techTags =
-        item.resolvedTechTags.length > 0
-          ? escapeHtml(item.resolvedTechTags.join(", "))
-          : "-";
+    .map((item, idx) => {
+      const summaryP = item.experience.summary
+        ? `<p class="exp-summary">${toSafeText(item.experience.summary)}</p>`
+        : "";
 
       return `
         <article class="item">
-          <h3>${escapeHtml(String(item.sortOrder))}. ${toSafeText(item.experience.company)} / ${toSafeText(item.experience.role)}</h3>
-          <p class="summary">${toSafeText(item.experience.summary)}</p>
-          <p><strong>기술:</strong> ${techTags}</p>
-          <pre class="code">bullets: ${escapeHtml(toJsonText(item.resolvedBulletsJson))}</pre>
-          <pre class="code">metrics: ${escapeHtml(toJsonText(item.resolvedMetricsJson))}</pre>
-          <p><strong>메모:</strong> ${toSafeText(item.notes)}</p>
+          <div class="item-header">
+            <span class="item-num">${idx + 1}</span>
+            <div>
+              <h3 class="item-company">${toSafeText(item.experience.company)}</h3>
+              <p class="item-role">${toSafeText(item.experience.role)}</p>
+            </div>
+          </div>
+          ${summaryP}
+          ${buildTechTagsHtml(item.resolvedTechTags)}
+          ${buildBulletsHtml(item.resolvedBulletsJson)}
+          ${buildMetricsHtml(item.resolvedMetricsJson)}
         </article>
       `;
     })
@@ -103,30 +136,56 @@ export function buildResumePdfHtml(preview: ResumePdfPreview): string {
     <meta charset="utf-8" />
     <title>${title}</title>
     <style>
-      @page { size: A4; margin: 14mm; }
-      * { box-sizing: border-box; }
-      body { margin: 0; color: #101217; font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-      main { width: 100%; }
-      h1 { margin: 0 0 8px; font-size: 24px; }
-      h2 { margin: 24px 0 10px; font-size: 18px; border-bottom: 1px solid #d9dce3; padding-bottom: 6px; }
-      h3 { margin: 0 0 6px; font-size: 15px; }
-      p { margin: 4px 0; }
-      .meta { color: #3b4150; }
-      .item { break-inside: avoid; border: 1px solid #e6e8ef; border-radius: 10px; padding: 10px; margin-bottom: 10px; }
-      .summary { color: #3b4150; white-space: pre-wrap; }
-      .code { white-space: pre-wrap; background: #f7f8fb; border: 1px solid #eceef4; border-radius: 6px; padding: 8px; font-size: 12px; }
+      @page { size: A4; margin: 16mm 14mm; }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { color: #1a1a2e; font: 13px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif; }
+      main { max-width: 100%; padding: 0; }
+
+      /* 헤더 */
+      .header { border-bottom: 2px solid #1a1a2e; padding-bottom: 10px; margin-bottom: 16px; }
+      .header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+      .header .meta { color: #555; font-size: 12px; margin-top: 4px; }
+      .header .date { color: #999; font-size: 11px; margin-top: 2px; }
+
+      /* 요약 */
+      .summary-block { margin-bottom: 16px; }
+      .summary-text { white-space: pre-wrap; color: #333; font-size: 13px; line-height: 1.7; }
+
+      /* 섹션 라벨 */
+      .section-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #888; margin-bottom: 4px; margin-top: 8px; }
+
+      /* 경력 카드 */
+      .items-title { font-size: 14px; font-weight: 600; border-bottom: 1px solid #ddd; padding-bottom: 5px; margin-bottom: 10px; }
+      .item { break-inside: avoid; border: 1px solid #e5e5e5; border-radius: 8px; padding: 12px 14px; margin-bottom: 8px; }
+      .item-header { display: flex; align-items: flex-start; gap: 10px; }
+      .item-num { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: #f0f0f0; font-size: 11px; font-weight: 700; color: #555; flex-shrink: 0; margin-top: 1px; }
+      .item-company { font-size: 14px; font-weight: 600; }
+      .item-role { font-size: 12px; color: #666; margin-top: 1px; }
+      .exp-summary { color: #444; font-size: 12px; line-height: 1.6; white-space: pre-wrap; margin-top: 6px; }
+
+      /* 기술 태그 */
+      .tech-tags { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px; }
+      .tech-pill { display: inline-block; background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 10px; padding: 1px 8px; font-size: 10px; color: #555; }
+
+      /* Bullets */
+      .bullets { padding-left: 18px; margin: 0; }
+      .bullets li { font-size: 12px; color: #333; margin-bottom: 2px; }
+
+      /* Metrics */
+      .metrics { display: flex; flex-wrap: wrap; gap: 5px; }
+      .metric-pill { display: inline-block; background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 6px; padding: 2px 8px; font-size: 10px; color: #065f46; }
+      .metric-pill strong { margin-right: 3px; }
     </style>
   </head>
   <body>
     <main>
-      <h1>${title}</h1>
-      <p class="meta"><strong>수정일:</strong> ${updatedAt}</p>
-      <p class="meta"><strong>대상 회사:</strong> ${company}</p>
-      <p class="meta"><strong>대상 직무:</strong> ${role}</p>
-      <p class="meta"><strong>레벨:</strong> ${level}</p>
-      <h2>요약</h2>
-      <p>${summary}</p>
-      <h2>경력 항목</h2>
+      <div class="header">
+        <h1>${title}</h1>
+        ${metaLine ? `<p class="meta">${metaLine}</p>` : ""}
+        <p class="date">수정일: ${updatedAt}</p>
+      </div>
+      ${summaryHtml}
+      <div class="items-title">경력 항목</div>
       ${itemsHtml}
     </main>
   </body>

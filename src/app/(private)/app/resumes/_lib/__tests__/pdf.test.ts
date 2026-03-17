@@ -16,20 +16,21 @@ describe("resume pdf", () => {
           itemId: "item-1",
           sortOrder: 10,
           notes: "<b>메모</b>",
-          resolvedBulletsJson: ["A", "B"],
+          resolvedBulletsJson: ["A", "<img onerror=alert(1)>"],
           resolvedMetricsJson: { growth: "20%" },
           resolvedTechTags: ["TypeScript"],
           experience: {
             company: "회사",
             role: "개발자",
-            summary: "설명",
+            summary: "<b>설명</b>",
           },
         },
       ],
     });
 
     expect(html).toContain("&lt;script&gt;alert(&#39;x&#39;)&lt;/script&gt;");
-    expect(html).toContain("&lt;b&gt;메모&lt;/b&gt;");
+    expect(html).toContain("&lt;b&gt;설명&lt;/b&gt;");
+    expect(html).toContain("&lt;img onerror=alert(1)&gt;");
     expect(html).not.toContain("<script>alert('x')</script>");
   });
 
