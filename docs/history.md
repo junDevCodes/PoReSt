@@ -1,6 +1,6 @@
 # PoReSt 작업 맥락서
 
-기준일: 2026-03-16
+기준일: 2026-03-17
 문서 정의: 완료된 작업의 이력과 현재 작업이 진행되는 맥락을 기록. 새 세션에서 "지금 왜 이걸 하는가"를 즉시 파악하는 용도.
 관련 문서: `plan.md`(전체 계획), `task.md`(현재 태스크 상세), `checklist.md`(검증 체크리스트)
 
@@ -503,46 +503,114 @@
 
 ---
 
+---
+
+## Sprint 1 → Sprint 2 전환 (2026-03-17)
+
+### Sprint 1 완료 요약
+
+```
+T52 ✅ → T76~G ✅ → T77 ✅ → T78 ✅ → T79 ✅ ∥ T82 ✅
+→ T80-1~6 ✅ → T83 ✅ ∥ T84 ✅ → T85 ✅ ∥ T86 ✅
+→ [M10 완료] → [확장 판단: 보류]
+```
+
+### 확장 판단 결과
+
+- 4개 기준 모두 미충족 (매일 사용 ❌, 외부 조회 ❌, 타인 요청 ❌, 비용 감당 ❌)
+- T87(커스텀 도메인), T81(블로그 연동), 멀티유저 인프라 → `archive.md` 이관
+- 노트/블로그/기업분석 고도화 보류
+
+### Sprint 2 전략 전환
+
+- **포트폴리오/이력서를 프로덕션 레벨로 다듬기** 우선
+- 프론트엔드 성능 최적화 (화면 전환 속도 개선)
+- 기능 추가 최소화, 있는 것을 다듬는 데 집중
+
+---
+
 ## 현재 진행 맥락
 
-### 태스크 진행 순서
+### Sprint 2 태스크
 
 ```
-T52 ✅ → T76~G ✅ → T77 ✅ → T78 ✅ → T79 ✅ ∥ T82 ✅ → T80-1 ✅ → T80-2 ✅ ∥ T80-3 ✅ ∥ T80-4 ✅ → T80-5 ✅ ∥ T80-6 ✅ → T83 ✅ ∥ T84 ✅ → T85 ✅ ∥ T86 ✅ → [확장 판단] → T87, T81
+T88 (포트폴리오 폴리시) → T89 (이력서 UX) → T90 (성능 최적화)
 ```
 
-### M10 완료 — 확장 판단 시점
+### T88 Session A: 포트폴리오 홈 + 공통 폴리시 (2026-03-17) ✅
 
-- T85 ✅ + T86 ✅ → M10 커리어 관리 마일스톤 완료
-- 다음 단계: "이 제품을 남도 쓰게 할 만한가?" 판단
-- T87: 커스텀 도메인 (유료화 경계)
-- T81: 블로그 외부 연동 (Optional)
+**범위**: 3개 파일 수정 (`page.tsx` 홈, `ThemeWrapper.tsx`, `globals.css`)
 
-### 전략 결정 사항 (2026-03-15 논의)
+**핵심 변경**:
 
-- **제품 전략**: Dogfooding → M10 완료 시점에 확장 판단
-- **T81(블로그 연동)**: 우선순위 최하향 — OAuth 유지보수 비용 > 기능 가치
-- **핵심 원칙**: "사용 빈도를 올리는 기능"이 제품 생존 핵심
+1. **프로필 헤더 개선**
+   - 아바타 h-20→h-28 + ring-4 + shadow-lg 데코레이션
+   - font-bold + tracking-tight, 헤드라인 text-xl
+   - 모바일 중앙 정렬 (flex-col items-center sm:flex-row)
 
-### 아키텍처 현황 메모
+2. **카드 시스템 (홈 섹션)**
+   - 프로젝트 카드: shadow-sm + hover:-translate-y-0.5 + 기술 태그 pill + 전체 클릭 영역
+   - 경력 카드: 좌측 타임라인 연결선 (세로 라인 + 도트) + shadow-sm
+   - 추천서 카드: 2컬럼 그리드 + 인용 부호 장식 + SVG 별점
 
-- Vercel Blob: `porest-blob` (Seoul icn1, Public)
-- 브랜치: main 직접 push (PR 없음)
-- 다크모드: `[data-theme="dark"]` + localStorage `"portfolio-theme"`
-- PDF: `pdf-download.ts` (html2canvas-pro + jsPDF)
-- 이력서 공유: `ResumeShareLink` (nanoid 12자)
-- SEO: sitemap.ts(동적), robots.ts, OG Image(동적), JSON-LD(Person/Article)
-- bulletsJson: `string[]`, metricsJson: `{ label: string; value: string }[]`
-- Skills 아이콘: Simple Icons CDN(`cdn.simpleicons.org`) + devicon CDN fallback
-- **layoutJson**: `{ sections: [{ id, visible }] }` — 포트폴리오 홈 섹션 순서/가시성 커스텀
-- **PageView**: `page_views` 테이블, 공개 포트폴리오 자동 트래킹, `/app/analytics` 대시보드
-- **Gemini 클라이언트**: `src/modules/gemini/` — `createGeminiClient()`, `withGeminiFallback()`, GEMINI_API_KEY 기반
-- **노트 AI 평가**: `buildNoteFeedbackItemsWithAI()` + `parseNoteFeedbackResponse()` — Gemini LLM + regex fallback
-- **HR 피드백 LLM**: `buildPortfolioFeedbackItemsWithAI()`, `buildResumeFeedbackItemsWithAI()` — HR 페르소나
-- **임베딩 자동화**: Gemini text-embedding-004 → NoteEmbedding UPSERT, deterministic fallback
-- **자동 후보 엣지**: `queueEmbeddingAndEdgesForNote()` → pgvector 유사도 → NoteEdge CANDIDATE 자동 생성
-- **AI 이력서 초안**: `generateResumeDraft()` → Gemini LLM + 경력/스킬 분석 → Resume+Items 자동 생성
-- **지원 이력 트래커**: `src/modules/job-tracker/` — 칸반 보드 + Gemini JD 매칭 + ApplicationEvent 타임라인
-- **엔티티 연결**: DomainLink + SKILL enum — 양방향 조회 + 공개 조회 + 포트폴리오 "관련 프로젝트" 표시
-- **추천서/동료 평가**: `src/modules/testimonials/` — 공유 링크 → 비로그인 작성 → 승인 후 공개
-- **성장 타임라인**: `src/modules/growth-timeline/` — 6가지 엔티티 자동 수집 + 히트맵 + 수동 이벤트
+3. **섹션 레이아웃**
+   - 좌측 accent bar (h-6 w-1 rounded-full) 섹션 제목
+   - 기술 스택 카테고리별 색상 (Frontend/Backend/DevOps/Mobile/Database)
+
+4. **Footer CTA** — 연락 유도 + "PoReSt로 만들어졌습니다" 크레딧
+
+5. **소셜 링크** — bg-white/60 + shadow-sm pill 스타일
+
+6. **모바일 헤더** — "인쇄"/"PDF 저장" 텍스트 hidden sm:inline
+
+7. **마이크로 인터랙션**
+   - fade-in-up keyframe (delay 0~0.3s) 4단계
+   - CTA hover:scale[1.03], 링크 화살표 translateX 애니메이션
+
+8. **다크모드** — 신규 클래스 전체 dark override (shadow/ring/border/bg/star SVG)
+
+**게이트**: `lint(0 errors, 8 warnings) / build` 통과
+
+### T88 Session B: 하위 페이지 폴리시 (2026-03-17) ✅
+
+**범위**: 3개 파일 수정 (experiences, projects, project detail)
+
+**핵심 변경**:
+
+1. **프로젝트 카드 개선** (`projects/page.tsx`)
+   - shadow-sm + hover:shadow-md + hover:-translate-y-0.5 효과
+   - 기술 스택: 점(·) 텍스트 → pill 배지 전환
+   - 카드 전체 `<Link>` 래핑 (전체 클릭 영역)
+   - "상세 보기" 화살표 아이콘 + hover 이동 애니메이션
+
+2. **경력 카드 타임라인** (`experiences/page.tsx`)
+   - 좌측 타임라인 세로 연결선 (w-0.5) + 도트 (22px)
+   - 재직 중: 에메랄드 도트 + 내부 강조 점
+   - 기간 옆 캘린더 SVG 아이콘
+   - shadow-sm + hover:shadow-md
+
+3. **프로젝트 상세 빈 섹션 숨기기** (`projects/[slug]/page.tsx`)
+   - visibleSections 필터로 콘텐츠 없는 섹션 렌더링 제외
+   - 섹션 제목 SVG 아이콘 (Problem/Approach/Architecture/Results/Links)
+   - 기술 스택 pill 배지, Links 조건부 렌더링
+   - shadow-sm + hover:shadow-md
+
+4. **다크모드**: shadow-none + hover:border-white/20 대응, 뒤로가기 화살표 hover 애니메이션
+
+**게이트**: `lint(0 errors, 8 warnings) / build` 통과
+
+### T88 통합 완료 (2026-03-17) ✅
+
+```
+Session A ✅ (홈 + 공통, 11개)
+Session B ✅ (하위 페이지, 4개)
+Session C ✅ (경력 날짜 필드, 2개)
+통합 게이트 ✅ lint(0 errors) / build(16.1.6) / jest(64 suites, 413 tests) / vercel-build
+Playwright 시각 검증 ⬜ (5개 남음)
+```
+
+### 기준선
+
+- jest: 64 suites, 413 tests
+- lint: 0 errors, 8 warnings
+- 브랜치: main 직접 push

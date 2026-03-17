@@ -35,6 +35,7 @@ docs/                     # 프로젝트 문서
 ├── task.md               # 현재 작업 상세
 ├── history.md            # 작업 이력
 ├── checklist.md          # 완료 기준
+├── archive.md            # 보류 항목/아이디어 보관
 └── specs/                # PRD, 기술 설계 문서
 ```
 
@@ -79,9 +80,9 @@ src/modules/[domain]/
 
 ## Agent 작업 문서 체계
 
-모든 Claude Agents는 작업 시 `docs/` 디렉토리의 **4문서 체계**를 기준으로 작업한다.
+모든 Claude Agents는 작업 시 `docs/` 디렉토리의 **4+1문서 체계**를 기준으로 작업한다.
 
-### 4문서 역할
+### 문서 역할
 
 | 문서 | 역할 |
 |---|---|
@@ -89,6 +90,7 @@ src/modules/[domain]/
 | `docs/task.md` | plan.md에서 할당된 **바로 다음 진행할 기능 단위** 작업 상세 실행 계획서 |
 | `docs/history.md` | 전체 작업 이력을 누적 기록하는 **영구 맥락 문서** |
 | `docs/checklist.md` | task.md 작업에서 점검할 완료 기준을 정리한 **작업 확인서** |
+| `docs/archive.md` | 차후 계획에 편입할 아이디어, 기술적 해결 불가 이슈를 보관하는 **아카이브** |
 
 ### task.md 범위 기준
 
@@ -112,7 +114,7 @@ src/modules/[domain]/
 4. docs/plan.md 해당 Phase 항목 체크
 ```
 
-### 4문서 생명주기
+### 문서 생명주기
 
 | 문서 | 성격 | 완료 시 처리 |
 |---|---|---|
@@ -120,3 +122,4 @@ src/modules/[domain]/
 | `task.md` | 현재 태스크 | checklist 전부 완료 → history.md 요약 → 다음 태스크 |
 | `checklist.md` | task.md 검증용 | task.md와 동시 교체 |
 | `history.md` | 영구 이력 | 초기화 없음. 모든 완료 내용 흡수 |
+| `archive.md` | 보류 보관 | 복귀 조건 충족 시 plan.md로 복귀. 영구 삭제 없음 |
