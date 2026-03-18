@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { parseBullets, parseMetrics } from "@/app/(private)/app/resumes/_lib/format-resume-data";
+import { parseBullets, parseMetrics } from "@/lib/format-resume-data";
 
 type PublicResumePreviewDto = {
   resume: {

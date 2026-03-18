@@ -1,4 +1,4 @@
-import { parseBullets, parseMetrics } from "@/app/(private)/app/resumes/_lib/format-resume-data";
+import { parseBullets, parseMetrics } from "@/lib/format-resume-data";
 
 describe("parseBullets", () => {
   it("문자열 배열을 그대로 반환한다", () => {

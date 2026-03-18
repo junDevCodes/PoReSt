@@ -15,6 +15,7 @@ import {
   getResumeItemSyncBadgeText,
   getResumeItemSyncStatus,
 } from "@/app/(private)/app/resumes/_lib/sync";
+import { parseBullets, parseMetrics, type MetricEntry } from "@/lib/format-resume-data";
 
 type ResumeStatus = "DRAFT" | "SUBMITTED" | "ARCHIVED";
 
@@ -97,8 +98,6 @@ type ResumeFormState = {
 
 // B6: bullets 구조화 편집을 위한 string[] 기반 에디터
 type BulletEntry = { value: string };
-// B7: metrics 구조화 편집을 위한 key-value 쌍
-type MetricEntry = { key: string; value: string };
 
 type ItemEditor = {
   experienceId: string;
@@ -126,17 +125,13 @@ type ShareLinkDto = {
 // ── 데이터 파싱 유틸 ──
 
 function parseBulletsFromJson(json: unknown): BulletEntry[] {
-  if (!json || !Array.isArray(json)) return [];
-  return json
-    .filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+  return parseBullets(json)
+    .filter((v) => v.trim().length > 0)
     .map((value) => ({ value }));
 }
 
 function parseMetricsFromJson(json: unknown): MetricEntry[] {
-  if (!json || typeof json !== "object" || Array.isArray(json)) return [];
-  return Object.entries(json as Record<string, unknown>)
-    .filter(([, v]) => v !== null && v !== undefined)
-    .map(([key, value]) => ({ key, value: String(value) }));
+  return parseMetrics(json);
 }
 
 function bulletsToJson(bullets: BulletEntry[]): string[] | null {
@@ -152,19 +147,6 @@ function metricsToJson(metrics: MetricEntry[]): Record<string, string> | null {
     result[m.key.trim()] = m.value.trim();
   }
   return result;
-}
-
-// 프리뷰용 안전 파서 (resolved 데이터에도 사용)
-function safeParseBullets(json: unknown): string[] {
-  if (!json || !Array.isArray(json)) return [];
-  return json.filter((item): item is string => typeof item === "string");
-}
-
-function safeParseMetrics(json: unknown): Array<{ key: string; value: string }> {
-  if (!json || typeof json !== "object" || Array.isArray(json)) return [];
-  return Object.entries(json as Record<string, unknown>)
-    .filter(([, v]) => v !== null && v !== undefined)
-    .map(([key, value]) => ({ key, value: String(value) }));
 }
 
 function toItemEditors(items: OwnerResumeItemDto[]): Record<string, ItemEditor> {
@@ -300,7 +282,7 @@ function MetricsEditor({
 // ── B8: 포맷된 Bullets 렌더 ──
 
 function FormattedBullets({ json }: { json: unknown }) {
-  const items = safeParseBullets(json);
+  const items = parseBullets(json);
   if (items.length === 0) return <p className="text-[11px] text-black/40">불릿 없음</p>;
   return (
     <ul className="list-disc space-y-0.5 pl-4">
@@ -314,7 +296,7 @@ function FormattedBullets({ json }: { json: unknown }) {
 // ── B8: 포맷된 Metrics 렌더 ──
 
 function FormattedMetrics({ json }: { json: unknown }) {
-  const entries = safeParseMetrics(json);
+  const entries = parseMetrics(json);
   if (entries.length === 0) return <p className="text-[11px] text-black/40">지표 없음</p>;
   return (
     <div className="flex flex-wrap gap-1.5">
@@ -359,28 +341,21 @@ function ShareLinksSection({ resumeId }: { resumeId: string }) {
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function loadLinks() {
+  const loadLinks = async (signal?: { cancelled: boolean }) => {
     const response = await fetch(`/api/app/resumes/${resumeId}/share-links`);
     const parsed = await parseApiResponse<ShareLinkDto[]>(response);
+    if (signal?.cancelled) return;
     if (parsed.data) {
       setLinks(parsed.data);
     }
     setIsLoading(false);
-  }
+  };
 
   useEffect(() => {
-    let mounted = true;
-    async function fetchLinks() {
-      const response = await fetch(`/api/app/resumes/${resumeId}/share-links`);
-      const parsed = await parseApiResponse<ShareLinkDto[]>(response);
-      if (!mounted) return;
-      if (parsed.data) {
-        setLinks(parsed.data);
-      }
-      setIsLoading(false);
-    }
-    void fetchLinks();
-    return () => { mounted = false; };
+    const signal = { cancelled: false };
+    void loadLinks(signal);
+    return () => { signal.cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resumeId]);
 
   async function handleCreate() {

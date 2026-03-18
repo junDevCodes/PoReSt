@@ -1,4 +1,4 @@
-import { parseBullets, parseMetrics } from "./format-resume-data";
+import { parseBullets, parseMetrics } from "@/lib/format-resume-data";
 
 export type ResumePdfPreview = {
   resume: {
