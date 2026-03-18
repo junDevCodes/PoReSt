@@ -719,7 +719,127 @@ Session C ✅ (목록 + 생성, 3개)
 ### Sprint 2 태스크
 
 ```
-T88 (포트폴리오 폴리시) ✅ → T89 (이력서 UX) ✅ → T90 (성능 최적화)
+T88 (포트폴리오 폴리시) ✅ → T89 (이력서 UX) ✅ → T90 (성능 + P1 정리) 진행 중
+```
+
+### T89 코드 리뷰 P1 지적 (T90에서 해결 예정)
+
+- P1-1: `edit/page.tsx` 중복 파서 3개 (`safeParseBullets`, `safeParseMetrics`, `parseBulletsFromJson`) → `format-resume-data.ts` import로 교체
+- P1-2: `ShareLinksSection` 내 `loadLinks()` / `fetchLinks()` 중복 fetch → 단일 함수 통합
+- P2: `share/[token]/page.tsx` 크로스 바운더리 import (`(public)` → `(private)`) → `src/lib/` 공용 이동으로 해결
+
+### T90 Session A: P1 코드 품질 정리 (2026-03-18) ✅
+
+**범위**: 5개 파일 수정/이동/삭제
+
+**핵심 변경**:
+
+1. **format-resume-data.ts 공용 이동** (A1)
+   - `_lib/format-resume-data.ts` → `src/lib/format-resume-data.ts` 이동
+   - import 경로 일괄 수정: `edit/page.tsx`, `share/[token]/page.tsx`, `pdf.ts`
+   - 테스트 파일 동시 이동 (`src/lib/__tests__/format-resume-data.test.ts`)
+   - P2 크로스 바운더리 import 문제 동시 해결 (`(public)` → `(private)` import 제거)
+
+2. **중복 파서 제거** (A2)
+   - `safeParseBullets()` / `safeParseMetrics()` 삭제 → 공용 `parseBullets()` / `parseMetrics()` import
+   - `FormattedBullets` / `FormattedMetrics` 컴포넌트에서 공용 함수 직접 사용
+
+3. **parseBulletsFromJson 리팩토링** (A3)
+   - 독립 파서 → `parseBullets()` + `.filter().map()` 위임 패턴
+   - `parseMetricsFromJson()` → `parseMetrics()` 직접 위임
+   - 빈 문자열 필터 로직 보존
+
+4. **ShareLinksSection fetch 통합** (A4)
+   - `loadLinks()` + `fetchLinks()` 중복 → 단일 `loadLinks(signal?)` 통합
+   - useEffect에서 signal 기반 취소 패턴 적용
+   - `handleCreate` / `handleRevoke` 후 `loadLinks()` 재사용
+
+**게이트**: `lint(0 errors, 8 warnings) / build / jest(65 suites, 429 tests)` 통과
+
+### T90 Session B: 포트폴리오 성능 최적화 (2026-03-18) ✅
+
+**범위**: 8개 파일 (5개 수정, 3개 신규)
+
+**핵심 변경**:
+
+1. **데이터 페칭 병렬화** (B5, B9)
+   - 포트폴리오 홈: skills + testimonials + entityLinks → `Promise.all` 동시 실행
+   - 경력 목록: experiences + entityLinks + publicProjects → `Promise.all` 동시 실행
+   - 프로젝트 목록/상세: 단일 쿼리라 병렬화 대상 없음 확인
+
+2. **아바타 `next/image` 전환** (B6)
+   - `<img>` → `<Image>` + `priority` (LCP 최적화)
+   - `width={112} height={112}` 명시, 자동 AVIF/WebP + srcset
+
+3. **`next.config.ts` 이미지 설정** (B7)
+   - `images.remotePatterns`: Vercel Blob + Google 프로필 도메인
+
+4. **`loading.tsx` 스켈레톤 3개** (B8)
+   - 포트폴리오 홈/경력/프로젝트 — `animate-pulse` Tailwind 기반
+
+5. **스킬 아이콘 CLS 방지** (B10)
+   - `width={16} height={16}` 명시 (기존 `loading="lazy"` 유지)
+
+**게이트**: `lint(0 errors, 8 warnings) / build / jest(65 suites, 429 tests) / vercel-build` 통과
+
+---
+
+## 현재 진행 맥락
+
+### Sprint 2 태스크
+
+```
+T88 (포트폴리오 폴리시) ✅ → T89 (이력서 UX) ✅ → T90 (성능 + P1 정리)
+  Session A ✅ (P1 코드 품질)
+  Session B ✅ (포트폴리오 성능)
+  → B11 (Lighthouse 기준선) + Playwright 시각 검증 + 문서 동기화 남음
+```
+
+### T90 통합 완료 (2026-03-18) ✅
+
+```
+Session A ✅ (P1 코드 품질 정리, 4개)
+Session B ✅ (포트폴리오 성능 최적화, 7개)
+통합 게이트 ✅ lint(0 errors, 8 warnings) / build / jest(65 suites, 429 tests) / vercel-build
+```
+
+**핵심 요약**: T89 P1 기술 부채 즉시 해소 + 포트폴리오 성능 체감 개선
+
+**Session A — P1 코드 품질 정리:**
+- `format-resume-data.ts` 공용 이동 (`_lib/` → `src/lib/`) + P2 크로스 바운더리 해결
+- 편집 페이지 중복 파서 3개 제거 → 공용 `parseBullets()`/`parseMetrics()` import
+- `parseBulletsFromJson`/`parseMetricsFromJson` → 공용 함수 위임 패턴
+- `ShareLinksSection` fetch 중복 (`loadLinks()` + `fetchLinks()`) → 단일 `loadLinks(signal?)` 통합
+
+**Session B — 포트폴리오 성능 최적화:**
+- 데이터 페칭 병렬화: 홈(skills+testimonials+entityLinks) + 경력(experiences+entityLinks+projects) → `Promise.all`
+- 아바타 `<img>` → `next/image` + `priority` (LCP 최적화, AVIF/WebP 자동)
+- `next.config.ts` `images.remotePatterns` 설정 (Vercel Blob + Google 프로필)
+- `loading.tsx` 스켈레톤 3개 추가 (홈/경력/프로젝트, `animate-pulse`)
+- 스킬 아이콘 `width`/`height` 명시 (CLS 방지)
+
+**잔여**: B11 Lighthouse 기준선 + Playwright 시각 검증 (프로덕션 배포 후 수행)
+
+---
+
+## Sprint 2 완료 요약 (2026-03-18)
+
+### 태스크 완료 현황
+
+```
+T88 (포트폴리오 폴리시) ✅
+  Session A: 홈 + 공통 (프로필 헤더, 카드 시스템, 마이크로 인터랙션)
+  Session B: 하위 페이지 (프로젝트 카드, 경력 타임라인, 상세 빈 섹션 숨기기)
+  Session C: 경력 날짜 필드
+
+T89 (이력서 UX) ✅
+  Session A: 공유 페이지 크림 배경 + PDF 프로급 + 인쇄 CSS
+  Session B: bullets/metrics 구조화 편집기 + 공유 링크 인라인 관리
+  Session C: 목록 상태 배지 + 생성 DRAFT 고정
+
+T90 (성능 + P1 정리) ✅
+  Session A: P1 코드 품질 정리 (중복 파서 제거, 크로스 바운더리 해결)
+  Session B: 포트폴리오 성능 최적화 (병렬화, next/image, loading.tsx)
 ```
 
 ### 기준선

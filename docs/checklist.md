@@ -6,136 +6,124 @@
 
 ---
 
-## T89 — 이력서 편집/공유 UX 프로덕션 폴리시
+## T90 — 프론트엔드 성능 최적화 + P1 코드 품질 정리
 
 ---
 
-### Session A — 공유 페이지 + PDF (5개)
+### Session A — P1 코드 품질 정리 (4개)
 
-**수정 파일:** `_lib/format-resume-data.ts`(신규), `share/[token]/page.tsx`, `_lib/pdf.ts`
+**수정 파일:** `src/lib/format-resume-data.ts`(이동), `edit/page.tsx`, `share/page.tsx`, `pdf.ts`, 테스트
 
-#### A1. 데이터 포맷 유틸리티
+#### A1. format-resume-data 공용 위치 이동
 
-- [x] `parseBullets(json)` → string[] 안전 변환 (null/undefined/비배열 → 빈 배열)
-- [x] `parseMetrics(json)` → {key,value}[] 안전 변환 (null/비객체 → 빈 배열)
-- [x] 테스트 작성 (정상 입력 + 엣지 케이스: null, 숫자, 중첩 객체) — 16개
+- [x] `src/app/(private)/app/resumes/_lib/format-resume-data.ts` → `src/lib/format-resume-data.ts` 이동
+- [x] `edit/page.tsx` import 경로 `@/lib/format-resume-data`로 수정
+- [x] `share/[token]/page.tsx` import 경로 수정 (P2 크로스 바운더리 해결)
+- [x] `_lib/pdf.ts` import 경로 수정
+- [x] 테스트 파일 이동 + import 수정
+- [x] 원본 파일 삭제 확인
 
-#### A2~A3. 공유 페이지 리디자인 + 포맷 렌더링
+#### A2. 중복 파서 제거
 
-- [x] 다크 고정 배경 → 크림 배경 + 프로급 카드 레이아웃
-- [x] bullets: `<ul><li>` 서식 리스트 (JSON 평문 제거)
-- [x] metrics: key-value 인라인 표시 (JSON 평문 제거)
-- [x] summary: whitespace-pre-wrap 텍스트 스타일
-- [x] 기술 태그: pill 배지 표시
-- [x] experience.summary 표시 (기존 미표시)
+- [x] `safeParseBullets()` 제거 → `parseBullets()` from `@/lib/format-resume-data` import
+- [x] `safeParseMetrics()` 제거 → `parseMetrics()` from `@/lib/format-resume-data` import
+- [x] `FormattedBullets`/`FormattedMetrics` 컴포넌트 정상 동작 확인
 
-#### A4. PDF HTML 리디자인
+#### A3. parseBulletsFromJson 리팩토링
 
-- [x] bullets: `<ul><li>` 서식 리스트 (기존 `<pre>` JSON 제거)
-- [x] metrics: key-value 표시 (기존 `<pre>` JSON 제거)
-- [x] summary: white-space: pre-wrap (기존 평문)
-- [x] 기술 태그: pill 또는 쉼표 구분 표시
-- [x] 타이포그래피: 헤더 계층 + 색상 강조 + 여백
+- [x] `parseBulletsFromJson()` → `parseBullets()` + `.filter().map()` 패턴으로 단순화
+- [x] `parseMetricsFromJson()` → `parseMetrics()` 위임으로 단순화
+- [x] 빈 문자열 필터 로직 보존 (편집기에서 빈 행 제외)
 
-#### A5. 공유 페이지 인쇄 CSS
+#### A4. ShareLinksSection fetch 통합
 
-- [x] `@media print` 기본 스타일 (배경 숨기기, 깨끗한 출력)
-
----
-
-### Session B — 편집 페이지 UX (4개)
-
-**수정 파일:** `[id]/edit/page.tsx`
-
-#### B6. bullets 구조화 편집기
-
-- [x] JSON textarea → 배열 입력 UI (각 행: input + 삭제 버튼)
-- [x] [항목 추가] 버튼
-- [x] 기존 JSON 데이터 파싱하여 행 초기화
-- [x] 저장 시 string[] → JSON 직렬화
-
-#### B7. metrics 구조화 편집기
-
-- [x] JSON textarea → key-value 쌍 입력 UI (각 행: key + value + 삭제)
-- [x] [항목 추가] 버튼
-- [x] 기존 JSON 데이터 파싱하여 행 초기화
-- [x] 저장 시 Record<string,string> → JSON 직렬화
-
-#### B8. 프리뷰 포맷 렌더링
-
-- [x] 프리뷰 bullets: 마커 리스트 (JSON 평문 제거)
-- [x] 프리뷰 metrics: 키-값 인라인 (JSON 평문 제거)
-- [x] 프리뷰 기술 태그: pill 배지
-
-#### B9. 공유 링크 인라인 관리
-
-- [x] 편집 페이지에 "공유 링크" 섹션 추가
-- [x] 새 공유 링크 생성 버튼 (POST API 호출)
-- [x] 기존 링크 목록 (토큰, 생성일, 상태)
-- [x] 클립보드 복사 버튼 (full URL)
-- [x] 취소(revoke) 버튼 (DELETE API 호출)
+- [x] `fetchLinks()` (useEffect 내) 제거
+- [x] `loadLinks()` 에 signal 가드 패턴 적용
+- [x] useEffect에서 `loadLinks()` 직접 호출
+- [x] `handleCreate`/`handleRevoke` 후 `loadLinks()` 재사용 유지
 
 ---
 
-### Session C — 목록 + 생성 페이지 (3개)
+### Session B — 포트폴리오 성능 최적화 (7개)
 
-**수정 파일:** `ResumesPageClient.tsx`, `new/page.tsx`
+**수정 파일:** `portfolio/*/page.tsx`, `loading.tsx`(신규 3개), `next.config.ts`
 
-#### C10. 목록 카드 상태 배지 + hover
+#### B5. 포트폴리오 홈 데이터 페칭 병렬화
 
-- [x] 상태 배지 색상: DRAFT(회색) / SUBMITTED(에메랄드) / ARCHIVED(앰버)
-- [x] 카드 hover 효과 (shadow-md + -translate-y-0.5)
-- [x] 회사/직무 정보 레이아웃 개선
+- [x] 최상위 쿼리 `Promise.all` 병렬화 (skills + testimonials + entityLinks 동시)
+- [x] 기존 데이터 흐름 보존 (viewModel 구성 변경 없음)
+- [x] ISR revalidate = 60 유지
 
-#### C11. 생성 페이지 상태 고정
+#### B6. 아바타 next/image 전환
 
-- [x] 상태 드롭다운 제거 → DRAFT 고정 전송
-- [x] 안내 문구 추가
+- [x] 포트폴리오 홈 `<img>` → `<Image>` + `priority` (LCP 대응)
+- [x] `width`/`height` 명시 (112x112)
+- [x] className 유지 (ring, shadow 등)
+- [x] avatarUrl 없는 경우 fallback 유지
 
-#### C12. 모바일 반응형
+#### B7. next.config.ts 이미지 설정
 
-- [x] 목록 버튼 줄바꿈 (375px 이하)
-- [x] 편집 항목 세로 스택 (md 이하)
-- [x] 공유 페이지 여백 최적화 (좁은 화면) — px-4 sm:px-6 적용
+- [x] `images.remotePatterns` 추가 (Vercel Blob + Google 프로필)
+- [x] 빌드 성공 확인
+
+#### B8. loading.tsx 추가
+
+- [x] `/portfolio/[publicSlug]/loading.tsx` — 프로필 스켈레톤
+- [x] `/portfolio/[publicSlug]/experiences/loading.tsx` — 타임라인 스켈레톤
+- [x] `/portfolio/[publicSlug]/projects/loading.tsx` — 카드 그리드 스켈레톤
+- [x] `animate-pulse` Tailwind 기반 (외부 라이브러리 없이)
+
+#### B9. 하위 페이지 데이터 페칭 병렬화
+
+- [x] 경력 목록: settings 후 experiences + entityLinks + publicProjects → `Promise.all`
+- [x] 프로젝트 목록: 단일 쿼리 (병렬화 대상 없음)
+- [x] 프로젝트 상세: 단일 쿼리 (병렬화 대상 없음)
+
+#### B10. 스킬 아이콘 CLS 방지
+
+- [x] `<img>` 태그 `width={16} height={16}` 명시 (CLS 방지)
+- [x] `loading="lazy"` 기존 적용 확인
+
+#### B11. Lighthouse 기준선 측정
+
+- [ ] 프로덕션 배포 후 Lighthouse 모바일 측정
+- [ ] LCP / FCP / CLS / TBT 수치 기록
+- [ ] history.md에 성능 기준선 문서화
 
 ---
 
 ### 세션별 개별 게이트
 
-각 세션은 독립적으로 lint/build 통과 확인 후 커밋.
-
 **Session A 게이트:**
-- [x] `npm run lint` 통과
+- [x] `npm run lint` 통과 (0 errors, 8 warnings)
 - [x] `npm run build` 통과
+- [x] 기존 format-resume-data 테스트 통과 (16개)
+- [x] 전체 Jest 통과 (65 suites, 429 tests)
 
 **Session B 게이트:**
-- [x] `npm run lint` 통과
-- [x] `npm run build` 통과
-
-**Session C 게이트:**
-- [x] `npm run lint` 통과
+- [x] `npm run lint` 통과 (0 errors, 8 warnings)
 - [x] `npm run build` 통과
 
 ### 통합 게이트 4종 (전 세션 완료 후)
 
-- [x] `npm run lint` 통과 (0 errors, 8 warnings)
-- [x] `npm run build` 통과 (Next.js 16.1.6 Turbopack)
-- [x] `npx jest --runInBand` 통과 (65 suites, 429 tests)
-- [x] `npm run vercel-build` 통과
+- [x] `npm run lint` 통과 (0 errors, 8 warnings) ✅ 2026-03-18 최종 확인
+- [x] `npm run build` 통과 ✅
+- [x] `npx jest --runInBand` 통과 (65 suites, 429 tests) ✅
+- [x] `npm run vercel-build` 통과 ✅
 
-### Playwright 시각 검증 (프로덕션)
+### Playwright 시각 검증 (프로덕션) — 배포 후 수행
 
-- [x] 공유 페이지 크림 배경 + 포맷 렌더링 정상 (bullets `<ul>`, pill 태그, summary, 번호 인디케이터)
-- [x] 공유 페이지 에러 처리 (잘못된 토큰 → 에러 메시지)
-- [x] 편집 페이지 구조화 편집기 동작 (오버라이드 불릿/지표 + 항목 추가 UI)
-- [x] 편집 페이지 공유 링크 관리 동작 (생성 → 활성 표시 → URL 복사/취소)
-- [x] 목록 페이지 상태 배지 (초안 회색) + 회사/직무/항목수 레이아웃
-- [x] 생성 페이지 DRAFT 고정 배지 + 안내 문구
+- [ ] 포트폴리오 홈 정상 렌더링 (이미지, 섹션 순서)
+- [ ] 포트폴리오 하위 페이지 정상 (경력, 프로젝트 목록, 상세)
+- [ ] 이력서 편집 페이지 정상 (구조화 편집기, 공유 링크)
+- [ ] 이력서 공유 페이지 정상 (포맷 렌더링)
+- [ ] loading.tsx 스켈레톤 표시 확인 (느린 네트워크 시뮬레이션)
 
 ---
 
 ### 매 태스크 종료 시 공통
 
-- [x] 통합 게이트 4종 통과
-- [x] Playwright 시각 검증 통과
-- [x] `task.md`, `checklist.md`, `history.md`, `plan.md` 문서 동기화
+- [x] 통합 게이트 4종 통과 ✅ 2026-03-18
+- [ ] Playwright 시각 검증 통과 (배포 후)
+- [ ] Lighthouse 기준선 기록 (배포 후)
+- [x] `task.md`, `checklist.md`, `history.md`, `plan.md` 문서 동기화 ✅
