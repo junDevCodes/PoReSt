@@ -42,6 +42,11 @@ yarn-error.log*
 next-env.d.ts
 update-plan-names.ps1
 
+# Playwright
+playwright-report/
+test-results/
+blob-report/
+
 # CUSTOM
 AGENTS.md
 .mcp.json
