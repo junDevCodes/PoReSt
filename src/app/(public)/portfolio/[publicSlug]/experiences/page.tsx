@@ -43,42 +43,42 @@ export default async function PublicExperiencesPage({ params }: ExperiencesPageP
     notFound();
   }
 
-  const experiences = await prisma.experience.findMany({
-    where: {
-      ownerId: settings.ownerId,
-      visibility: "PUBLIC",
-    },
-    orderBy: [{ startDate: "desc" }, { order: "asc" }],
-    select: {
-      id: true,
-      company: true,
-      role: true,
-      startDate: true,
-      endDate: true,
-      isCurrent: true,
-      summary: true,
-      bulletsJson: true,
-      metricsJson: true,
-      techTags: true,
-    },
-  });
-
-  // 엔티티 연결: 경력 → 관련 프로젝트
-  const entityLinks = await prisma.domainLink.findMany({
-    where: {
-      ownerId: settings.ownerId,
-      OR: [
-        { sourceType: DomainLinkEntityType.EXPERIENCE, targetType: DomainLinkEntityType.PROJECT },
-        { sourceType: DomainLinkEntityType.PROJECT, targetType: DomainLinkEntityType.EXPERIENCE },
-      ],
-    },
-    select: { sourceType: true, sourceId: true, targetType: true, targetId: true },
-  });
-
-  const publicProjects = await prisma.project.findMany({
-    where: { ownerId: settings.ownerId, visibility: "PUBLIC" },
-    select: { id: true, slug: true, title: true },
-  });
+  // 병렬 페칭: experiences + entityLinks + publicProjects 동시 실행
+  const [experiences, entityLinks, publicProjects] = await Promise.all([
+    prisma.experience.findMany({
+      where: {
+        ownerId: settings.ownerId,
+        visibility: "PUBLIC",
+      },
+      orderBy: [{ startDate: "desc" }, { order: "asc" }],
+      select: {
+        id: true,
+        company: true,
+        role: true,
+        startDate: true,
+        endDate: true,
+        isCurrent: true,
+        summary: true,
+        bulletsJson: true,
+        metricsJson: true,
+        techTags: true,
+      },
+    }),
+    prisma.domainLink.findMany({
+      where: {
+        ownerId: settings.ownerId,
+        OR: [
+          { sourceType: DomainLinkEntityType.EXPERIENCE, targetType: DomainLinkEntityType.PROJECT },
+          { sourceType: DomainLinkEntityType.PROJECT, targetType: DomainLinkEntityType.EXPERIENCE },
+        ],
+      },
+      select: { sourceType: true, sourceId: true, targetType: true, targetId: true },
+    }),
+    prisma.project.findMany({
+      where: { ownerId: settings.ownerId, visibility: "PUBLIC" },
+      select: { id: true, slug: true, title: true },
+    }),
+  ]);
   const projectMap = new Map(publicProjects.map((p) => [p.id, p]));
 
   const experienceProjectMap = new Map<string, Array<{ id: string; slug: string; title: string }>>();

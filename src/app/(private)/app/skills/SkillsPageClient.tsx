@@ -412,6 +412,8 @@ export function SkillsPageClient({ initialSkills }: SkillsPageClientProps) {
                 <img
                   src={skillIconUrl(preset.icon)}
                   alt=""
+                  width={16}
+                  height={16}
                   className="h-4 w-4 shrink-0"
                   loading="lazy"
                 />

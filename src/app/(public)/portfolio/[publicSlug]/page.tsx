@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DomainLinkEntityType } from "@prisma/client";
@@ -383,14 +384,35 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
 
   const viewModel = toPublicHomeViewModel(portfolio);
 
-  const skills = await prisma.skill.findMany({
-    where: {
-      owner: { portfolioSettings: { publicSlug: resolvedParams.publicSlug, isPublic: true } },
-      visibility: "PUBLIC",
-    },
-    orderBy: [{ category: "asc" }, { order: "asc" }],
-    select: { id: true, name: true, category: true, level: true },
-  });
+  // 병렬 페칭: skills + testimonials + entityLinks 동시 실행
+  async function fetchEntityLinks() {
+    const ownerSettings = await prisma.portfolioSettings.findUnique({
+      where: { publicSlug: resolvedParams.publicSlug },
+      select: { ownerId: true },
+    });
+    if (!ownerSettings) return [];
+    return prisma.domainLink.findMany({
+      where: {
+        ownerId: ownerSettings.ownerId,
+        sourceType: { in: [DomainLinkEntityType.PROJECT, DomainLinkEntityType.EXPERIENCE, DomainLinkEntityType.SKILL] },
+        targetType: { in: [DomainLinkEntityType.PROJECT, DomainLinkEntityType.EXPERIENCE, DomainLinkEntityType.SKILL] },
+      },
+      select: { sourceType: true, sourceId: true, targetType: true, targetId: true },
+    });
+  }
+
+  const [skills, testimonials, entityLinks] = await Promise.all([
+    prisma.skill.findMany({
+      where: {
+        owner: { portfolioSettings: { publicSlug: resolvedParams.publicSlug, isPublic: true } },
+        visibility: "PUBLIC",
+      },
+      orderBy: [{ category: "asc" }, { order: "asc" }],
+      select: { id: true, name: true, category: true, level: true },
+    }),
+    testimonialService.listPublicBySlug(resolvedParams.publicSlug),
+    fetchEntityLinks(),
+  ]);
 
   const skillGroups = new Map<string, typeof skills>();
   for (const skill of skills) {
@@ -402,25 +424,6 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
       skillGroups.set(key, [skill]);
     }
   }
-
-  // 추천서 조회
-  const testimonials = await testimonialService.listPublicBySlug(resolvedParams.publicSlug);
-
-  // 엔티티 연결 조회 (Experience ↔ Project ↔ Skill)
-  const ownerSettings = await prisma.portfolioSettings.findUnique({
-    where: { publicSlug: resolvedParams.publicSlug },
-    select: { ownerId: true },
-  });
-  const entityLinks = ownerSettings
-    ? await prisma.domainLink.findMany({
-        where: {
-          ownerId: ownerSettings.ownerId,
-          sourceType: { in: [DomainLinkEntityType.PROJECT, DomainLinkEntityType.EXPERIENCE, DomainLinkEntityType.SKILL] },
-          targetType: { in: [DomainLinkEntityType.PROJECT, DomainLinkEntityType.EXPERIENCE, DomainLinkEntityType.SKILL] },
-        },
-        select: { sourceType: true, sourceId: true, targetType: true, targetId: true },
-      })
-    : [];
 
   // 경력 → 관련 프로젝트 맵
   const experienceProjects = new Map<string, string[]>();
@@ -481,10 +484,12 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
       {/* Profile header — always first */}
       <div className="animate-fade-in-up flex flex-col items-center gap-5 sm:flex-row sm:items-start">
         {viewModel.profile.avatarUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={viewModel.profile.avatarUrl}
             alt={`${displayName} 프로필 이미지`}
+            width={112}
+            height={112}
+            priority
             className="h-28 w-28 shrink-0 rounded-full object-cover ring-4 ring-black/5 shadow-lg dark:ring-white/10"
           />
         ) : (
