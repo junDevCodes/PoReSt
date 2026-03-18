@@ -1,6 +1,6 @@
 # PoReSt 작업 맥락서
 
-기준일: 2026-03-17
+기준일: 2026-03-18
 문서 정의: 완료된 작업의 이력과 현재 작업이 진행되는 맥락을 기록. 새 세션에서 "지금 왜 이걸 하는가"를 즉시 파악하는 용도.
 관련 문서: `plan.md`(전체 계획), `task.md`(현재 태스크 상세), `checklist.md`(검증 체크리스트)
 
@@ -714,151 +714,139 @@ Session C ✅ (목록 + 생성, 3개)
 
 ---
 
-## 현재 진행 맥락
+### T90 상세 이력 (2026-03-18)
 
-### Sprint 2 태스크
-
-```
-T88 (포트폴리오 폴리시) ✅ → T89 (이력서 UX) ✅ → T90 (성능 + P1 정리) 진행 중
-```
-
-### T89 코드 리뷰 P1 지적 (T90에서 해결 예정)
-
-- P1-1: `edit/page.tsx` 중복 파서 3개 (`safeParseBullets`, `safeParseMetrics`, `parseBulletsFromJson`) → `format-resume-data.ts` import로 교체
-- P1-2: `ShareLinksSection` 내 `loadLinks()` / `fetchLinks()` 중복 fetch → 단일 함수 통합
-- P2: `share/[token]/page.tsx` 크로스 바운더리 import (`(public)` → `(private)`) → `src/lib/` 공용 이동으로 해결
-
-### T90 Session A: P1 코드 품질 정리 (2026-03-18) ✅
-
-**범위**: 5개 파일 수정/이동/삭제
-
-**핵심 변경**:
-
-1. **format-resume-data.ts 공용 이동** (A1)
-   - `_lib/format-resume-data.ts` → `src/lib/format-resume-data.ts` 이동
-   - import 경로 일괄 수정: `edit/page.tsx`, `share/[token]/page.tsx`, `pdf.ts`
-   - 테스트 파일 동시 이동 (`src/lib/__tests__/format-resume-data.test.ts`)
-   - P2 크로스 바운더리 import 문제 동시 해결 (`(public)` → `(private)` import 제거)
-
-2. **중복 파서 제거** (A2)
-   - `safeParseBullets()` / `safeParseMetrics()` 삭제 → 공용 `parseBullets()` / `parseMetrics()` import
-   - `FormattedBullets` / `FormattedMetrics` 컴포넌트에서 공용 함수 직접 사용
-
-3. **parseBulletsFromJson 리팩토링** (A3)
-   - 독립 파서 → `parseBullets()` + `.filter().map()` 위임 패턴
-   - `parseMetricsFromJson()` → `parseMetrics()` 직접 위임
-   - 빈 문자열 필터 로직 보존
-
-4. **ShareLinksSection fetch 통합** (A4)
-   - `loadLinks()` + `fetchLinks()` 중복 → 단일 `loadLinks(signal?)` 통합
-   - useEffect에서 signal 기반 취소 패턴 적용
-   - `handleCreate` / `handleRevoke` 후 `loadLinks()` 재사용
-
-**게이트**: `lint(0 errors, 8 warnings) / build / jest(65 suites, 429 tests)` 통과
-
-### T90 Session B: 포트폴리오 성능 최적화 (2026-03-18) ✅
-
-**범위**: 8개 파일 (5개 수정, 3개 신규)
-
-**핵심 변경**:
-
-1. **데이터 페칭 병렬화** (B5, B9)
-   - 포트폴리오 홈: skills + testimonials + entityLinks → `Promise.all` 동시 실행
-   - 경력 목록: experiences + entityLinks + publicProjects → `Promise.all` 동시 실행
-   - 프로젝트 목록/상세: 단일 쿼리라 병렬화 대상 없음 확인
-
-2. **아바타 `next/image` 전환** (B6)
-   - `<img>` → `<Image>` + `priority` (LCP 최적화)
-   - `width={112} height={112}` 명시, 자동 AVIF/WebP + srcset
-
-3. **`next.config.ts` 이미지 설정** (B7)
-   - `images.remotePatterns`: Vercel Blob + Google 프로필 도메인
-
-4. **`loading.tsx` 스켈레톤 3개** (B8)
-   - 포트폴리오 홈/경력/프로젝트 — `animate-pulse` Tailwind 기반
-
-5. **스킬 아이콘 CLS 방지** (B10)
-   - `width={16} height={16}` 명시 (기존 `loading="lazy"` 유지)
-
-**게이트**: `lint(0 errors, 8 warnings) / build / jest(65 suites, 429 tests) / vercel-build` 통과
-
----
-
-## 현재 진행 맥락
-
-### Sprint 2 태스크
-
-```
-T88 (포트폴리오 폴리시) ✅ → T89 (이력서 UX) ✅ → T90 (성능 + P1 정리)
-  Session A ✅ (P1 코드 품질)
-  Session B ✅ (포트폴리오 성능)
-  → B11 (Lighthouse 기준선) + Playwright 시각 검증 + 문서 동기화 남음
-```
-
-### T90 통합 완료 (2026-03-18) ✅
-
-```
-Session A ✅ (P1 코드 품질 정리, 4개)
-Session B ✅ (포트폴리오 성능 최적화, 7개)
-통합 게이트 ✅ lint(0 errors, 8 warnings) / build / jest(65 suites, 429 tests) / vercel-build
-```
-
-**핵심 요약**: T89 P1 기술 부채 즉시 해소 + 포트폴리오 성능 체감 개선
-
-**Session A — P1 코드 품질 정리:**
+**Session A — P1 코드 품질 정리** (5개 파일 수정/이동/삭제):
 - `format-resume-data.ts` 공용 이동 (`_lib/` → `src/lib/`) + P2 크로스 바운더리 해결
 - 편집 페이지 중복 파서 3개 제거 → 공용 `parseBullets()`/`parseMetrics()` import
-- `parseBulletsFromJson`/`parseMetricsFromJson` → 공용 함수 위임 패턴
-- `ShareLinksSection` fetch 중복 (`loadLinks()` + `fetchLinks()`) → 단일 `loadLinks(signal?)` 통합
+- `ShareLinksSection` fetch 중복 → 단일 `loadLinks(signal?)` 통합
 
-**Session B — 포트폴리오 성능 최적화:**
-- 데이터 페칭 병렬화: 홈(skills+testimonials+entityLinks) + 경력(experiences+entityLinks+projects) → `Promise.all`
-- 아바타 `<img>` → `next/image` + `priority` (LCP 최적화, AVIF/WebP 자동)
-- `next.config.ts` `images.remotePatterns` 설정 (Vercel Blob + Google 프로필)
-- `loading.tsx` 스켈레톤 3개 추가 (홈/경력/프로젝트, `animate-pulse`)
+**Session B — 포트폴리오 성능 최적화** (8개 파일):
+- 데이터 페칭 병렬화: 홈 + 경력 → `Promise.all`
+- 아바타 `<img>` → `next/image` + `priority` (LCP 최적화)
+- `loading.tsx` 스켈레톤 3개 (홈/경력/프로젝트)
 - 스킬 아이콘 `width`/`height` 명시 (CLS 방지)
-
-**Playwright 프로덕션 검증 ✅** (2026-03-18):
-- 포트폴리오 홈: next/image 아바타 렌더링 + 섹션 순서(프로젝트→경력→기술스택→CTA) 정상
-- 다크/라이트 전환: 데스크톱 + 모바일(390x844) 양쪽 정상
-- 경력 페이지: 타임라인 도트 + 재직중 배지 + bullets/metrics/techTags 정상
-- 프로젝트: 목록(카드+pill) + 상세(CASE STUDY+빈 섹션 숨기기) 정상
-- 이력서 생성: DRAFT 고정 배지 + 안내 문구 정상
-- 이력서 공유: 잘못된 토큰 → "찾을 수 없습니다" 에러 처리 정상
-
-**잔여**: B11 Lighthouse 기준선 (수동 측정 필요)
 
 ---
 
-## Sprint 2 완료 요약 (2026-03-18)
+## Sprint 3 — M12: Quality Assurance
 
-### 태스크 완료 현황
+### T91 Session B: PageViews 모듈 통합 테스트 (2026-03-18) ✅
+
+**범위**: 2개 파일 신규 (테스트 26개)
+
+**핵심 변경**:
+
+1. **통합 테스트** (`implementation.integration.test.ts`, 15개)
+   - B1: `recordPageView()` 정상 — 4가지 pageType 성공, pageSlug+referrer 저장, publicSlug→ownerId 결정
+   - B2: `recordPageView()` 에러 — 무효 pageType(422), 미존재 slug(404), 비공개(404), 빈 slug(422)
+   - B3: `getAnalytics()` 요약 — 빈 데이터(0), 30일 범위 정확도, 커스텀 days 범위
+   - B4: `getAnalytics()` 집계 — 날짜 오름차순, 타입별 내림차순, referrer 호스트 추출, 최근 20개 제한
+
+2. **Validation 테스트** (`validation.test.ts`, 11개)
+   - B5: publicSlug 빈 문자열/누락, pageType 허용 4가지/비허용 6가지, referrer null/undefined 허용
+   - B6: extractHost 간접 검증 — 유효 URL→호스트, 잘못된 URL→원본, null referrer→미포함
+   - mock Prisma 기반 getAnalytics 빈 데이터 검증
+
+**게이트**: `lint(0 errors, 8 warnings) / build / jest(67 suites, 455 tests)` 통과
+**기준선 변동**: 65 suites → 67 suites, 429 tests → 455 tests (+2 suites, +26 tests)
+
+### T91 Session A: Skills 모듈 통합 테스트 (2026-03-18) ✅
+
+**범위**: 2개 파일 신규 (테스트 27개)
+
+**핵심 변경**:
+
+1. **통합 테스트** (`implementation.integration.test.ts`, 15개)
+   - A1: `listSkillsForOwner()` — 빈 목록, 정렬(category→order→name ASC), 다중 카테고리 그룹핑
+   - A2: `createSkill()` 정상 — 전체 필드, 필수만 기본값(order=0, category=null), 소유자 바인딩
+   - A3: `createSkill()` 에러 — Zod 빈 name(422), 중복 CONFLICT(409), 다른 owner 동일 이름 허용
+   - A4: `updateSkill()` — 부분 업데이트(name만), FORBIDDEN(403), NOT_FOUND(404)
+   - A5: `deleteSkill()` — 정상 삭제+목록 제외, FORBIDDEN(403), NOT_FOUND(404)
+
+2. **Validation 테스트** (`validation.test.ts`, 12개)
+   - A6: CreateSkillInput — name 빈/50자 초과, category 30자 초과, level 범위(1~5), order 음수, 정상 케이스 2개
+   - A6: UpdateSkillInput — 빈 객체 거부, name만/level만 수정 성공
+   - A7: extractZodFieldErrors — 다중 필드 에러(name+level) 추출, 에러 경로 매핑 검증
+
+**게이트**: `lint(0 errors, 8 warnings) / build / jest(69 suites, 482 tests) / vercel-build` 통과
+**기준선 변동**: 67 suites → 69 suites, 455 tests → 482 tests (+2 suites, +27 tests)
+
+### T91 통합 완료 (2026-03-18) ✅
 
 ```
-T88 (포트폴리오 폴리시) ✅
-  Session A: 홈 + 공통 (프로필 헤더, 카드 시스템, 마이크로 인터랙션)
-  Session B: 하위 페이지 (프로젝트 카드, 경력 타임라인, 상세 빈 섹션 숨기기)
-  Session C: 경력 날짜 필드
-
-T89 (이력서 UX) ✅
-  Session A: 공유 페이지 크림 배경 + PDF 프로급 + 인쇄 CSS
-  Session B: bullets/metrics 구조화 편집기 + 공유 링크 인라인 관리
-  Session C: 목록 상태 배지 + 생성 DRAFT 고정
-
-T90 (성능 + P1 정리) ✅
-  Session A: P1 코드 품질 정리 (중복 파서 제거, 크로스 바운더리 해결)
-  Session B: 포트폴리오 성능 최적화 (병렬화, next/image, loading.tsx)
-  Playwright: 프로덕션 시각 검증 7개 항목 통과
+Session A ✅ (Skills, 27개 — 15 integration + 12 validation)
+Session B ✅ (PageViews, 26개 — 15 integration + 11 validation)
+통합 게이트 ✅ lint(0 errors, 8 warnings) / build / jest(69 suites, 482 tests) / vercel-build
 ```
 
-### 커밋 이력 (T90)
+**핵심 요약**: Sprint 1 TDD 미완료 항목 즉시 해소 — archive.md 복귀 완료
+- Skills 모듈: CRUD 전체 + Zod 검증 + 소유권 격리 + 에러 코드 27개 테스트
+- PageViews 모듈: recordPageView + getAnalytics + 입력 검증 + extractHost 26개 테스트
+- 기존 패턴 100% 준수 (describeWithDatabase, runWithRollback, createOwner, mock Prisma)
 
-- `3751e3b` refactor(resumes): P1 코드 품질 정리 (T90-A)
-- `c3c4e83` perf(portfolio): 데이터 병렬화 + next/image + loading.tsx (T90-B)
-- `6fa5220` docs: T90 + Sprint 2 종합 문서 반영
+### Sprint 3 Phase 1 완료 (2026-03-18) ✅
 
-### 기준선
+```
+Phase 1: 테스트 보강
+  T91 (TDD 미완료 보충) ✅ — Skills 27개 + PageViews 26개 = 53개 신규 테스트
+```
 
-- jest: 65 suites, 429 tests
-- lint: 0 errors, 8 warnings
+**기준선**: 69 suites, 482 tests / lint 0 errors, 8 warnings
+
+### T92 Session A: Playwright E2E 설정 + 페이지 스펙 (2026-03-18) ✅
+
+**범위**: 8개 파일 (4개 신규, 4개 수정)
+
+**핵심 변경**:
+
+1. **Playwright 환경 설정** (S1~S3)
+   - `@playwright/test ^1.58.2` + Chromium 바이너리 설치
+   - `playwright.config.ts`: baseURL env 기반, Chromium only, timeout 30s, expect 15s, retries 1
+   - `package.json` scripts: `test:e2e`, `test:e2e:headed`, `test:e2e:report`
+   - `.gitignore`: `playwright-report/`, `test-results/`, `blob-report/`
+   - `jest.config.js`: `testPathIgnorePatterns: e2e/` (Jest와 분리)
+
+2. **포트폴리오 홈 E2E** (E1, 3 tests)
+   - 프로필 이름/헤드라인 표시, 섹션 제목("대표 프로젝트") 존재, 푸터 PoReSt 크레딧
+
+3. **경력 페이지 E2E** (E2, 2 tests)
+   - h1 "경력" 제목, article 카드 1개 이상 또는 빈 상태 메시지
+
+4. **프로젝트 페이지 E2E** (E3, 3 tests)
+   - 목록 페이지 제목+카드, 카드 클릭→상세 이동, 상세 페이지 제목 표시
+
+**트러블슈팅**:
+- slug `jundev` → `jundevcodes` 수정 (프로덕션 404 해결)
+- Next.js streaming SSR 대응: `expect.timeout: 15000` (loading.tsx 스켈레톤 후 실제 콘텐츠 대기)
+- Jest가 e2e/ 파일 수집 → `testPathIgnorePatterns` 추가
+
+**게이트**: `lint(0 errors, 8 warnings) / test:e2e(8 passed) / jest(69 suites, 482 tests)` 통과
+**커밋**: `bc583c3`
+
+---
+
+## 현재 진행 맥락
+
+### Sprint 3 진행 현황 (M12: Quality Assurance)
+
+```
+Phase 1: 테스트 보강
+  T91 (TDD 미완료 보충) ✅
+
+Phase 2: E2E 자동화
+  T92 Session A ✅ (설정 + 페이지 스펙 8개)
+  T92 Session B ⬜ 다음 태스크 (기능 스펙 + CI)
+
+Phase 3: 품질 감사
+  T93 (WCAG 접근성) ⬜ 대기
+  T94 (Lighthouse 기준선) ⬜ 대기
+```
+
+### 다음 세션 컨텍스트
+
+- T92 Session B 진행: E4~E7 기능 스펙 4개 + C1~C2 CI 연동
+- slug: `jundevcodes` (프로덕션 확인 완료)
+- Session A 커밋 완료 (bc583c3) — Session B 즉시 시작 가능
+- 기준선: 69 suites, 482 tests + E2E 8 tests / lint 0 errors, 8 warnings
 - 브랜치: main 직접 push
