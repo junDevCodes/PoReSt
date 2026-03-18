@@ -818,7 +818,15 @@ Session B ✅ (포트폴리오 성능 최적화, 7개)
 - `loading.tsx` 스켈레톤 3개 추가 (홈/경력/프로젝트, `animate-pulse`)
 - 스킬 아이콘 `width`/`height` 명시 (CLS 방지)
 
-**잔여**: B11 Lighthouse 기준선 + Playwright 시각 검증 (프로덕션 배포 후 수행)
+**Playwright 프로덕션 검증 ✅** (2026-03-18):
+- 포트폴리오 홈: next/image 아바타 렌더링 + 섹션 순서(프로젝트→경력→기술스택→CTA) 정상
+- 다크/라이트 전환: 데스크톱 + 모바일(390x844) 양쪽 정상
+- 경력 페이지: 타임라인 도트 + 재직중 배지 + bullets/metrics/techTags 정상
+- 프로젝트: 목록(카드+pill) + 상세(CASE STUDY+빈 섹션 숨기기) 정상
+- 이력서 생성: DRAFT 고정 배지 + 안내 문구 정상
+- 이력서 공유: 잘못된 토큰 → "찾을 수 없습니다" 에러 처리 정상
+
+**잔여**: B11 Lighthouse 기준선 (수동 측정 필요)
 
 ---
 
@@ -840,7 +848,14 @@ T89 (이력서 UX) ✅
 T90 (성능 + P1 정리) ✅
   Session A: P1 코드 품질 정리 (중복 파서 제거, 크로스 바운더리 해결)
   Session B: 포트폴리오 성능 최적화 (병렬화, next/image, loading.tsx)
+  Playwright: 프로덕션 시각 검증 7개 항목 통과
 ```
+
+### 커밋 이력 (T90)
+
+- `3751e3b` refactor(resumes): P1 코드 품질 정리 (T90-A)
+- `c3c4e83` perf(portfolio): 데이터 병렬화 + next/image + loading.tsx (T90-B)
+- `6fa5220` docs: T90 + Sprint 2 종합 문서 반영
 
 ### 기준선
 
