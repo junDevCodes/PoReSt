@@ -234,6 +234,6 @@
 - [x] `npm run lint` 통과 (0 errors, 9 warnings)
 - [x] `npm run build` 통과 (API 5경로 + UI 2경로 포함)
 - [x] `npx jest` 통과 (71 suites, 519 tests)
-- [x] 기존 E2E 17개 회귀 없음 (17 passed, 13.6s — 2026-03-19 통합 게이트)
-- [x] 브라우저 확인: 빌드 + E2E 검증 완료 (API 5경로 + UI 2경로 정상 빌드)
+- [x] 기존 E2E 17개 회귀 없음 (17 passed, 11.9s — 프로덕션 배포 후 검증)
+- [x] 프로덕션 HTTP 200 확인: 홈/경력/프로젝트/sitemap + E2E 17/17 통과
 - [x] `task.md`, `checklist.md`, `history.md`, `plan.md` 문서 동기화
