@@ -103,10 +103,10 @@ export default function PublicResumeSharePage() {
       {/* 상단 네비 (인쇄 시 숨김) */}
       <nav className="border-b border-stone-200 bg-white/80 backdrop-blur-sm print:hidden">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-3 sm:px-6">
-          <p className="text-xs font-medium uppercase tracking-[0.2em] text-stone-400">Shared Resume</p>
+          <p className="text-xs font-medium uppercase tracking-[0.2em] text-stone-500">Shared Resume</p>
           <Link
             href="/"
-            className="rounded-full border border-stone-300 px-4 py-1.5 text-xs font-medium text-stone-600 transition hover:bg-stone-50"
+            className="rounded-full border border-stone-300 px-4 py-1.5 text-xs font-medium text-stone-600 transition hover:bg-stone-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-400"
           >
             홈으로
           </Link>
@@ -116,7 +116,7 @@ export default function PublicResumeSharePage() {
       <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
         {/* 로딩 */}
         {isLoading ? (
-          <p className="text-sm text-stone-500">공유 이력서를 불러오는 중입니다...</p>
+          <p className="text-sm text-stone-600">공유 이력서를 불러오는 중입니다...</p>
         ) : null}
 
         {/* 에러 */}
@@ -134,7 +134,7 @@ export default function PublicResumeSharePage() {
               <h1 className="text-2xl font-bold tracking-tight text-stone-900 sm:text-3xl">
                 {preview.resume.title}
               </h1>
-              <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-stone-500">
+              <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-stone-600">
                 {preview.resume.targetCompany ? (
                   <span className="font-medium text-stone-700">{preview.resume.targetCompany}</span>
                 ) : null}
@@ -151,7 +151,7 @@ export default function PublicResumeSharePage() {
                   </>
                 ) : null}
               </div>
-              <p className="mt-2 text-xs text-stone-400">
+              <p className="mt-2 text-xs text-stone-500">
                 마지막 수정: {formatDateLabel(preview.resume.updatedAt)}
               </p>
             </header>
@@ -159,7 +159,7 @@ export default function PublicResumeSharePage() {
             {/* 요약 */}
             {preview.resume.summaryMd ? (
               <section className="mb-8">
-                <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-stone-400">
+                <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-stone-500">
                   요약
                 </h2>
                 <p className="whitespace-pre-wrap text-sm leading-relaxed text-stone-700">
@@ -171,7 +171,7 @@ export default function PublicResumeSharePage() {
             {/* 경력 항목 */}
             {preview.items.length > 0 ? (
               <section>
-                <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-stone-400">
+                <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-stone-500">
                   경력 항목
                 </h2>
                 <div className="space-y-4">
@@ -186,14 +186,14 @@ export default function PublicResumeSharePage() {
                       >
                         {/* 카드 헤더 */}
                         <div className="flex items-start gap-3">
-                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-stone-100 text-xs font-bold text-stone-500">
+                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-stone-100 text-xs font-bold text-stone-600">
                             {idx + 1}
                           </span>
                           <div className="min-w-0 flex-1">
                             <h3 className="text-base font-semibold text-stone-900">
                               {item.experience.company}
                             </h3>
-                            <p className="text-sm text-stone-500">{item.experience.role}</p>
+                            <p className="text-sm text-stone-600">{item.experience.role}</p>
                           </div>
                         </div>
 
@@ -221,7 +221,7 @@ export default function PublicResumeSharePage() {
                         {/* 성과 (Bullets) */}
                         {bullets.length > 0 ? (
                           <div className="mt-4">
-                            <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-stone-400">
+                            <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-stone-500">
                               주요 성과
                             </p>
                             <ul className="list-inside list-disc space-y-1 text-sm text-stone-700">
@@ -235,7 +235,7 @@ export default function PublicResumeSharePage() {
                         {/* 성과 지표 (Metrics) */}
                         {metrics.length > 0 ? (
                           <div className="mt-4">
-                            <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-stone-400">
+                            <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-stone-500">
                               성과 지표
                             </p>
                             <div className="flex flex-wrap gap-2">
@@ -254,7 +254,7 @@ export default function PublicResumeSharePage() {
 
                         {/* 메모 */}
                         {item.notes ? (
-                          <p className="mt-3 border-t border-stone-100 pt-3 text-xs text-stone-500">
+                          <p className="mt-3 border-t border-stone-100 pt-3 text-xs text-stone-600">
                             {item.notes}
                           </p>
                         ) : null}
@@ -266,7 +266,7 @@ export default function PublicResumeSharePage() {
             ) : null}
 
             {/* 풋터 */}
-            <footer className="mt-10 border-t border-stone-200 pt-4 text-center text-xs text-stone-400 print:hidden">
+            <footer className="mt-10 border-t border-stone-200 pt-4 text-center text-xs text-stone-500 print:hidden">
               PoReSt로 생성된 이력서
             </footer>
           </>

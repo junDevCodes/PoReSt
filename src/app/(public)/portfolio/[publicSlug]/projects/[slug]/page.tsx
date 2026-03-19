@@ -116,13 +116,13 @@ export default async function PublicProjectDetailByUserPage({
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-6 py-14">
       <JsonLd data={articleJsonLd} />
-      <p className="text-xs uppercase tracking-[0.3em] text-black/65 dark:text-white/65">Case Study</p>
+      <p className="text-xs uppercase tracking-[0.3em] text-black/70 dark:text-white/70">Case Study</p>
       <h1 className="mt-2 text-3xl font-semibold">{viewModel.title}</h1>
       {viewModel.subtitle ? <p className="mt-3 text-base text-black/70 dark:text-white/70">{viewModel.subtitle}</p> : null}
 
       <div className="mt-4 flex flex-wrap gap-3 text-xs text-black/70 dark:text-white/70">
         <span className="inline-flex items-center gap-1.5">
-          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <svg aria-hidden="true" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
           {viewModel.updatedAtLabel || "날짜 정보 없음"}
@@ -150,7 +150,7 @@ export default async function PublicProjectDetailByUserPage({
               className="rounded-2xl border border-black/10 bg-white p-6 shadow-sm transition-shadow duration-200 hover:shadow-md dark:border-white/10 dark:bg-[#1e1e1e] dark:shadow-none dark:hover:border-white/20"
             >
               <h2 className="flex items-center gap-2 text-xl font-semibold">
-                <svg className="h-5 w-5 text-black/40 dark:text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <svg aria-hidden="true" className="h-5 w-5 text-black/40 dark:text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d={config.icon} />
                 </svg>
                 {config.label}
@@ -165,7 +165,7 @@ export default async function PublicProjectDetailByUserPage({
         {hasLinks ? (
           <article className="rounded-2xl border border-black/10 bg-white p-6 shadow-sm transition-shadow duration-200 hover:shadow-md dark:border-white/10 dark:bg-[#1e1e1e] dark:shadow-none dark:hover:border-white/20">
             <h2 className="flex items-center gap-2 text-xl font-semibold">
-              <svg className="h-5 w-5 text-black/40 dark:text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <svg aria-hidden="true" className="h-5 w-5 text-black/40 dark:text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.86-2.556a4.5 4.5 0 00-1.242-7.244l-4.5-4.5a4.5 4.5 0 00-6.364 6.364L4.34 8.374" />
               </svg>
               Links
@@ -176,7 +176,7 @@ export default async function PublicProjectDetailByUserPage({
                   href={viewModel.repoUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="rounded-full bg-black px-4 py-2 text-sm text-white transition-opacity hover:opacity-80 dark:bg-white dark:text-black"
+                  className="rounded-full bg-black px-4 py-2 text-sm text-white transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/50 dark:bg-white dark:text-black dark:focus-visible:ring-white/50"
                 >
                   GitHub
                 </a>
@@ -186,7 +186,7 @@ export default async function PublicProjectDetailByUserPage({
                   href={viewModel.demoUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="rounded-full border border-black/20 px-4 py-2 text-sm text-black transition-colors hover:bg-black/5 dark:border-white/20 dark:text-white dark:hover:bg-white/5"
+                  className="rounded-full border border-black/20 px-4 py-2 text-sm text-black transition-colors hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/20 dark:border-white/20 dark:text-white dark:hover:bg-white/5 dark:focus-visible:ring-white/20"
                 >
                   Demo
                 </a>
@@ -206,7 +206,7 @@ export default async function PublicProjectDetailByUserPage({
           href={`/portfolio/${encodeURIComponent(resolvedParams.publicSlug)}/projects`}
           className="group inline-flex items-center gap-1 text-sm font-semibold text-black/70 transition-colors hover:text-black dark:text-white/70 dark:hover:text-white"
         >
-          <span className="inline-block transition-transform duration-200 group-hover:-translate-x-0.5">&larr;</span>
+          <span aria-hidden="true" className="inline-block transition-transform duration-200 group-hover:-translate-x-0.5">&larr;</span>
           프로젝트 목록
         </Link>
       </div>

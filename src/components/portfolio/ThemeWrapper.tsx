@@ -63,6 +63,12 @@ export function ThemeWrapper({ publicSlug, children }: ThemeWrapperProps) {
       data-theme={dark ? "dark" : "light"}
       className="min-h-screen bg-[#f6f5f2] text-black dark:bg-[#111111] dark:text-white"
     >
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-black focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white focus:shadow-lg dark:focus:bg-white dark:focus:text-black"
+      >
+        본문으로 건너뛰기
+      </a>
       <header className="border-b border-black/8 bg-[#f6f5f2] dark:border-white/8 dark:bg-[#111111]">
         <div className="mx-auto flex h-12 w-full max-w-5xl items-center gap-2 px-6 text-sm">
           <Link
@@ -72,12 +78,12 @@ export function ThemeWrapper({ publicSlug, children }: ThemeWrapperProps) {
             PoReSt
           </Link>
           <span className="text-black/30 dark:text-white/30">/</span>
-          <span className="text-black/55 dark:text-white/55">{publicSlug}</span>
+          <span className="text-black/65 dark:text-white/65">{publicSlug}</span>
           <div className="ml-auto flex items-center gap-1 print:hidden">
             <button
               type="button"
               onClick={() => window.print()}
-              className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs text-black/50 hover:bg-black/5 hover:text-black dark:text-white/50 dark:hover:bg-white/5 dark:hover:text-white"
+              className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs text-black/65 hover:bg-black/5 hover:text-black focus-visible:ring-2 focus-visible:ring-black/30 dark:text-white/65 dark:hover:bg-white/5 dark:hover:text-white dark:focus-visible:ring-white/30"
               aria-label="인쇄"
             >
               <PrintIcon />
@@ -87,7 +93,7 @@ export function ThemeWrapper({ publicSlug, children }: ThemeWrapperProps) {
               type="button"
               onClick={() => void handleDownloadPdf()}
               disabled={isDownloadingPdf}
-              className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs text-black/50 hover:bg-black/5 hover:text-black dark:text-white/50 dark:hover:bg-white/5 dark:hover:text-white disabled:opacity-50"
+              className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs text-black/65 hover:bg-black/5 hover:text-black focus-visible:ring-2 focus-visible:ring-black/30 dark:text-white/65 dark:hover:bg-white/5 dark:hover:text-white dark:focus-visible:ring-white/30 disabled:opacity-50"
               aria-label="PDF 저장"
             >
               <DownloadIcon />
@@ -96,7 +102,7 @@ export function ThemeWrapper({ publicSlug, children }: ThemeWrapperProps) {
             <button
               type="button"
               onClick={toggle}
-              className="rounded-lg p-1.5 text-black/50 hover:bg-black/5 hover:text-black dark:text-white/50 dark:hover:bg-white/5 dark:hover:text-white"
+              className="rounded-lg p-1.5 text-black/65 hover:bg-black/5 hover:text-black focus-visible:ring-2 focus-visible:ring-black/30 dark:text-white/65 dark:hover:bg-white/5 dark:hover:text-white dark:focus-visible:ring-white/30"
               aria-label={dark ? "라이트 모드로 전환" : "다크 모드로 전환"}
             >
               {dark ? <SunIcon /> : <MoonIcon />}

@@ -141,16 +141,17 @@ export default async function PublicExperiencesPage({ params }: ExperiencesPageP
           {/* 타임라인 세로 연결선 */}
           <div className="absolute left-[11px] top-2 bottom-2 w-0.5 bg-black/10 dark:bg-white/10" />
 
-          <div className="space-y-6">
+          <ol className="space-y-6">
             {experiences.map((exp, index) => {
               const bullets = parseBullets(exp.bulletsJson);
               const metrics = parseMetrics(exp.metricsJson);
               const isLast = index === experiences.length - 1;
 
               return (
-                <div key={exp.id} className="relative pl-10">
+                <li key={exp.id} className="relative pl-10" aria-current={exp.isCurrent ? "true" : undefined}>
                   {/* 타임라인 도트 */}
                   <div
+                    aria-hidden="true"
                     className={`absolute left-0 top-6 h-[22px] w-[22px] rounded-full border-[3px] ${
                       exp.isCurrent
                         ? "border-emerald-500 bg-emerald-100 dark:border-emerald-400 dark:bg-emerald-900/40"
@@ -159,13 +160,11 @@ export default async function PublicExperiencesPage({ params }: ExperiencesPageP
                   />
                   {/* 현재 재직 중 도트 내부 펄스 */}
                   {exp.isCurrent && (
-                    <div className="absolute left-[7px] top-[31px] h-2 w-2 rounded-full bg-emerald-500 dark:bg-emerald-400" />
+                    <div aria-hidden="true" className="absolute left-[7px] top-[31px] h-2 w-2 rounded-full bg-emerald-500 dark:bg-emerald-400" />
                   )}
 
                   <article
-                    className={`rounded-2xl border border-black/10 bg-white p-6 shadow-sm transition-shadow duration-200 hover:shadow-md dark:border-white/10 dark:bg-[#1e1e1e] dark:shadow-none dark:hover:border-white/20 ${
-                      isLast ? "" : ""
-                    }`}
+                    className="rounded-2xl border border-black/10 bg-white p-6 shadow-sm transition-shadow duration-200 hover:shadow-md dark:border-white/10 dark:bg-[#1e1e1e] dark:shadow-none dark:hover:border-white/20"
                   >
                     <div className="flex items-center gap-3">
                       <h2 className="text-xl font-semibold">{exp.company}</h2>
@@ -176,8 +175,8 @@ export default async function PublicExperiencesPage({ params }: ExperiencesPageP
                       ) : null}
                     </div>
                     <p className="mt-1 text-sm font-medium text-black/75 dark:text-white/75">{exp.role}</p>
-                    <p className="mt-1 flex items-center gap-1.5 text-xs text-black/60 dark:text-white/60">
-                      <svg className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <p className="mt-1 flex items-center gap-1.5 text-xs text-black/70 dark:text-white/70">
+                      <svg aria-hidden="true" className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
                       {formatPeriod(exp.startDate, exp.endDate)}
@@ -223,12 +222,12 @@ export default async function PublicExperiencesPage({ params }: ExperiencesPageP
 
                     {(experienceProjectMap.get(exp.id) ?? []).length > 0 ? (
                       <div className="mt-3 flex flex-wrap items-center gap-1.5">
-                        <span className="text-xs font-medium text-black/50 dark:text-white/50">관련 프로젝트:</span>
+                        <span className="text-xs font-medium text-black/65 dark:text-white/65">관련 프로젝트:</span>
                         {(experienceProjectMap.get(exp.id) ?? []).map((proj) => (
                           <Link
                             key={proj.id}
                             href={`/portfolio/${encodeURIComponent(resolvedParams.publicSlug)}/projects/${encodeURIComponent(proj.slug)}`}
-                            className="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700 transition-colors hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-300 dark:hover:bg-blue-900/30"
+                            className="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700 transition-colors hover:bg-blue-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/50 dark:bg-blue-900/20 dark:text-blue-300 dark:hover:bg-blue-900/30"
                           >
                             {proj.title}
                           </Link>
@@ -236,10 +235,10 @@ export default async function PublicExperiencesPage({ params }: ExperiencesPageP
                       </div>
                     ) : null}
                   </article>
-                </div>
+                </li>
               );
             })}
-          </div>
+          </ol>
         </div>
       )}
     </main>

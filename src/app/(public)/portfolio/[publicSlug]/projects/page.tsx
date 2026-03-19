@@ -79,7 +79,7 @@ export default async function PublicProjectsByUserPage({ params }: PublicProject
             <Link
               key={project.id}
               href={project.publicPath}
-              className="group block rounded-2xl border border-black/10 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-white/10 dark:bg-[#1e1e1e] dark:shadow-none dark:hover:border-white/20"
+              className="group block rounded-2xl border border-black/10 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/20 dark:border-white/10 dark:bg-[#1e1e1e] dark:shadow-none dark:hover:border-white/20 dark:focus-visible:ring-white/20"
             >
               <h2 className="text-xl font-semibold transition-colors group-hover:text-black/80 dark:group-hover:text-white/90">
                 {project.title}
@@ -101,13 +101,13 @@ export default async function PublicProjectsByUserPage({ params }: PublicProject
                 </div>
               ) : null}
 
-              <p className="mt-3 text-xs text-black/50 dark:text-white/50">
+              <p className="mt-3 text-xs text-black/65 dark:text-white/65">
                 {project.updatedAtLabel || "날짜 정보 없음"}
               </p>
 
               <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-black/80 transition-colors group-hover:text-black dark:text-white/80 dark:group-hover:text-white">
                 상세 보기
-                <svg className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <svg aria-hidden="true" className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                 </svg>
               </span>
