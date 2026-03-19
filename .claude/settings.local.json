@@ -60,7 +60,13 @@
       "mcp__playwright__browser_resize",
       "Bash(npx eslint:*)",
       "WebFetch(domain:porest-8erqqsfmx-joonaengs-projects.vercel.app)",
-      "mcp__playwright__browser_select_option"
+      "mcp__playwright__browser_select_option",
+      "Bash(npx playwright:*)",
+      "Bash(npx lighthouse:*)",
+      "Bash(sort -k5 -h -r)",
+      "Bash(ls src/app/\\\\\\(private\\\\\\)/app/*/loading.tsx src/app/\\\\\\(private\\\\\\)/app/loading.tsx)",
+      "Bash(find \"C:/workspace/Portfolio/PoReSt/src/app/\\(private\\)/app\" -type d)",
+      "Bash(find \"C:/workspace/Portfolio/PoReSt/src/app/\\(private\\)/app\" -name \"page.tsx\" -o -name \"loading.tsx\")"
     ]
   }
 }

@@ -1,217 +1,166 @@
 # PoReSt 작업 상세 계획서
 
-기준일: 2026-03-18
+기준일: 2026-03-19
 문서 정의: `plan.md`에서 할당된 현재 기능 단위의 작업 상세 설계. 완료 시 `history.md`로 이동.
 관련 문서: `plan.md`(전체 계획), `checklist.md`(검증 체크리스트), `history.md`(완료 이력)
 
 ---
 
-## T91 — TDD 미완료 보충 ✅ 완료
+## T91 ✅ / T92 ✅ / T93 ✅ / T94 ✅ (Sprint 3 완료)
 
-> history.md 참조. 69 suites, 482 tests 달성.
+> history.md 참조. 기준선: 69 suites, 482 tests + E2E 17 tests.
 
 ---
 
-## T92 — Playwright E2E 회귀 테스트 자동화
+## T95 — 화면 전환 속도 병목 진단 ✅
+
+> history.md 참조. D1~D9 전체 완료. P1/P2/P3 우선순위 확정.
+
+---
+
+## T96 — 진단 기반 성능 최적화 적용 ✅ 완료 (통합 게이트 최종 검증 2026-03-19)
 
 ### 배경
 
-Sprint 2~3에서 매 태스크마다 수동 Playwright MCP 검증을 반복해옴.
-수동 검증 항목: 포트폴리오 홈(라이트/다크), 모바일(라이트/다크), 경력, 프로젝트 목록/상세, 이력서 공유.
-이를 자동 E2E 스크립트로 전환하여 **회귀 방지를 자동화**해야 한다.
+T95 진단 결과: **P1 병목 = loading.tsx 전무 (27개 페이지) + 레이아웃 Suspense 없음**
 
-### 설계 판단
+현재 private 페이지 loading.tsx **0개**. 공개 포트폴리오에만 T90에서 3개 추가.
+사용자가 사이드바 메뉴를 클릭하면 빈 화면 → 콘텐츠가 나타나는 "깜빡임"이 체감 느림의 핵심 원인.
 
-| 판단 항목 | 결정 | 근거 |
+### 핵심 원칙
+
+- **기존 포트폴리오 스켈레톤 패턴 재사용**: `animate-pulse` + `bg-black/10 dark:bg-white/10` (T90 패턴)
+- **실제 페이지 레이아웃 매칭**: 각 스켈레톤은 해당 page.tsx의 구조를 반영하여 CLS 방지
+- **공통 패턴 추출**: 목록 페이지(제목+카드 그리드), 대시보드 페이지(요약 카드+차트), 클라이언트 페이지(제목+로딩) 3가지 패턴
+
+### 스켈레톤 패턴 분류
+
+| 패턴 | 구조 | 해당 페이지 |
 |---|---|---|
-| 테스트 대상 | **프로덕션 URL** (smoke test) | 로컬 dev 서버 설정 불필요, 실배포 상태 검증 |
-| CI 워크플로우 | **별도 `e2e.yml`** (기존 ci.yml 분리) | E2E는 배포 후 검증 — 빌드/배포 실패와 분리 |
-| 트리거 | `workflow_dispatch` + `schedule(daily)` | 수동 실행 + 매일 자동 1회 |
-| 브라우저 | **Chromium only** (시작) | 단일 브라우저로 시작, 필요 시 확장 |
-| 선택자 전략 | **텍스트 기반 + data-theme** | `getByText`, `getByRole` 우선 — 클래스명 의존 최소화 |
-| 리포트 | HTML 리포트 + GitHub Artifacts | 실패 시 스크린샷 포함 |
-| 타임아웃 | 30초/테스트 | 프로덕션 cold start 대응 |
-| 재시도 | 1회 | 네트워크 일시 불안정 대응 |
-
-### 현황 진단
-
-| 항목 | 현재 | 변경 |
-|---|---|---|
-| Playwright | ✅ `@playwright/test ^1.58.2` | Session A 완료 |
-| E2E 스크립트 | ✅ `e2e/` 3개 스펙 | Session B에서 4개 추가 |
-| CI E2E | ❌ 없음 | `.github/workflows/e2e.yml` 신규 (Session B) |
-| package.json | ✅ `test:e2e`, `test:e2e:headed`, `test:e2e:report` 추가 | 완료 |
-| .gitignore | ✅ `playwright-report/`, `test-results/`, `blob-report/` 추가 | 완료 |
-| jest.config.js | ✅ `testPathIgnorePatterns: e2e/` 추가 | 완료 |
+| **목록형** | h1 제목 + 카드 그리드 (2~3열) | projects, resumes, experiences, notes, blog, skills, testimonials |
+| **대시보드형** | 요약 카드 행 + 차트/히트맵 영역 | 홈(page.tsx), analytics, growth-timeline |
+| **클라이언트형** | h1 제목 + 로딩 스피너/카드 | feedback, audit, company-targets, domain-links, experience-stories, job-tracker |
+| **설정형** | 폼 필드 스켈레톤 | portfolio/settings |
 
 ---
 
-### 핵심 변경 (12개 항목)
+### 확정 작업 항목 (18개 — 신규 파일 17개 + layout 수정 1개)
 
-#### S. 환경 설정 (3개)
+#### Session A: 주요 페이지 loading.tsx (12개 신규) ✅
 
-1. **S1: Playwright 설치 + config**
-   - `npm install -D @playwright/test`
-   - `npx playwright install chromium` (브라우저 바이너리)
-   - `playwright.config.ts` 생성:
-     - `baseURL`: `process.env.E2E_BASE_URL || 'https://www.jundevcodes.info'`
-     - `projects`: `[{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }]`
-     - `reporter`: `[['html', { open: 'never' }], ['list']]`
-     - `timeout`: 30000, `retries`: 1
-     - `testDir`: `./e2e`
+| # | 파일 | 패턴 | 상태 |
+|---|---|---|---|
+| A1 | `app/loading.tsx` | 대시보드형 (헤더+체크리스트+메트릭 4카드) | ✅ |
+| A2 | `app/projects/loading.tsx` | 목록형 (h1+필터+카드 리스트) | ✅ |
+| A3 | `app/resumes/loading.tsx` | 목록형 (h1+2버튼+카드 리스트) | ✅ |
+| A4 | `app/experiences/loading.tsx` | 목록형 (h1+입력폼+카드 리스트) | ✅ |
+| A5 | `app/notes/loading.tsx` | 목록형 (h1+2열 노트북/작성폼+노트 목록) | ✅ |
+| A6 | `app/blog/loading.tsx` | 목록형 (h1+버튼+카드 리스트) | ✅ |
+| A7 | `app/skills/loading.tsx` | 목록형 (h1+폼+프리셋 그리드+스킬 리스트) | ✅ |
+| A8 | `app/analytics/loading.tsx` | 대시보드형 (4카드+바차트+2열 분포) | ✅ |
+| A9 | `app/growth-timeline/loading.tsx` | 대시보드형 (3카드+히트맵+2열 차트) | ✅ |
+| A10 | `app/feedback/loading.tsx` | 클라이언트형 (h1+버튼+카드 리스트) | ✅ |
+| A11 | `app/job-tracker/loading.tsx` | 클라이언트형 (h1+칸반 6열) | ✅ |
+| A12 | `app/testimonials/loading.tsx` | 클라이언트형 (h1+버튼+카드 리스트) | ✅ |
 
-2. **S2: package.json scripts**
-   - `"test:e2e": "playwright test"`
-   - `"test:e2e:headed": "playwright test --headed"`
-   - `"test:e2e:report": "playwright show-report"`
+#### Session B: 레이아웃 Suspense + 나머지 loading.tsx (5개 신규 + 1개 수정)
 
-3. **S3: .gitignore 업데이트**
-   - `playwright-report/`, `test-results/`, `blob-report/`
-
-#### E. E2E 시나리오 (7개 파일, 10+ 테스트)
-
-4. **E1: `e2e/portfolio-home.spec.ts`** — 홈 페이지 (3 tests)
-   - 페이지 200 로드 + 프로필 이름/헤드라인 존재
-   - 주요 섹션 제목 존재 ("대표 프로젝트", "경력", "기술 스택")
-   - 푸터 CTA + "PoReSt로 만들어졌습니다" 텍스트
-   - 선택자: `getByText()`, `getByRole('heading')`
-
-5. **E2: `e2e/portfolio-experiences.spec.ts`** — 경력 페이지 (2 tests)
-   - 페이지 200 로드 + "경력" h1 제목
-   - 타임라인 경력 카드 1개 이상 존재 (회사명 + 직책)
-   - 선택자: `getByText('경력')`, 카드 내 텍스트 검증
-
-6. **E3: `e2e/portfolio-projects.spec.ts`** — 프로젝트 (3 tests)
-   - 목록 페이지 200 로드 + "프로젝트" h1 + 카드 1개 이상
-   - 카드 클릭 → 상세 페이지 이동 (URL 변경 확인)
-   - 상세 페이지: "Case Study" 라벨 + 제목 + 기술 스택 태그
-   - 선택자: `getByRole('link')`, URL 패턴 매칭
-
-7. **E4: `e2e/portfolio-dark-mode.spec.ts`** — 다크모드 (2 tests)
-   - 초기 상태: `data-theme="light"` (기본값)
-   - 토글 버튼 클릭 → `data-theme="dark"` 전환 + 배경색 변경
-   - 다시 클릭 → `data-theme="light"` 복귀
-   - 선택자: `[data-theme]` attribute, `getByRole('button', { name: /모드로 전환/ })`
-
-8. **E5: `e2e/portfolio-mobile.spec.ts`** — 모바일 반응형 (1 test)
-   - 뷰포트 390×844 (iPhone 14 기준)
-   - 홈 페이지 로드 + 프로필 존재 + 섹션 제목 존재
-   - 스크롤 가능 (페이지 높이 > 뷰포트)
-   - 선택자: `page.setViewportSize({ width: 390, height: 844 })`
-
-9. **E6: `e2e/resume-share.spec.ts`** — 이력서 공유 (1 test)
-   - 무효 토큰 `/resume/share/invalid-token-xxx` → 에러 메시지 표시
-   - "찾을 수 없습니다" 또는 에러 UI 요소 존재 확인
-   - 선택자: `getByText()` 에러 메시지, rose 배경 요소
-
-10. **E7: `e2e/seo.spec.ts`** — SEO 메타 + sitemap (2 tests)
-    - 홈 페이지 `<title>` 태그 비어있지 않음
-    - `og:title`, `og:image` meta 태그 존재
-    - `/sitemap.xml` 200 응답 + XML 콘텐츠 포함
-    - 선택자: `page.locator('meta[property="og:title"]')`, fetch API
-
-#### C. CI 연동 (2개)
-
-11. **C1: `.github/workflows/e2e.yml` 신규**
-    - 트리거: `workflow_dispatch` (수동) + `schedule` (매일 09:00 KST = 00:00 UTC)
-    - steps: checkout → Node.js 22 → npm ci → Playwright install chromium → `npm run test:e2e`
-    - env: `E2E_BASE_URL` (GitHub Variables/Secrets)
-    - timeout: 10분
-
-12. **C2: 리포트 아티팩트**
-    - `actions/upload-artifact@v4` — `playwright-report/` 업로드
-    - 실패 시에만 업로드 (`if: failure()`)
-    - retention: 7일
-
----
-
-### 디렉토리 구조
-
-```
-PoReSt/
-├── e2e/                              # 신규 디렉토리
-│   ├── portfolio-home.spec.ts        # E1
-│   ├── portfolio-experiences.spec.ts # E2
-│   ├── portfolio-projects.spec.ts    # E3
-│   ├── portfolio-dark-mode.spec.ts   # E4
-│   ├── portfolio-mobile.spec.ts      # E5
-│   ├── resume-share.spec.ts          # E6
-│   └── seo.spec.ts                   # E7
-├── playwright.config.ts              # S1
-├── .github/workflows/
-│   ├── ci.yml                        # 기존 (변경 없음)
-│   └── e2e.yml                       # C1 (신규)
-└── package.json                      # S2 (scripts 추가)
-```
-
-### 환경 변수
-
-| 변수 | 용도 | 기본값 |
-|---|---|---|
-| `E2E_BASE_URL` | 테스트 대상 URL | `https://www.jundevcodes.info` |
+| # | 파일 | 패턴 | 설명 |
+|---|---|---|---|
+| B1 | `layout.tsx` 수정 | — | `{children}`을 `<Suspense fallback={<워크스페이스 스켈레톤>}>` 래핑 |
+| B2 | `app/audit/loading.tsx` | 클라이언트형 | h1 "감사 로그" + 테이블 placeholder |
+| B3 | `app/company-targets/loading.tsx` | 클라이언트형 | h1 "기업 분석" + 카드 리스트 |
+| B4 | `app/domain-links/loading.tsx` | 클라이언트형 | h1 "교차 링크" + 테이블 placeholder |
+| B5 | `app/experience-stories/loading.tsx` | 클라이언트형 | h1 "STAR 스토리" + 카드 리스트 |
+| B6 | `app/portfolio/settings/loading.tsx` | 설정형 | h1 "설정" + 폼 필드 스켈레톤 |
 
 ### 병렬 실행 구조
 
-파일 충돌 기준으로 2개 세션 동시 실행 가능.
-**단, Session A의 S1~S3 커밋 완료 후 Session B 시작** (Playwright config 의존).
-
 ```
-Session A (설정 + 페이지 스펙) ✅      Session B (기능 스펙 + CI)
-────────────────────────            ────────────────────────
-S1. Playwright 설치 + config ✅
-S2. package.json scripts ✅
-S3. .gitignore 업데이트 ✅
-  ↓ [커밋 완료: bc583c3]
-E1. portfolio-home ✅ (3 tests)       E4. portfolio-dark-mode ✅/❌
-E2. portfolio-experiences ✅ (2)      E5. portfolio-mobile ✅/❌
-E3. portfolio-projects ✅ (3)         E6. resume-share ✅/❌
-                                      E7. seo ✅/❌
-                                      C1. e2e.yml 워크플로우 ✅/❌
-                                      C2. 리포트 아티팩트 ✅/❌
-       ↘      통합: 로컬 E2E 14개 전체 통과 + lint/build/jest       ↙
+Session A (주요 12개)                Session B (레이아웃 + 5개)
+──────────────────                  ──────────────────────
+A1. 홈 대시보드 ✅                   B1. layout.tsx Suspense ✅/❌
+A2. 프로젝트 ✅                     B2. 감사 로그 ✅/❌
+A3. 이력서 ✅                       B3. 기업 분석 ✅/❌
+A4. 경력 ✅                         B4. 교차 링크 ✅/❌
+A5. 노트 ✅                         B5. STAR 스토리 ✅/❌
+A6. 블로그 ✅                       B6. 포트폴리오 설정 ✅/❌
+A7. 스킬 ✅
+A8. 분석 ✅
+A9. 성장 타임라인 ✅
+A10. 피드백 ✅
+A11. 지원 트래커 ✅
+A12. 추천서 ✅
+       ↘      통합: 게이트 4종 + E2E 17개 + 체감 확인       ↙
 ```
 
 ### 세션별 수정 파일 (충돌 없음)
 
-| 세션 | 수정/신규 파일 | 항목 수 |
+| 세션 | 파일 | 수 |
 |---|---|---|
-| **Session A** | `playwright.config.ts`(신규), `package.json`(수정), `.gitignore`(수정), `e2e/portfolio-home.spec.ts`, `e2e/portfolio-experiences.spec.ts`, `e2e/portfolio-projects.spec.ts` | 6개 |
-| **Session B** | `e2e/portfolio-dark-mode.spec.ts`, `e2e/portfolio-mobile.spec.ts`, `e2e/resume-share.spec.ts`, `e2e/seo.spec.ts`, `.github/workflows/e2e.yml` | 5개 |
+| **Session A** | `app/loading.tsx` 외 11개 신규 (전부 loading.tsx) | 12개 |
+| **Session B** | `layout.tsx` 수정 1개 + `app/*/loading.tsx` 신규 5개 | 6개 |
 
-### 의존성
+### B1 Suspense 경계 상세
 
-- **S1 → S2 → S3**: 설정 순차 (Session A 내부)
-- **S1~S3 → Session B**: Session A의 설정 커밋 완료 후 Session B 시작
-- **A ∥ B (스펙 작성)**: E1~E3 ∥ E4~E7 완전 독립 (파일 겹침 없음)
-- **통합**: 양 세션 완료 후 E2E 14개 전체 실행 + 게이트 4종
+현재 `layout.tsx`:
+```tsx
+// 현재: 세션 페칭 블로킹
+const session = await getServerSession(authOptions);
+return <AppShellWrapper userName={userName}>{children}</AppShellWrapper>;
+```
+
+변경 방향:
+```tsx
+// Suspense로 children 스트리밍
+return (
+  <AppShellWrapper userName={userName}>
+    <Suspense fallback={<WorkspaceSkeleton />}>
+      {children}
+    </Suspense>
+  </AppShellWrapper>
+);
+```
+→ 사이드바는 즉시 렌더링, 메인 콘텐츠만 스트리밍 대기
 
 ### 제약 사항
 
-- **인증 페이지 테스트 제외**: Google OAuth 로그인 자동화 불가 → `/app/*` 페이지는 E2E 대상 아님
-- **PDF 다운로드 테스트 제외**: headless에서 파일 다운로드 검증 복잡 → 향후 별도
-- **Jest 기존 테스트 영향 없음**: Playwright는 `e2e/` 디렉토리, Jest는 `src/` — testDir 분리
-- **데이터 의존**: 프로덕션에 실제 포트폴리오 데이터가 있어야 테스트 통과
-  - 데이터 없는 경우 graceful skip 처리 (test.skip 조건)
+- 기존 테스트 기준선 유지 (69 suites, 482 tests + E2E 17 tests)
+- 게이트 4종 통과 (lint/build/jest/vercel-build)
+- 스켈레톤 = 실제 페이지 구조 매칭 (CLS 방지)
+- `animate-pulse` + `bg-black/10 dark:bg-white/10` (기존 T90 패턴)
+- 외부 라이브러리 추가 없음 (Tailwind only)
 
-### 예상 테스트 수
+### 제외 (archive 이관)
 
-| 세션 | 파일 | 테스트 수 |
-|---|---|---|
-| A | portfolio-home.spec.ts | 3 |
-| A | portfolio-experiences.spec.ts | 2 |
-| A | portfolio-projects.spec.ts | 3 |
-| B | portfolio-dark-mode.spec.ts | 2 |
-| B | portfolio-mobile.spec.ts | 1 |
-| B | resume-share.spec.ts | 1 |
-| B | seo.spec.ts | 2 |
-| | **합계** | **14** |
+- P2: 중복 인증 통합 — 아키텍처 변경 큼, 체감 영향 낮음
+- P3: 번들 크기 심화 — 서버 전용 라이브러리 영향 없음
 
 ---
 
-## T93 — WCAG 접근성 기본 점검 + 핵심 수정 ⬜ 대기
+## T97 — 합격 자소서 RAG 파이프라인 ⬜ 대기
 
-> T92 완료 후 진행. plan.md 참조.
+### 배경
 
-## T94 — Lighthouse 성능 기준선 + 문서화 ⬜ 대기
+구직 활동 진행 중. Gemini API KEY 입력 시 합격 자소서를 바탕으로 RAG 기반 프롬프팅.
+archive.md "AI 자기소개서 생성" 복귀 (복귀 조건: 이력서 AI 초안 안정화 ✅).
 
-> T92 완료 후 T93과 병렬 가능. plan.md 참조.
+### 예상 범위
+
+1. **CoverLetter Prisma 모델** — 자소서 CRUD + isReference(합격본 마킹)
+2. **CoverLetterEmbedding** — 합격본 임베딩 (Gemini text-embedding-004)
+3. **RAG 검색** — targetRole + JD → 코사인 유사도 상위 3~5개
+4. **프롬프트 설계** — "합격 자소서 작성 전문 컨설턴트" + few-shot 합격 예시
+5. **withGeminiFallback** — API KEY 없으면 구조화된 템플릿 fallback
+
+---
+
+## T98 — 자기소개서 생성 API + UI ⬜ 대기
+
+### 예상 범위
+
+1. `POST /api/app/cover-letters/generate` — RAG 기반 생성
+2. `GET/POST/PATCH/DELETE /api/app/cover-letters` — CRUD
+3. `/app/cover-letters` 워크스페이스 페이지
+4. 합격본 등록 UI (기존 자소서 → isReference 마킹)
+5. AppSidebar "자기소개서" 메뉴 추가

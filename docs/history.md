@@ -826,6 +826,51 @@ Phase 1: 테스트 보강
 
 ---
 
+### T92 Session B: E2E 기능 스펙 + CI (2026-03-18) ✅
+
+**범위**: 5개 파일 신규
+
+**핵심 변경**:
+
+1. **다크모드 E2E** (`portfolio-dark-mode.spec.ts`, 2 tests)
+   - 토글 클릭 → `data-theme="dark"` 전환 확인
+   - 다시 클릭 → `data-theme="light"` 복귀 확인
+   - 선택자: `getByRole('button', { name: '다크/라이트 모드로 전환' })`
+
+2. **모바일 반응형 E2E** (`portfolio-mobile.spec.ts`, 1 test)
+   - 390×844 뷰포트 (iPhone 14) 홈 페이지 렌더링
+   - 프로필 + 섹션 제목 + 스크롤 가능 확인
+
+3. **이력서 공유 에러 E2E** (`resume-share.spec.ts`, 1 test)
+   - 무효 토큰 `/resume/share/invalid-token-xxx` → rose 에러 박스 표시
+
+4. **SEO 메타 E2E** (`seo.spec.ts`, 2 tests)
+   - `<title>` 비어있지 않음 + `og:title` meta 존재
+   - `/sitemap.xml` 200 + `<urlset>` + `<loc>` 포함
+
+5. **CI E2E 워크플로우** (`.github/workflows/e2e.yml`)
+   - 트리거: `workflow_dispatch` + `schedule` (매일 00:00 UTC)
+   - Node.js 22 + Playwright Chromium + `npm run test:e2e`
+   - `E2E_BASE_URL` 환경변수 (GitHub vars 또는 기본값)
+   - 실패 시 `playwright-report/` 아티팩트 업로드 (retention 7일)
+
+**게이트**: `lint(0 errors, 8 warnings) / test:e2e(14 passed) / jest(69 suites, 482 tests)` 통과
+
+### T92 통합 완료 (2026-03-18) ✅
+
+```
+Session A ✅ (설정 + 페이지 스펙, 8개 E2E)
+Session B ✅ (기능 스펙 + CI, 6개 E2E)
+통합 게이트 ✅ lint(0 errors, 8 warnings) / test:e2e(14 passed) / jest(69 suites, 482 tests)
+```
+
+**핵심 요약**: 수동 Playwright MCP 검증 → 자동 E2E 스크립트 전환 완료
+- 7개 스펙, 14개 테스트: 홈/경력/프로젝트/다크모드/모바일/이력서공유/SEO
+- CI 별도 워크플로우: 매일 자동 + 수동 실행 + 실패 시 리포트 아티팩트
+- Jest(src/) vs Playwright(e2e/) 완전 분리
+
+---
+
 ## 현재 진행 맥락
 
 ### Sprint 3 진행 현황 (M12: Quality Assurance)
@@ -836,17 +881,404 @@ Phase 1: 테스트 보강
 
 Phase 2: E2E 자동화
   T92 Session A ✅ (설정 + 페이지 스펙 8개)
-  T92 Session B ⬜ 다음 태스크 (기능 스펙 + CI)
+  T92 Session B ✅ (기능 스펙 + CI 6개)
 
 Phase 3: 품질 감사
   T93 (WCAG 접근성) ⬜ 대기
   T94 (Lighthouse 기준선) ⬜ 대기
 ```
 
-### 다음 세션 컨텍스트
+### T93 Session A: 홈 + 레이아웃 + axe-core 감사 자동화 (2026-03-18) ✅
 
-- T92 Session B 진행: E4~E7 기능 스펙 4개 + C1~C2 CI 연동
-- slug: `jundevcodes` (프로덕션 확인 완료)
-- Session A 커밋 완료 (bc583c3) — Session B 즉시 시작 가능
-- 기준선: 69 suites, 482 tests + E2E 8 tests / lint 0 errors, 8 warnings
-- 브랜치: main 직접 push
+**범위**: 4개 파일 수정/신규 (`ThemeWrapper.tsx`, `[publicSlug]/page.tsx`, `e2e/accessibility.spec.ts` 신규, `package.json`)
+
+**핵심 변경**:
+
+1. **skip-to-content + focus 스타일** (A1)
+   - ThemeWrapper에 skip-to-content 링크 (sr-only + focus:not-sr-only)
+   - `<main id="main-content">` 타겟 추가
+   - 헤더 버튼 3개 `focus-visible:ring-2` 추가
+
+2. **홈 시맨틱 마크업 (Critical)** (A2)
+   - 소셜 링크 `<section>` → `<nav aria-label="소셜 링크">`
+   - CTA 버튼 + 소셜 링크에 `focus-visible` 추가
+
+3. **추천서 헤딩 + StarRating (Critical + High)** (A3)
+   - 추천서 저자명 `<p>` → `<h3>` 시맨틱 보강
+   - StarRating `role="img" aria-label={`평점 ${rating}점`}`
+   - 별 SVG `aria-hidden="true"`
+
+4. **색상 대비 수정 (High)** (A4)
+   - `text-black/50` → `text-black/65` (라이트, 7개소)
+   - `text-black/55` → `text-black/65` (ThemeWrapper slug)
+   - `text-white/50` → `text-white/65` (다크, 동일 패턴)
+
+5. **SVG aria-hidden (High)** (A5)
+   - 장식적 SVG 14개: SocialIcon 5종, 위치·이메일 아이콘 2개, 섹션 accent bar 4개, 별 5개
+
+6. **axe-core E2E 접근성 자동 감사** (A6)
+   - `@axe-core/playwright` 설치
+   - `e2e/accessibility.spec.ts` — 3개 페이지 (홈/경력/프로젝트 목록)
+   - WCAG 2.0/2.1 AA 태그 기준 Critical/Serious = 0 검증
+   - 제외: `color-contrast` (Tailwind v4 oklch() + axe-core 호환성 미지원), `link-in-text-block` (pill 스타일 false positive)
+
+**게이트**: `lint(0 errors, 8 warnings) / build / jest(69 suites, 482 tests) / test:e2e(17 passed)` 통과
+
+### T93 Session B: 하위 페이지 접근성 수정 (2026-03-18) ✅
+
+**범위**: 4개 파일 수정 (`experiences/page.tsx`, `projects/page.tsx`, `projects/[slug]/page.tsx`, `resume/share/[token]/page.tsx`)
+
+**핵심 변경**:
+
+1. **타임라인 시맨틱 구조 (Critical)** (B1)
+   - 경력 목록 `<div>` → `<ol>`, 각 카드 `<div>` → `<li>`
+   - Tailwind preflight 리셋으로 기존 스타일 유지
+
+2. **타임라인 상태 표시 (High)** (B2)
+   - "재직 중" `<li>` `aria-current="true"` 추가
+   - 타임라인 도트 + 펄스 + 캘린더 SVG `aria-hidden="true"`
+
+3. **경력 색상 대비 + focus (High)** (B3)
+   - `text-black/60` → `text-black/70`, `text-black/50` → `text-black/65`
+   - `dark:text-white/60` → `dark:text-white/70`, `dark:text-white/50` → `dark:text-white/65`
+   - 관련 프로젝트 링크 `focus-visible:ring-2`
+
+4. **프로젝트 목록 접근성** (B4)
+   - 카드 Link `focus-visible:ring-2 + dark:focus-visible:ring-white/20`
+   - 화살표 SVG `aria-hidden="true"`
+   - 날짜 `text-black/50` → `text-black/65`
+
+5. **프로젝트 상세 접근성 (High)** (B5)
+   - 섹션/링크 아이콘 SVG + 캘린더 SVG + 뒤로가기 화살표 `aria-hidden="true"`
+   - GitHub/Demo 버튼 `focus-visible:ring-2`
+   - "Case Study" 라벨 `text-black/65` → `text-black/70`
+
+6. **이력서 공유 색상 대비** (B6)
+   - `text-stone-400` → `text-stone-500` (7개소), `text-stone-500` → `text-stone-600` (4개소)
+   - "홈으로" 버튼 `focus-visible:ring-2`
+
+### T93 통합 완료 (2026-03-18) ✅
+
+```
+Session A ✅ (홈 + 레이아웃 + axe-core, 6개)
+Session B ✅ (하위 페이지, 6개)
+통합 게이트 ✅ lint(0 errors) / build / jest(69 suites, 482 tests) / E2E(17 passed)
+axe-core ✅ Critical/Serious violations = 0
+```
+
+**핵심 요약**: WCAG 접근성 Critical 3 + High 4 + Medium 포커스 전부 해소
+- 시맨틱: nav, ol/li, h3, aria-label, aria-current
+- 색상 대비: opacity 올림(50→65, 60→70) — 4.5:1+ 확보
+- 키보드: focus-visible:ring-2 전체 인터랙티브 요소
+- 스크린리더: 장식적 SVG aria-hidden, StarRating aria-label
+- 자동 감사: @axe-core/playwright 3페이지 회귀 테스트
+
+---
+
+### T94: Lighthouse 성능 기준선 + 문서화 (2026-03-18) ✅
+
+**범위**: 프로덕션 3페이지 × 2모드(모바일/데스크톱) Lighthouse 측정 + 문서화
+
+**측정 환경**: Lighthouse 13.0.3, Chromium headless, 프로덕션 URL (jundevcodes.info)
+
+**코드 변경**: 없음 (측정 + 문서화만)
+
+#### Lighthouse 성능 기준선 (2026-03-18)
+
+##### 카테고리 점수
+
+| 페이지 | 모드 | Performance | Accessibility | Best Practices | SEO |
+|---|---|---|---|---|---|
+| 포트폴리오 홈 | Mobile | **87** | 96 | 100 | 92 |
+| 포트폴리오 홈 | Desktop | **95** | 96 | 100 | 92 |
+| 경력 | Mobile | **98** | 100 | 100 | 91 |
+| 경력 | Desktop | **97** | 96 | 100 | 100 |
+| 프로젝트 목록 | Mobile | **98** | 95 | 100 | 100 |
+| 프로젝트 목록 | Desktop | **97** | 95 | 100 | 100 |
+
+##### Core Web Vitals + 성능 메트릭
+
+| 페이지 | 모드 | FCP | LCP | TBT | CLS | SI |
+|---|---|---|---|---|---|---|
+| 포트폴리오 홈 | Mobile | 1.5s | **3.8s** | 10ms | **0** | 4.0s |
+| 포트폴리오 홈 | Desktop | 0.6s | **0.8s** | 0ms | **0** | 2.1s |
+| 경력 | Mobile | 1.0s | **2.2s** | 20ms | **0** | 2.6s |
+| 경력 | Desktop | 0.5s | **1.1s** | 0ms | **0** | 1.3s |
+| 프로젝트 목록 | Mobile | 1.0s | **2.2s** | 10ms | **0** | 3.2s |
+| 프로젝트 목록 | Desktop | 0.4s | **1.0s** | 0ms | **0** | 1.4s |
+
+##### 분석
+
+- **CLS 0 전 페이지** — T90 최적화(next/image priority, 스킬 아이콘 width/height, loading.tsx 스켈레톤) 성과
+- **TBT 0~20ms** — JavaScript 블로킹 거의 없음 (SSR + 스트리밍)
+- **Best Practices 100 전 페이지** — HTTPS, 안전 API, 소스맵 정상
+- **홈 모바일 LCP 3.8s** — "Needs Improvement" 구간 (2.5s~4.0s), 아바타 이미지가 LCP 요소
+  - 원인: next/image priority 적용 완료이나, 모바일 네트워크 시뮬레이션(Slow 4G)에서 이미지 크기 영향
+  - 데스크톱 LCP 0.8s "Good" — 네트워크 제약 없을 때 문제 없음
+- **경력/프로젝트 Performance 97~98** — 이미지 없는 텍스트 기반 페이지 우수
+
+##### 향후 성능 회귀 기준
+
+| 메트릭 | Good 기준 | 현재 최악값 | 상태 |
+|---|---|---|---|
+| LCP | < 2.5s | 3.8s (홈 모바일) | ⚠️ Needs Improvement |
+| FCP | < 1.8s | 1.5s (홈 모바일) | ✅ Good |
+| CLS | < 0.1 | 0 | ✅ Good |
+| TBT | < 200ms | 20ms | ✅ Good |
+| SI | < 3.4s | 4.0s (홈 모바일) | ⚠️ Needs Improvement |
+
+---
+
+### Sprint 3 Phase 3 완료 (2026-03-18) ✅
+
+```
+Phase 3: 품질 감사
+  T93 (WCAG 접근성) ✅ — Critical 3 + High 4 해소, axe-core E2E 3개
+  T94 (Lighthouse 기준선) ✅ — 3페이지 × 2모드 측정, 기준선 문서화
+```
+
+---
+
+## Sprint 3 (M12: Quality Assurance) 완료 요약 (2026-03-18) ✅
+
+```
+Phase 1: 테스트 보강
+  T91 (TDD 미완료 보충) ✅ — Skills 27개 + PageViews 26개 = 53개 신규 테스트
+
+Phase 2: E2E 자동화
+  T92 (Playwright E2E) ✅ — 7 specs, 14 tests + CI 워크플로우
+
+Phase 3: 품질 감사
+  T93 (WCAG 접근성) ✅ — Critical/High 12개 항목 해소, axe-core 자동 감사
+  T94 (Lighthouse 기준선) ✅ — 6개 측정, 기준선 문서화
+```
+
+**최종 기준선**: 69 suites, 482 tests + E2E 17 tests / lint 0 errors / Lighthouse Perf 87~98
+
+---
+
+## Sprint 4 — M13: 실전 최적화
+
+### T95: 화면 전환 속도 병목 진단 (2026-03-19) ✅
+
+**범위**: GitHub 로그인 → 워크스페이스 진입 → 내부 메뉴 전환 전 구간 프로파일링 (9개 진단 항목)
+
+**코드 변경**: 없음 (분석 + 문서화만)
+
+#### 진단 결과 요약
+
+##### D1. 인증 플로우
+
+- **JWT 전략** — session 콜백 DB 쿼리 없음 (토큰에서 복사)
+- **jwt 콜백** — 초기 로그인 시 DB 쿼리 없음, 5분 후 갱신 시 `findUnique` 1회
+- **signIn 이벤트** — `ensureUserRecord` 1회 + `ensurePortfolioSettingsForUser` 1~101회 (슬러그 충돌 루프)
+- **리다이렉트**: `/login` → GitHub OAuth → NextAuth 내부 → `/app` (3단계)
+- **예상 소요**: 570~2700ms (평균 1200ms, GitHub OAuth 의존)
+
+##### D2. 미들웨어
+
+- **matcher 범위**: `["/app/:path*", "/api/app/:path*"]` — **효율적** (공개 경로 스킵)
+- **매 요청 DB 호출**: **없음** (JWT 검증만, getToken)
+- **오버헤드**: 비공개 경로당 20~100ms (대부분 getToken)
+- **중복 인증 이슈**: middleware getToken() + API 라우트 requireAuth()/getServerSession() 2중 검증
+
+##### D3. 워크스페이스 레이아웃
+
+- **매 전환마다 재실행됨** — `getServerSession(authOptions)` 매번 호출
+- **Suspense 경계**: **없음** — 세션 페칭 시 전체 블로킹
+- 세션 검증만 (데이터 페칭은 각 page.tsx에서)
+
+##### D4. 사이드바
+
+- **`'use client'`** 선언됨 — `usePathname()` 기반 활성 메뉴
+- **부분 리렌더링** — AppSidebar만, 다른 자식 영향 없음
+- 16개 메뉴 항목, 4개 그룹
+
+##### D5. 페이지별 데이터 페칭
+
+- **서버 페이지** (홈/프로젝트/이력서/경력/블로그/노트): 단일 또는 병렬 Prisma 쿼리, overfetch 최소
+  - 홈: `Promise.all` 6개 병렬 (~50-100ms)
+  - 노트: `Promise.all` 2개 병렬 (~40-80ms)
+  - 나머지: 단일 서비스 호출 (~30-60ms)
+- **클라이언트 페이지** (feedback/audit/testimonials/job-tracker/company-targets/experience-stories/domain-links/settings): useEffect + fetch API
+
+##### D6. loading.tsx 유무 — **전 페이지 0개**
+
+- **private 페이지 27개 중 loading.tsx 0개**
+- 공개 포트폴리오에만 loading.tsx 3개 (T90에서 추가)
+- **체감 병목의 핵심 원인**: 페이지 전환 시 빈 화면 → 콘텐츠 (깜빡임)
+
+##### D7. Link prefetch
+
+- **모든 Link에서 prefetch 기본값(true) 사용** — 명시적 설정 없음
+- Next.js 16 기본: in-viewport 링크 자동 prefetch
+- 사이드바 10개 링크가 항상 in-viewport → 자동 prefetch됨 (효율적)
+- **문제 없음** — 기본 동작이 이미 최적
+
+##### D8. 번들 크기
+
+- **클라이언트 번들 총 크기**: 2.6MB (50개 chunk)
+- **Top 4 chunk**: 409K, 300K, 221K, 220K
+- **`'use client'` 파일**: 39개
+- **PDF (jsPDF + html2canvas-pro)**: ✅ 동적 import (`Promise.all` 병렬) — 이미 최적화
+- **@google/generative-ai**: ⚠️ 정적 import — 서버 전용이므로 클라이언트 번들 영향 없음
+
+##### D9. 서버리스 cold start
+
+- **프로덕션 첫 요청**: Vercel 서버리스 함수 cold start 영향
+- **포트폴리오 홈**: SSR + streaming (loading.tsx 스켈레톤 → 실제 콘텐츠)
+- **/app 접근**: 미인증 → `/login` 리다이렉트 (미들웨어)
+- **cold start 자체는 제어 불가** — loading.tsx + prefetch로 체감 개선이 유일한 방법
+
+---
+
+#### 병목 우선순위 리스트
+
+##### P1 — Critical (체감 직결)
+
+| 병목 | 영향 | 예상 수정 |
+|---|---|---|
+| **loading.tsx 전무 (27개 페이지)** | 페이지 전환 시 빈 화면 → "멈춤" 체감 | 주요 페이지 loading.tsx 스켈레톤 추가 |
+| **레이아웃 Suspense 없음** | 세션 페칭 시 전체 레이아웃 블로킹 | `<Suspense>` 경계 + 스트리밍 SSR |
+
+##### P2 — High (성능 개선)
+
+| 병목 | 영향 | 예상 수정 |
+|---|---|---|
+| **중복 인증** (middleware + API) | 매 API 호출 시 2중 세션 검증 | 미들웨어 토큰 → 헤더 전달 or 단일 경로 통합 검토 |
+| **클라이언트 페이지 로딩 UI 부재** | 8개 클라이언트 페이지 데이터 로드 중 피드백 없음 | 각 페이지 내 로딩 상태 + Skeleton |
+
+##### P3 — Medium (코드 품질)
+
+| 병목 | 영향 | 예상 수정 |
+|---|---|---|
+| **번들 크기 2.6MB** (50 chunks) | 초기 로드 시 다운로드 량 | 대량 목록 Link prefetch={false} 검토 |
+| **@google/generative-ai 정적 import** | 서버 번들에만 영향, 클라이언트 무관 | 서버 전용이므로 현행 유지 가능 |
+
+##### 최적 상태 (수정 불필요)
+
+- ✅ 미들웨어 matcher 범위 (공개 경로 정확 제외)
+- ✅ 미들웨어 DB 호출 없음 (JWT 검증만)
+- ✅ JWT 전략 + 5분 캐시 (DB 부하 최소)
+- ✅ PDF 라이브러리 동적 import (1MB 절감)
+- ✅ 서버 페이지 데이터 병렬 쿼리 (Promise.all)
+- ✅ Link prefetch 기본값 (사이드바 자동 prefetch)
+- ✅ AppSidebar 부분 리렌더링
+- ✅ select 필드 최소화 (overfetch 없음)
+
+---
+
+#### T96 작업 항목 확정
+
+P1 병목 기반으로 T96 범위 확정:
+
+1. **loading.tsx 스켈레톤 추가** — 주요 10~15개 private 페이지
+2. **레이아웃 Suspense 경계** — AppWorkspaceLayout에 Suspense 래핑
+3. **클라이언트 페이지 로딩 상태** — 8개 useEffect 페이지 Skeleton UI
+
+**제외 (P3 → archive)**: 중복 인증 통합, 번들 크기 심화 최적화
+
+---
+
+### T96 Session A: 주요 페이지 loading.tsx 스켈레톤 (2026-03-19) ✅
+
+**범위**: 12개 파일 신규 (전부 loading.tsx)
+
+**핵심 변경**:
+
+1. **대시보드형 스켈레톤 (3개)**
+   - `app/loading.tsx` — 헤더 카드 + 발행 체크리스트 2열 + 메트릭 4카드
+   - `app/analytics/loading.tsx` — 4 요약 카드 + 바 차트 + 2열 분포/유입
+   - `app/growth-timeline/loading.tsx` — 3 요약 카드 + 히트맵 그리드 + 2열 월별/타입
+
+2. **목록형 스켈레톤 (6개)**
+   - `app/projects/loading.tsx` — h1 + 3 필터 셀렉트 + 4 카드 리스트
+   - `app/resumes/loading.tsx` — h1 + 2 액션 버튼 + 3 카드 (상태 배지)
+   - `app/experiences/loading.tsx` — h1 + 입력 폼 2열 + 3 카드 리스트
+   - `app/notes/loading.tsx` — h1 + 2열 (노트북/작성 폼) + 노트 목록
+   - `app/blog/loading.tsx` — h1 + 버튼 + 4 카드 (배지 포함)
+   - `app/skills/loading.tsx` — h1 + 입력 폼 + 프리셋 5탭+10그리드 + 3 스킬 리스트
+
+3. **클라이언트형 스켈레톤 (3개)**
+   - `app/feedback/loading.tsx` — h1 + 버튼 + 카드 리스트
+   - `app/job-tracker/loading.tsx` — h1 + 칸반 6열 (max-w-[1400px])
+   - `app/testimonials/loading.tsx` — h1 + 버튼 + 카드 리스트
+
+**스타일 규칙**: `animate-pulse` + `bg-black/10 dark:bg-white/10` (T90 패턴 준수), Tailwind only
+
+**게이트**: `lint(0 errors, 8 warnings) / build(70/70 static pages)` 통과
+
+### T96 Session B: 레이아웃 Suspense + 나머지 loading.tsx (2026-03-19) ✅
+
+**범위**: 1개 파일 수정 + 5개 파일 신규 + 2개 파일 수정 (Session A Math.random 수정)
+
+**핵심 변경**:
+
+1. **layout.tsx Suspense 경계** (B1)
+   - `{children}`을 `<Suspense fallback={<WorkspaceSkeleton />}>` 래핑
+   - 사이드바(AppShellWrapper) 즉시 렌더링 유지 — Suspense 내부에 children만 래핑
+   - WorkspaceSkeleton: 제목 + 설명 + 4카드 그리드
+
+2. **클라이언트형 스켈레톤 (4개)**
+   - `app/audit/loading.tsx` — h1 + 5행 로그 카드 (action/entityType/meta)
+   - `app/company-targets/loading.tsx` — h1 + 필터 + 폼 + 카드 3행
+   - `app/domain-links/loading.tsx` — h1 + 4필드 생성 폼 + 4행 링크 목록
+   - `app/experience-stories/loading.tsx` — h1 + 필터 + STAR 폼 + 카드 3행
+
+3. **설정형 스켈레톤 (1개)**
+   - `app/portfolio/settings/loading.tsx` — h1 + 기본정보(2열 폼)/연락처/구직상태/섹션레이아웃 4개 카드
+
+4. **Session A Math.random 수정**
+   - `analytics/loading.tsx` — `Math.random()` → 정적 높이 배열 `[60, 35, 80, ...]`
+   - `growth-timeline/loading.tsx` — `Math.random()` → 정적 높이 배열 `[55, 80, 40, ...]`
+   - React 렌더 중 불순 함수 호출 에러 해소
+
+**게이트**: `lint(0 errors, 8 warnings) / build / jest(69 suites, 482 tests) / E2E(17 passed)` 통과
+
+### T96 통합 완료 (2026-03-19) ✅
+
+```
+Session A ✅ (주요 12개 loading.tsx)
+Session B ✅ (layout Suspense + 5개 loading.tsx + Math.random 수정)
+통합 게이트 ✅ lint(0 errors) / build / jest(69 suites, 482 tests) / E2E(17 passed)
+```
+
+**핵심 요약**: private 페이지 loading.tsx **0개 → 17개** + layout Suspense 경계 추가
+- 사이드바 즉시 렌더링 + 콘텐츠 스트리밍 SSR
+- 4가지 스켈레톤 패턴: 대시보드형(3개), 목록형(6개), 클라이언트형(7개), 설정형(1개)
+- 모든 스켈레톤이 실제 page.tsx 구조 매칭 (CLS 방지)
+
+---
+
+### Sprint 4 Phase 1 완료 (2026-03-19) ✅
+
+```
+Phase 1: 프론트엔드 화면 전환 속도 최적화
+  T95 (병목 진단) ✅ — 9개 진단 항목, P1/P2/P3 우선순위 확정
+  T96 (성능 최적화 적용) ✅ — loading.tsx 17개 + layout Suspense
+```
+
+---
+
+### Sprint 4 Phase 1 통합 게이트 최종 검증 (2026-03-19) ✅
+
+**통합 게이트 재실행 결과**:
+- `npm run lint` — 0 errors, 8 warnings ✅
+- `npm run build` — 성공 ✅
+- `npx jest --runInBand` — 69 suites, 482 tests 전부 통과 ✅
+- `npm run test:e2e` — 17 tests 전부 통과 (12.3s) ✅
+
+**Sprint 4 Phase 1 (T95+T96) 최종 완료 확정.**
+
+---
+
+## 현재 진행 맥락
+
+### Sprint 4 Phase 2 대기 (AI 자기소개서 RAG)
+
+- T95 (병목 진단) ✅
+- T96 (성능 최적화) ✅ — Phase 1 완료, 통합 게이트 최종 검증 완료
+- T97 (합격 자소서 RAG 파이프라인) → 다음 작업
+- T98 (자기소개서 생성 API + UI) → T97 완료 후
+- 테스트 기준선: Jest 69 suites, 482 tests + E2E 17 tests
+- 브랜치: main
