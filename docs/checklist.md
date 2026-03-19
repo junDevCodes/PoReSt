@@ -141,6 +141,8 @@
 - [x] `npx jest --runInBand` 통과 (69 suites, 482 tests)
 - [x] `npm run test:e2e` 통과 (17 passed — UI 회귀 없음)
 - [x] 통합 게이트 최종 재검증 완료 (2026-03-19) — lint/build/jest/e2e 4종 통과
+- [x] 프로덕션 배포 + E2E 17개 프로덕션 검증 통과 (2026-03-19)
+- [x] 프로덕션 HTTP 200 확인 (홈/경력/프로젝트/sitemap)
 
 ---
 

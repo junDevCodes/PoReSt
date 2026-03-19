@@ -1270,6 +1270,19 @@ Phase 1: 프론트엔드 화면 전환 속도 최적화
 
 **Sprint 4 Phase 1 (T95+T96) 최종 완료 확정.**
 
+### 프로덕션 배포 + 실 브라우저 검증 (2026-03-19) ✅
+
+**커밋 (기능 단위 5개)**:
+1. `9d39543` — `test(modules): Skills + PageViews 모듈 통합 테스트 53개 (T91)`
+2. `d0c3198` — `test(e2e): 다크모드/모바일/이력서/SEO E2E + CI (T92-B)`
+3. `cc4e531` — `a11y(portfolio): WCAG 접근성 수정 + axe-core (T93)`
+4. `9865f74` — `perf(workspace): loading.tsx 17개 + layout Suspense (T96)`
+5. `779dbcf` — `docs: Sprint 3~4 Phase 1 완료 문서 반영`
+
+**프로덕션 검증**:
+- Playwright E2E 17/17 통과 (12.4s)
+- HTTP 200: 홈(3.1s), 경력(0.8s), 프로젝트(1.9s), sitemap(2.4s)
+
 ---
 
 ## 현재 진행 맥락
