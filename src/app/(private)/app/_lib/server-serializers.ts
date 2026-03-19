@@ -1,9 +1,19 @@
 ﻿import type { OwnerBlogPostListItemDto } from "@/modules/blog";
+import type { OwnerCoverLetterListItemDto, OwnerCoverLetterDetailDto } from "@/modules/cover-letters";
 import type { OwnerExperienceDto } from "@/modules/experiences";
 import type { OwnerNoteListItemDto, OwnerNotebookDto } from "@/modules/notes";
 import type { OwnerProjectDto } from "@/modules/projects";
 import type { OwnerResumeListItemDto } from "@/modules/resumes";
 import type { OwnerSkillDto } from "@/modules/skills";
+
+export type SerializedOwnerCoverLetterListItemDto = Omit<OwnerCoverLetterListItemDto, "updatedAt"> & {
+  updatedAt: string;
+};
+
+export type SerializedOwnerCoverLetterDetailDto = Omit<OwnerCoverLetterDetailDto, "createdAt" | "updatedAt"> & {
+  createdAt: string;
+  updatedAt: string;
+};
 
 export type SerializedOwnerProjectDto = Omit<OwnerProjectDto, "updatedAt"> & {
   updatedAt: string;
@@ -42,6 +52,25 @@ function toIsoString(value: Date): string {
 
 function toNullableIsoString(value: Date | null): string | null {
   return value ? value.toISOString() : null;
+}
+
+export function serializeOwnerCoverLetterList(
+  items: OwnerCoverLetterListItemDto[],
+): SerializedOwnerCoverLetterListItemDto[] {
+  return items.map((item) => ({
+    ...item,
+    updatedAt: toIsoString(item.updatedAt),
+  }));
+}
+
+export function serializeOwnerCoverLetterDetail(
+  item: OwnerCoverLetterDetailDto,
+): SerializedOwnerCoverLetterDetailDto {
+  return {
+    ...item,
+    createdAt: toIsoString(item.createdAt),
+    updatedAt: toIsoString(item.updatedAt),
+  };
 }
 
 export function serializeOwnerProjectList(items: OwnerProjectDto[]): SerializedOwnerProjectDto[] {

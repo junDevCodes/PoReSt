@@ -25,6 +25,7 @@ const NAV_GROUPS: NavItem[][] = [
   [
     { href: "/app/experience-stories", label: "STAR 스토리" },
     { href: "/app/company-targets", label: "기업 분석" },
+    { href: "/app/cover-letters", label: "자기소개서" },
     { href: "/app/job-tracker", label: "지원 트래커" },
     { href: "/app/testimonials", label: "추천서" },
     { href: "/app/feedback", label: "피드백" },
