@@ -146,18 +146,94 @@
 
 ---
 
-## T97 — 합격 자소서 RAG 파이프라인 ⬜ 대기
+## T96-H — T96 코드 리뷰 핫픽스 ✅ 완료 (2026-03-19)
 
-> plan.md 참조. T96 완료 후 또는 병렬 진행.
+### H1: Job Tracker 스켈레톤 레이아웃 수정
 
-## T98 — 자기소개서 생성 API + UI ⬜ 대기
+- [x] `job-tracker/loading.tsx` — `grid grid-cols-6` → `flex gap-4 overflow-x-auto` 변경
+- [x] 열 요소에 `w-64 min-w-[256px] flex-shrink-0` 적용
+- [x] 실제 page.tsx의 `rounded-xl border-2` 카드 스타일 반영
+- [x] 모바일 뷰포트에서 스켈레톤 → 실제 페이지 전환 시 CLS 없음 확인
 
-> plan.md 참조. T97 완료 후 진행.
+### T96-H 게이트
+
+- [x] `npm run lint` 통과 (0 errors, 9 warnings)
+- [x] `npm run build` 통과
+- [x] `npx jest` 통과 (69 suites, 482 tests)
 
 ---
 
-### 매 태스크 종료 시 공통
+## T97 — 합격 자소서 RAG 파이프라인 ✅ 완료 (2026-03-19)
 
-- [x] 기존 게이트 4종 통과
-- [x] 기존 E2E 17개 통과 (성능 최적화 → UI 회귀 없음)
+### Prisma 스키마
+
+- [x] CoverLetterStatus enum (DRAFT, FINAL)
+- [x] CoverLetterEmbeddingStatus enum (PENDING, SUCCEEDED, FAILED)
+- [x] CoverLetter 모델 (ownerId, title, targetCompany, targetRole, contentMd, isReference, status)
+- [x] CoverLetterEmbedding 모델 (coverLetterId, chunkIndex, content, embedding vector(1536), status)
+- [x] User ↔ CoverLetter 관계 추가
+- [x] 마이그레이션 SQL + IVFFlat 코사인 유사도 인덱스
+
+### cover-letters 모듈
+
+- [x] interface.ts — DTO (Create/Update/ListItem/Detail/Generate), 에러 클래스, 서비스 인터페이스
+- [x] implementation.ts — CRUD 서비스 (create/list/get/update/delete/toggleReference)
+- [x] implementation.ts — generateCoverLetter (RAG 검색 + Gemini 생성 + fallback)
+- [x] implementation.ts — buildCoverLetterPrompt (지원정보 + JD + 합격예시 + 경력 + 스킬 + 출력지시)
+- [x] implementation.ts — Zod 유효성 검증 (createSchema, updateSchema, generateSchema)
+- [x] http.ts — 에러 응답 헬퍼
+- [x] Gemini fallback — buildFallbackCoverLetter (구조화된 템플릿)
+
+### cover-letter-embeddings 모듈
+
+- [x] interface.ts — DTO (RunResult, SimilarDto, SearchInput), 에러 클래스, 파이프라인 인터페이스
+- [x] implementation.ts — rebuildForOwner (isReference=true 전체 재빌드)
+- [x] implementation.ts — embedSingle (단일 자소서 임베딩)
+- [x] implementation.ts — searchSimilarByQuery (쿼리 텍스트 → 벡터 → 코사인 유사도 검색)
+- [x] implementation.ts — buildCoverLetterEmbeddingContent (제목+회사+직무+본문 결합)
+- [x] implementation.ts — buildDeterministicEmbeddingVector (Gemini fallback 결정적 벡터)
+- [x] http.ts — 에러 응답 헬퍼
+- [x] queueEmbeddingForCoverLetter (fire-and-forget 트리거)
+
+### 테스트
+
+- [x] cover-letters.test.ts — CRUD 12개 + 프롬프트 12개 = 24개
+- [x] cover-letter-embeddings.test.ts — 콘텐츠 빌드 3개 + 벡터 5개 + 파이프라인 5개 = 13개
+
+### 게이트
+
+- [x] `npm run lint` 통과 (0 errors, 9 warnings)
+- [x] `npm run build` 통과
+- [x] `npx jest` 통과 (71 suites, 519 tests)
+- [x] 기존 E2E 회귀 없음
+
+## T97-H — T97 코드 리뷰 핫픽스 ✅ 완료 (2026-03-19)
+
+- [x] H1: `implementation.ts:569` title `.slice(0, 120)` 보호 + 120자 초과 시 잘림 확인
+- [x] H2: `job-tracker/loading.tsx` 다크모드 — `:16`, `:25` `bg-white` → `bg-white dark:bg-zinc-900`
+- [x] 게이트: lint(0 errors) + build + jest(71 suites, 519 tests) 통과
+
+---
+
+## T98 — 자기소개서 생성 API + 워크스페이스 UI ✅ 완료 (2026-03-19)
+
+### Session A — API 라우트 ✅ 완료 (2026-03-19)
+
+- [x] A1: CRUD 라우트 — GET/POST `/cover-letters` + GET/PATCH/DELETE `/cover-letters/[id]` (2파일)
+- [x] A2: 액션 라우트 — toggle-reference(+자동 임베딩) + embed (2파일)
+- [x] A3: generate 라우트 — RAG 기반 AI 생성 POST (1파일, 핵심)
+
+### Session B — 워크스페이스 UI ✅ 완료 (2026-03-19)
+
+- [x] B1: AppSidebar "자기소개서" 메뉴 + 목록/상세 loading.tsx 스켈레톤 (3파일)
+- [x] B2: 목록 페이지 — page.tsx(서버) + CoverLettersPageClient.tsx(목록 카드 + AI 생성 다이얼로그 + 합격본 등록) (2파일)
+- [x] B3: 상세 페이지 — [id]/page.tsx(서버) + CoverLetterDetailClient.tsx(편집 + 저장 + 삭제 + 합격본 토글) (2파일)
+
+### 통합 게이트
+
+- [x] `npm run lint` 통과 (0 errors, 9 warnings)
+- [x] `npm run build` 통과 (API 5경로 + UI 2경로 포함)
+- [x] `npx jest` 통과 (71 suites, 519 tests)
+- [x] 기존 E2E 17개 회귀 없음 (17 passed, 13.6s — 2026-03-19 통합 게이트)
+- [x] 브라우저 확인: 빌드 + E2E 검증 완료 (API 5경로 + UI 2경로 정상 빌드)
 - [x] `task.md`, `checklist.md`, `history.md`, `plan.md` 문서 동기화

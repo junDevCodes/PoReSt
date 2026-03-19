@@ -1,6 +1,6 @@
 # PoReSt 작업 맥락서
 
-기준일: 2026-03-18
+기준일: 2026-03-19
 문서 정의: 완료된 작업의 이력과 현재 작업이 진행되는 맥락을 기록. 새 세션에서 "지금 왜 이걸 하는가"를 즉시 파악하는 용도.
 관련 문서: `plan.md`(전체 계획), `task.md`(현재 태스크 상세), `checklist.md`(검증 체크리스트)
 
@@ -1285,13 +1285,153 @@ Phase 1: 프론트엔드 화면 전환 속도 최적화
 
 ---
 
+### T96-H: Job Tracker 스켈레톤 핫픽스 (2026-03-19) ✅
+
+**범위**: 1개 파일 수정 (`job-tracker/loading.tsx`)
+
+**핵심 변경**:
+- `grid grid-cols-6 gap-3` → `flex gap-4 overflow-x-auto pb-4` (실제 page.tsx 칸반 패턴 매칭)
+- 열 요소에 `w-64 min-w-[256px] flex-shrink-0 rounded-xl border-2` 적용
+- 내부 카드 `rounded-2xl` → `rounded-lg` (실제 페이지 일치)
+- 열 헤더에 제목+카운트 배지 flex 레이아웃 반영
+
+**게이트**: `lint(0 errors, 9 warnings) / build / jest(69 suites, 482 tests)` 통과
+
+---
+
+### T97: 합격 자소서 RAG 파이프라인 (2026-03-19) ✅
+
+**범위**: Prisma 스키마 2모델 + 도메인 모듈 2개 + 테스트 37개
+
+**핵심 변경**:
+
+1. **Prisma 스키마**: CoverLetter + CoverLetterEmbedding 모델, enum 2개 (CoverLetterStatus, CoverLetterEmbeddingStatus)
+2. **마이그레이션**: `20260319120000_t97_cover_letter_rag` — 테이블 생성 + IVFFlat 코사인 유사도 인덱스
+3. **cover-letters 모듈**: CRUD 서비스 (create/list/get/update/delete/toggleReference) + Zod 검증 + RAG 기반 생성 함수 + 프롬프트 설계
+4. **cover-letter-embeddings 모듈**: 임베딩 파이프라인 (rebuildForOwner/embedSingle) + 쿼리 벡터 기반 코사인 유사도 검색 (searchSimilarByQuery)
+5. **프롬프트**: "합격 자소서 작성 전문 컨설턴트" 시스템 프롬프트 + 지원정보/JD/합격예시/경력/스킬 포함 + 4단 구조 (지원동기/역량/성장/포부)
+6. **withGeminiFallback**: API KEY 없으면 구조화된 템플릿 자동 생성
+7. **테스트**: cover-letters 24개 + cover-letter-embeddings 13개 = 37개
+
+**게이트**: `lint(0 errors, 9 warnings) / build / jest(71 suites, 519 tests)` 통과
+
+---
+
+### T97-H: T97 코드 리뷰 핫픽스 (2026-03-19) ✅
+
+**범위**: 2개 파일 수정
+
+**핵심 변경**:
+1. **generateCoverLetter 제목 120자 초과 버그** (P1): `implementation.ts:569` — 자동 생성 title에 `.slice(0, 120)` 보호 추가
+2. **Job Tracker 스켈레톤 다크모드** (P2): `job-tracker/loading.tsx` — `:16`, `:25` `bg-white` → `bg-white dark:bg-zinc-900`
+
+**보류 항목 archive 이관**: 6건 (프롬프트 상수화, executeRawUnsafe 전환, 병렬 배치, 1쿼리 최적화, FK 미선언, 통합 테스트)
+
+**게이트**: `lint(0 errors, 9 warnings) / build / jest(71 suites, 519 tests)` 통과
+
+---
+
+### T98 Session A: 자기소개서 API 라우트 (2026-03-19) ✅
+
+**범위**: API 라우트 5개 신규 파일
+
+**핵심 변경**:
+
+1. **Collection Route** (`api/app/cover-letters/route.ts`): GET 목록 + POST 생성
+2. **Item Route** (`api/app/cover-letters/[id]/route.ts`): GET 상세 + PATCH 수정 + DELETE 삭제
+3. **Toggle Reference** (`api/app/cover-letters/[id]/toggle-reference/route.ts`): POST 합격본 토글 + isReference=true 시 자동 임베딩
+4. **Generate** (`api/app/cover-letters/generate/route.ts`): POST RAG 기반 AI 자기소개서 생성
+5. **Embed** (`api/app/cover-letters/[id]/embed/route.ts`): POST 임베딩 수동 트리거
+
+**패턴**: 기존 resumes/notes API 패턴 100% 재사용 (requireAuth + parseJsonBodyWithLimit + 서비스 에러 → HTTP 응답 매핑)
+
+**게이트**: `lint(0 errors, 9 warnings) / build / jest(71 suites, 519 tests)` 통과
+
+---
+
+### T98 Session B: 자기소개서 워크스페이스 UI (2026-03-19) ✅
+
+**범위**: 7개 파일 신규 + 2개 파일 수정
+
+**핵심 변경**:
+
+1. **AppSidebar 메뉴 추가** (B1)
+   - NAV_GROUPS 3번째 그룹(구직)에 `{ href: "/app/cover-letters", label: "자기소개서" }` 추가
+   - "기업 분석"과 "지원 트래커" 사이 배치
+
+2. **목록 페이지** (B2~B4)
+   - `cover-letters/page.tsx` — 서버 컴포넌트: `getRequiredOwnerSession` → `listForOwner` → serializer → PageClient
+   - `CoverLettersPageClient.tsx` — 목록 카드(제목+회사/직무+상태 배지+합격본 배지) + AI 생성 다이얼로그(4필드) + 합격본 등록 다이얼로그(4필드) + 삭제 확인
+   - `cover-letters/loading.tsx` — 목록형 스켈레톤 (T96 패턴)
+
+3. **상세/편집 페이지** (B5~B7)
+   - `[id]/page.tsx` — 서버 컴포넌트: `getForOwner` → serializer → DetailClient
+   - `CoverLetterDetailClient.tsx` — 인라인 제목 편집 + 메타 필드(회사/직무/상태) + textarea 본문 편집 + 저장(PATCH) + 삭제(DELETE) + 합격본 토글(POST toggle-reference)
+   - `[id]/loading.tsx` — 상세 페이지 스켈레톤
+
+4. **Serializer 확장** (B8)
+   - `server-serializers.ts`에 `SerializedOwnerCoverLetterListItemDto` + `SerializedOwnerCoverLetterDetailDto` 타입 추가
+   - `serializeOwnerCoverLetterList()` + `serializeOwnerCoverLetterDetail()` 함수 추가
+
+**UI 디자인**: resumes 카드 패턴 재사용, DRAFT(회색)/FINAL(초록) 배지, ★합격본(앰버) 배지, 모달 폼, ConfirmDialog 삭제 확인
+
+**게이트**: `lint(0 errors, 9 warnings) / build(API 5 + UI 2 경로 포함) / jest(71 suites, 519 tests)` 통과
+
+### T98 통합 완료 (2026-03-19) ✅
+
+```
+Session A ✅ (API 라우트 5개)
+Session B ✅ (워크스페이스 UI 7개 + 수정 2개)
+통합 게이트 ✅ lint(0 errors, 9 warnings) / build / jest(71 suites, 519 tests)
+```
+
+**핵심 요약**: T97 RAG 파이프라인을 사용자 접점으로 완전 노출
+- API: CRUD 5개 엔드포인트 + RAG 생성 + 임베딩 트리거 + 합격본 토글
+- UI: 사이드바 메뉴 + 목록(카드+AI생성+합격본등록) + 상세(편집+저장+삭제+토글)
+- 서버→클라이언트 직렬화 패턴 일관 적용
+
+**미검증 항목** (브라우저 실 확인 필요):
+- E2E 17개 회귀 없음 확인
+- 브라우저에서 목록 → AI 생성 → 편집 → 합격본 등록 → 삭제 흐름 확인
+
+---
+
+### Sprint 4 통합 게이트 최종 검증 (2026-03-19) ✅
+
+**통합 게이트 결과**:
+- `npm run lint` — 0 errors, 9 warnings ✅
+- `npm run build` — 73 pages 성공 ✅
+- `npx jest --runInBand` — 71 suites, 519 tests 전부 통과 ✅
+- `npm run test:e2e` — 17 tests 전부 통과 (13.6s) ✅
+
+**Sprint 4 (M13: 실전 최적화) 전체 완료 확정.**
+
+---
+
+## Sprint 4 (M13: 실전 최적화) 완료 요약 (2026-03-19) ✅
+
+```
+Phase 1: 프론트엔드 화면 전환 속도 최적화
+  T95 (병목 진단) ✅ — 9개 진단, P1/P2/P3 우선순위 확정
+  T96 (성능 최적화) ✅ — loading.tsx 17개 + layout Suspense
+  T96-H (코드 리뷰 핫픽스) ✅ — Job Tracker 스켈레톤 패턴 매칭
+
+Phase 2: AI 자기소개서 RAG
+  T97 (RAG 파이프라인) ✅ — Prisma 2모델 + 모듈 2개 + 테스트 37개
+  T97-H (코드 리뷰 핫픽스) ✅ — 제목 120자 초과 버그 + 다크모드
+  T98 (생성 API + UI) ✅ — API 5개 + UI 7개 + 사이드바
+```
+
+**최종 기준선**: 71 suites, 519 tests + E2E 17 tests / lint 0 errors, 9 warnings
+
+---
+
 ## 현재 진행 맥락
 
-### Sprint 4 Phase 2 대기 (AI 자기소개서 RAG)
+### Sprint 4 완료 — 다음 작업 대기
 
-- T95 (병목 진단) ✅
-- T96 (성능 최적화) ✅ — Phase 1 완료, 통합 게이트 최종 검증 완료
-- T97 (합격 자소서 RAG 파이프라인) → 다음 작업
-- T98 (자기소개서 생성 API + UI) → T97 완료 후
-- 테스트 기준선: Jest 69 suites, 482 tests + E2E 17 tests
+- Sprint 1~4 전체 완료
+- 테스트 기준선: Jest 71 suites, 519 tests + E2E 17 tests
+- lint: 0 errors, 9 warnings
 - 브랜치: main
+- 다음: Sprint 5 계획 수립 또는 archive.md 복귀 항목 검토

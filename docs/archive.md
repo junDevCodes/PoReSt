@@ -1,6 +1,6 @@
 # PoReSt 아카이브
 
-기준일: 2026-03-18
+기준일: 2026-03-19
 문서 정의: 차후 계획에 편입할 아이디어, 현재 기술적 해결이 불가능한 이슈, 우선순위 하향된 기능을 기록하는 보관 문서.
 관련 문서: `plan.md`(전체 계획), `task.md`(현재 태스크), `history.md`(완료 이력)
 
@@ -57,6 +57,73 @@
 - **보관 사유**: 기본 칸반 + JD 매칭은 동작. Sprint 4 성능+자소서 우선
 - **복귀 조건**: 실제 구직 활동 시작 시 → **✅ 충족 (2026-03-19)**
 - **비고**: Sprint 4 범위 과다로 보류. Sprint 5 1순위 후보
+
+---
+
+## T96 코드 리뷰 보류 항목 (2026-03-19)
+
+### AppShellWrapper 다크모드 FOUC (P2)
+
+- **내용**: `useState(false)` → `useEffect`에서 `localStorage` 읽기 패턴으로 인해 다크모드 사용자에게 light→dark 깜빡임(FOUC) 발생
+- **위치**: `src/components/app/AppShellWrapper.tsx:14-18`
+- **보관 사유**: SSR 초기값 결정 구조를 바꿔야 함 (cookie 기반 또는 `<script>` inline). 체감 속도에는 영향 있지만 기능 정상 동작. T96 범위 초과
+- **복귀 조건**: 체감 속도 2차 최적화 시 또는 사용자 불만 접수 시
+- **대응 방향**: (1) cookie에 theme 저장 → SSR에서 읽기, (2) `<head>` inline script로 `data-theme` 사전 적용
+- **관련**: T95 진단, T96 코드 리뷰
+
+### dark: 접두사 이중 적용 방침 (P3)
+
+- **내용**: loading.tsx에서 `bg-black/10 dark:bg-white/10`처럼 명시적 `dark:` 접두사를 사용하는데, `globals.css`에서 `[data-theme="dark"] .bg-black\/10`으로 동일 오버라이드가 이미 존재. 두 접근 방식이 혼재
+- **보관 사유**: 기능적 충돌 없음 (동일 값). 코드 컨벤션 정리 수준의 이슈
+- **복귀 조건**: 신규 개발자 온보딩 시 또는 다크모드 관련 버그 발생 시
+- **대응 방향**: 문서화 — "globals.css 글로벌 오버라이드에 의존하되, skeleton pulse 색상은 방어적으로 `dark:` 명시" 규칙 확정
+- **관련**: T96 코드 리뷰
+
+---
+
+## T97 코드 리뷰 보류 항목 (2026-03-19)
+
+### 프롬프트 내 합격 자소서 본문 길이 상수화 (P2, C3)
+
+- **내용**: `buildCoverLetterPrompt()`에서 합격 자소서 본문을 `slice(0, 3000)`으로 포함. 5개 × 3000 = 15000자. Gemini 토큰 한도 대비 프롬프트가 커질 수 있음. `MAX_REF_CONTENT_LENGTH` 상수화 + 총량 제한 필요
+- **보관 사유**: 현재 합격 자소서 0개 상태이므로 실질 영향 없음
+- **복귀 조건**: 합격 자소서 5개 이상 축적 시 또는 Gemini 토큰 초과 에러 발생 시
+- **관련**: T97 코드 리뷰 C3
+
+### `$executeRawUnsafe` → `Prisma.sql` 전환 (P2, E1)
+
+- **내용**: `cover-letter-embeddings`와 `note-embeddings` 모두 벡터 UPDATE에 `$executeRawUnsafe` + 문자열 보간 사용. `Prisma.sql` 템플릿으로 전환 권장
+- **보관 사유**: 벡터는 `number[].join(",")` 결과이므로 현재 안전. pgvector 파라미터화 제약
+- **복귀 조건**: Prisma에서 pgvector 파라미터 지원 추가 시 또는 보안 감사 시
+- **관련**: T97 코드 리뷰 E1, note-embeddings 동일 패턴
+
+### rebuildForOwner 직렬 → 병렬 배치 처리 (P3, E3)
+
+- **내용**: `rebuildForOwner`에서 `for...of` 직렬 실행. 합격 자소서 100개면 Gemini API 100회 직렬 호출
+- **보관 사유**: 현재 합격본 수 소규모 예상 (10개 미만). 병렬화 시 rate-limit 위험
+- **복귀 조건**: 합격본 20개 이상 축적 시
+- **관련**: T97 코드 리뷰 E3
+
+### CRUD findFirst+update 2쿼리 → 1쿼리 최적화 (P3, C2)
+
+- **내용**: update/delete/toggleReference에서 findFirst(소유권 확인) + update 2회 쿼리. `updateMany({ where: { id, ownerId } })` + rowCount 체크로 1회 가능
+- **보관 사유**: 성능 영향 미미 (단건 조회). 기존 모듈 패턴과 일관성 유지
+- **복귀 조건**: DB 쿼리 병목 프로파일링 시
+- **관련**: T97 코드 리뷰 C2
+
+### resumeId/experienceId FK 관계 미선언 (P3, S1)
+
+- **내용**: CoverLetter 모델의 `resumeId`, `experienceId`에 `@relation` 없음. DB 레벨 참조 무결성 없이 String만 존재
+- **보관 사유**: 의도적 loose coupling — 이력서/경력 삭제 시 자소서까지 cascade 삭제되는 것 방지
+- **복귀 조건**: 데이터 정합성 이슈 발생 시
+- **관련**: T97 코드 리뷰 S1
+
+### generateCoverLetter 통합 테스트 부재 (P3, T1)
+
+- **내용**: Gemini 호출 → RAG 검색 → 저장까지의 E2E 흐름이 단위 테스트에 포함되지 않음
+- **보관 사유**: 서비스 단위 테스트 37개로 각 함수별 커버리지 충분. 통합 테스트는 mock 복잡도 높음
+- **복귀 조건**: 커버리지 목표 80% 미달 시 또는 AI 생성 관련 리그레션 발생 시
+- **관련**: T97 코드 리뷰 T1
 
 ---
 
