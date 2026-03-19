@@ -51,6 +51,17 @@ enum NoteEmbeddingStatus {
   FAILED
 }
 
+enum CoverLetterStatus {
+  DRAFT
+  FINAL
+}
+
+enum CoverLetterEmbeddingStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+}
+
 enum PortfolioLinkType {
   GITHUB
   LINKEDIN
@@ -172,6 +183,7 @@ model User {
   pageViews         PageView[]
   testimonials      Testimonial[]
   growthEvents      GrowthEvent[]
+  coverLetters      CoverLetter[]
 
   @@map("users")
 }
@@ -860,4 +872,56 @@ model FeedbackItem {
 
   @@index([requestId, severity])
   @@map("feedback_items")
+}
+
+// ========== COVER LETTER (합격 자소서 RAG 기반 생성) ==========
+
+model CoverLetter {
+  id            String            @id @default(cuid())
+  ownerId       String
+  owner         User              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  status        CoverLetterStatus @default(DRAFT)
+  isReference   Boolean           @default(false) // 합격 자소서 마킹 (RAG 코퍼스)
+
+  title         String            // 내부 관리용 (예: "A사 프론트엔드 합격 자소서")
+  targetCompany String?
+  targetRole    String?
+  contentMd     String            @db.Text // 자기소개서 본문 (마크다운)
+
+  // 선택적 연결 — 어떤 이력서/경력 기반으로 작성했는지
+  resumeId      String?
+  experienceId  String?
+
+  embeddings    CoverLetterEmbedding[]
+
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@index([ownerId, status, updatedAt])
+  @@index([ownerId, isReference])
+  @@index([targetCompany, targetRole])
+  @@map("cover_letters")
+}
+
+model CoverLetterEmbedding {
+  id             String                     @id @default(cuid())
+  coverLetterId  String
+  coverLetter    CoverLetter                @relation(fields: [coverLetterId], references: [id], onDelete: Cascade)
+
+  chunkIndex     Int                        @default(0)
+  content        String                     @db.Text
+
+  embedding      Unsupported("vector(1536)")?
+  status         CoverLetterEmbeddingStatus @default(PENDING)
+  lastEmbeddedAt DateTime?
+  error          String?                    @db.Text
+
+  createdAt      DateTime                   @default(now())
+  updatedAt      DateTime                   @updatedAt
+
+  @@index([coverLetterId, chunkIndex])
+  @@index([coverLetterId, status, updatedAt])
+  @@index([status, chunkIndex, updatedAt])
+  @@map("cover_letter_embeddings")
 }
