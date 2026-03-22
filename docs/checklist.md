@@ -54,12 +54,12 @@
 
 > 라인 번호는 작성 시점(2026-03-22) 스냅샷. 실제 작업 시 컴포넌트명 및 조건부 렌더 패턴으로 재확인.
 
-- [ ] `CoverLettersPageClient` — AI 생성 모달 (:301~398) → `GenerateCoverLetterModal` 추출 + dynamic
-- [ ] `CoverLettersPageClient` — 합격본 등록 모달 (:401~498) → `RegisterCoverLetterModal` 추출 + dynamic
+- [x] `CoverLettersPageClient` — AI 생성 모달 (:301~398) → `GenerateCoverLetterModal` 추출 + dynamic
+- [x] `CoverLettersPageClient` — 합격본 등록 모달 (:401~498) → `RegisterCoverLetterModal` 추출 + dynamic
 
 ### T100-B: portfolio/settings (Session B)
 
-- [ ] `portfolio/settings` — 미리보기 오버레이 (:930~980) → `PortfolioPreviewOverlay` 추출 + dynamic
+- [x] `portfolio/settings` — 미리보기 오버레이 (:930~980) → `PortfolioPreviewOverlay` 추출 + dynamic
 
 ### T100-C: job-tracker (Session C)
 
@@ -67,10 +67,10 @@
 
 ### 제외 확인
 
-- [ ] `ConfirmDialog` (59줄) — 건드리지 않음
-- [ ] `experience-stories` 생성 폼 (:354) — 항상 렌더, 건드리지 않음
-- [ ] `company-targets` 생성 폼 (:321) — 항상 렌더, 건드리지 않음
-- [ ] 20줄 이하 단순 조건부 UI — 건드리지 않음
+- [x] `ConfirmDialog` (59줄) — 건드리지 않음
+- [x] `experience-stories` 생성 폼 (:354) — 항상 렌더, 건드리지 않음
+- [x] `company-targets` 생성 폼 (:321) — 항상 렌더, 건드리지 않음
+- [x] 20줄 이하 단순 조건부 UI — 건드리지 않음
 
 ### ssr 정책 확인
 
@@ -84,9 +84,9 @@
 
 ### 회귀 자동화 (Jest/RTL — 각 모달별 최소 1개, 세션별 작성)
 
-- [ ] (Session A) `GenerateCoverLetterModal` RTL 테스트: 열기 → 필드 렌더 → 닫기
-- [ ] (Session A) `RegisterCoverLetterModal` RTL 테스트: 열기 → 제목/본문 필드 렌더 → 닫기
-- [ ] (Session B) `PortfolioPreviewOverlay` RTL 테스트: 열기 → PortfolioFullPreview 렌더 → 닫기
+- [x] (Session A) `GenerateCoverLetterModal` RTL 테스트: 열기 → 필드 렌더 → 닫기 (4개 테스트)
+- [x] (Session A) `RegisterCoverLetterModal` RTL 테스트: 열기 → 제목/본문 필드 렌더 → 닫기 (4개 테스트)
+- [x] (Session B) `PortfolioPreviewOverlay` RTL 테스트: 열기 → PortfolioFullPreview 렌더 → 닫기 (4개 테스트)
 - [ ] (Session C) `JobCardDetailModal` RTL 테스트: 열기 → 상세 정보 렌더 → 닫기
 
 ### 회귀 수동 스모크 (RTL 보완 — 제출/취소 + fallback 확인)
@@ -107,8 +107,8 @@
 
 ### 게이트 (각 세션 내 빌드 확인)
 
-- [ ] (Session A) `npm run build` 통과 — T100-A 커밋 후
-- [ ] (Session B) `npm run build` 통과 — T100-B 커밋 후
+- [x] (Session A) `npm run build` 통과 — T100-A 커밋 후
+- [x] (Session B) `npm run build` 통과 — T100-B 커밋 후
 - [ ] (Session C) `npm run build` 통과 — T100-C 커밋 후
 
 ---
@@ -129,23 +129,23 @@
 
 ### prefetch 설정
 
-- [ ] AppSidebar.tsx 내 NAV_GROUPS 구조 확인
-- [ ] 저빈도 메뉴에 `prefetch={false}` 적용 (12개)
-- [ ] 핵심 메뉴 prefetch 유지 확인 (홈/프로젝트/이력서/경력/노트/자기소개서)
-- [ ] NAV_GROUPS 코드에 분류 근거 주석 추가 (향후 재분류 시 판단 기준 보존)
+- [x] AppSidebar.tsx 내 NAV_GROUPS 구조 확인
+- [x] 저빈도 메뉴에 `prefetch={false}` 적용 (11개: 포트폴리오설정, 블로그, STAR스토리, 기업분석, 지원트래커, 추천서, 피드백, 방문분석, 성장타임라인, 교차링크, 감사로그)
+- [x] 핵심 메뉴 prefetch 유지 확인 (대시보드/프로젝트/경력/기술스택/이력서/노트/자기소개서)
+- [x] NAV_GROUPS 코드에 분류 근거 주석 추가 (향후 재분류 시 판단 기준 보존)
 
 ### 동작 검증
 
-- [ ] 핵심 메뉴 클릭 → 즉시 로드 (체감 변화 없음)
-- [ ] 저빈도 메뉴 클릭 → loading.tsx 스켈레톤 표시 → 정상 로드
-- [ ] Network 탭: 사이드바 진입 후 prefetch 요청 수 감소 확인 **(보조지표, 참고 기록)**
+- [x] 핵심 메뉴 클릭 → 즉시 로드 (체감 변화 없음) — prefetch 기본값 유지
+- [x] 저빈도 메뉴 클릭 → loading.tsx 스켈레톤 표시 → 정상 로드 — prefetch={false} + loading.tsx 존재 확인
+- [ ] Network 탭: 사이드바 진입 후 prefetch 요청 수 감소 확인 **(보조지표, 참고 기록)** — production 빌드 측정 필요 (T103)
 
 ### 게이트
 
-- [ ] `npm run lint` 통과 (0 errors)
-- [ ] `npm run build` 통과
-- [ ] `npx jest --runInBand` 통과 (71 suites, 519 tests 이상 — T100 RTL 신규분 포함)
-- [ ] E2E 17개 통과
+- [x] `npm run lint` 통과 (0 errors, 9 warnings)
+- [x] `npm run build` 통과
+- [x] `npx jest --runInBand` 통과 (74 suites, 540 tests — T100 RTL 신규분 포함)
+- [x] E2E 17개 통과 (12.7s)
 
 ---
 

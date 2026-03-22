@@ -1533,17 +1533,67 @@ Phase 2: AI 자기소개서 RAG
 
 ---
 
+### T100-B Session B: 미리보기 오버레이 dynamic 분리 (2026-03-22) ✅
+
+**범위**: 1개 파일 수정 (`settings/page.tsx`) + 1개 파일 신규 (`PortfolioPreviewOverlay.tsx`) + 1개 테스트 신규 + 1개 테스트 수정
+
+**핵심 변경**:
+
+1. **PortfolioPreviewOverlay 추출** — `settings/page.tsx`의 인라인 미리보기 오버레이(929~975줄) → 별도 컴포넌트로 추출
+2. **next/dynamic 적용** — `PortfolioPreviewOverlay`를 `next/dynamic`으로 lazy 로딩, loading fallback(스켈레톤) 포함
+3. **RTL 테스트** — `preview-overlay.test.tsx` 4개 (렌더 확인, 닫기 버튼, 배경 클릭, 내부 클릭 전파 차단)
+4. **기존 테스트 호환** — `preview.test.tsx`의 미리보기 갱신 테스트를 `waitFor`로 dynamic 로딩 대기 적용
+
+**게이트**: `lint(0 errors, 9 warnings) / build / jest(74 suites, 540 tests) / E2E(17 passed)` 통과
+
+---
+
+### T102 Session B: 네비게이션 prefetch 전략 최적화 (2026-03-22) ✅
+
+**범위**: 1개 파일 수정 (`AppSidebar.tsx`)
+
+**핵심 변경**:
+
+1. **NavItem 타입 확장** — `prefetch?: boolean` 필드 추가
+2. **저빈도 메뉴 11개에 `prefetch={false}` 적용**:
+   - 포트폴리오 설정, 블로그, STAR 스토리, 기업 분석, 지원 트래커, 추천서, 피드백
+   - 방문 분석, 성장 타임라인, 교차 링크, 감사 로그
+3. **핵심 메뉴 7개는 prefetch 기본값 유지**: 대시보드, 프로젝트, 경력, 기술스택, 이력서, 노트, 자기소개서
+4. **분류 근거 주석 추가** — NAV_GROUPS 상단에 "dogfooding 일상 접근 vs 비일상, telemetry 도입 후 재분류 예정" 주석
+5. **Link에 `prefetch={item.prefetch}` prop 전달** — undefined는 Next.js 기본값(자동) 유지
+
+**게이트**: `lint(0 errors, 9 warnings) / build / jest(74 suites, 540 tests) / E2E(17 passed)` 통과
+
+---
+
+### T100-A Session A: cover-letters 모달 2개 dynamic 분리 (2026-03-22) ✅
+
+**범위**: 3개 파일 (2개 신규, 1개 수정) + RTL 테스트 1개 (8 tests)
+
+**핵심 변경**:
+
+1. **GenerateCoverLetterModal 추출** — `CoverLettersPageClient.tsx`의 AI 생성 모달(301~398줄) → 별도 컴포넌트로 추출
+2. **RegisterCoverLetterModal 추출** — 합격본 등록 모달(401~498줄) → 별도 컴포넌트로 추출
+3. **next/dynamic 적용** — 두 모달 모두 `next/dynamic`으로 lazy 로딩, loading fallback(스켈레톤) 포함
+4. **RTL 테스트 8개** — GenerateCoverLetterModal 4개(렌더/비활성화/활성화/생성중), RegisterCoverLetterModal 4개(렌더/비활성화/활성화/등록중)
+
+**게이트**: `lint(0 errors, 9 warnings) / build(73 pages) / jest(74 suites, 540 tests)` 통과
+**커밋**: `dfc2848`
+
+---
+
 ## 현재 진행 맥락
 
 ### Sprint 5 (M14: 코드 스플리팅 & Lazy 로딩) 진행 중
 
 - Sprint 1~4 전체 완료 + **코드 리뷰 수정 완료**
 - **T99 완료** — 번들 기준선 확립 + 분석 인프라 설정
+- **T100-B + T102 (Session B) 완료** — 미리보기 오버레이 dynamic 분리 + prefetch 전략 적용
+- **T100-A (Session A) 완료** — cover-letters 모달 2개 dynamic 분리 + RTL 8개 추가
 - **Sprint 5 목표**: 기존 기능 100% 유지하면서 클라이언트 번들 크기 축소
-- 테스트 기준선: Jest 71 suites, 519 tests + E2E 17 tests
+- 테스트 기준선: Jest 74 suites, 540 tests + E2E 17 tests
 - lint: 0 errors, 9 warnings
-- static/chunks: 2.6MB (52개 파일)
 - 브랜치: main
 - **핵심 원칙**: 기능 변경 ZERO, 측정→변경→검증, 태스크당 독립 배포
-- **핵심 인사이트**: PDF 라이브러리(jsPDF/html2canvas)는 이미 native import()로 동적 분리 완료. 최적화 여지는 **UI 컴포넌트 레벨 dynamic 미활용**(모달/오버레이) + **prefetch 과다**(사이드바 20+개 Link)에 있음.
-- 다음: T100(모달 dynamic 분리) + T102(prefetch) + T101(lazy 분리) → T103(최종 검증)
+- **Session C 대기** — 통합 게이트는 3세션 전부 완료 후 실행
+- 다음: Session C 완료 → Phase 2 통합 게이트 → T101(조건부) → T103(최종 검증)
