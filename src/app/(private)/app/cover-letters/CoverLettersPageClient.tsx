@@ -9,6 +9,7 @@ import type { SerializedOwnerCoverLetterListItemDto } from "@/app/(private)/app/
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { EmptyBlock, ErrorBanner, LoadingBlock } from "@/components/ui/AsyncState";
 import { useToast } from "@/components/ui/useToast";
+import type { GenerateFormData, RegisterFormData } from "./types";
 
 const ModalLoadingFallback = () => (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
@@ -65,7 +66,7 @@ export function CoverLettersPageClient({ initialCoverLetters }: CoverLettersPage
   // AI 생성 모달
   const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generateForm, setGenerateForm] = useState({
+  const [generateForm, setGenerateForm] = useState<GenerateFormData>({
     targetCompany: "",
     targetRole: "",
     jobDescription: "",
@@ -75,7 +76,7 @@ export function CoverLettersPageClient({ initialCoverLetters }: CoverLettersPage
   // 합격본 등록 모달
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
-  const [registerForm, setRegisterForm] = useState({
+  const [registerForm, setRegisterForm] = useState<RegisterFormData>({
     title: "",
     targetCompany: "",
     targetRole: "",

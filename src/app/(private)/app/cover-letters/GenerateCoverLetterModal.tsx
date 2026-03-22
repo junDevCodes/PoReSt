@@ -1,11 +1,6 @@
 "use client";
 
-type GenerateFormData = {
-  targetCompany: string;
-  targetRole: string;
-  jobDescription: string;
-  motivationHint: string;
-};
+import type { GenerateFormData } from "./types";
 
 type GenerateCoverLetterModalProps = {
   generateForm: GenerateFormData;
@@ -15,7 +10,7 @@ type GenerateCoverLetterModalProps = {
   onGenerate: () => void;
 };
 
-export function GenerateCoverLetterModal({
+export default function GenerateCoverLetterModal({
   generateForm,
   setGenerateForm,
   isGenerating,
@@ -121,5 +116,3 @@ export function GenerateCoverLetterModal({
     </div>
   );
 }
-
-export default GenerateCoverLetterModal;

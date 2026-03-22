@@ -1,8 +1,8 @@
 /** @jest-environment jsdom */
 
 import { fireEvent, render, screen } from "@testing-library/react";
-import { GenerateCoverLetterModal } from "../GenerateCoverLetterModal";
-import { RegisterCoverLetterModal } from "../RegisterCoverLetterModal";
+import GenerateCoverLetterModal from "../GenerateCoverLetterModal";
+import RegisterCoverLetterModal from "../RegisterCoverLetterModal";
 
 describe("GenerateCoverLetterModal", () => {
   const defaultForm = {

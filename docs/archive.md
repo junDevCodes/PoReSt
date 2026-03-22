@@ -222,3 +222,17 @@
 - **보관 사유**: 마이그레이션 필요 + FK 추가 시 기존 데이터 정합성 사전 점검 필요. Sprint 5는 기능 변경 ZERO 원칙.
 - **복귀 조건**: DB 스키마 정비 Sprint 진입 시. `@relation(onDelete: SetNull)` 추가 + 마이그레이션.
 - **관련**: T98, 코드 리뷰 [H-1]
+
+### 모달 접근성 기본기 부재 (Sprint 5 코드 리뷰 [INFO])
+
+- **내용**: 추출된 4개 모달(GenerateCoverLetterModal, RegisterCoverLetterModal, PortfolioPreviewOverlay, JobCardDetailModal) + 기존 모달 전부에서 `role="dialog"`, `aria-modal="true"` 미적용, focus trap 없음, Escape 키 닫기 미구현, `aria-labelledby` 연결 없음
+- **보관 사유**: Sprint 5 신규 도입 문제가 아닌 pre-existing 이슈. 기능 변경 ZERO 원칙에 따라 접근성 Sprint에서 일괄 처리 권장
+- **복귀 조건**: 접근성 Sprint 진입 시. WCAG 2.2 dialog 패턴 일괄 적용
+- **관련**: Sprint 5 코드 리뷰, T100
+
+### 모달 다크모드 미지원 (Sprint 5 코드 리뷰 [INFO])
+
+- **내용**: 추출된 4개 모달 전부 `bg-white`, `text-black/60` 등 라이트 테마 하드코딩. AppSidebar는 `dark:bg-white/15` 사용 중이라 패턴 불일치
+- **보관 사유**: pre-existing 이슈. 모달별 다크모드 토큰은 디자인 시스템 정비와 함께 처리해야 효율적
+- **복귀 조건**: 다크모드 디자인 시스템 정비 Sprint 진입 시
+- **관련**: Sprint 5 코드 리뷰, T100

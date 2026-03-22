@@ -1,11 +1,6 @@
 "use client";
 
-type RegisterFormData = {
-  title: string;
-  targetCompany: string;
-  targetRole: string;
-  contentMd: string;
-};
+import type { RegisterFormData } from "./types";
 
 type RegisterCoverLetterModalProps = {
   registerForm: RegisterFormData;
@@ -15,7 +10,7 @@ type RegisterCoverLetterModalProps = {
   onRegister: () => void;
 };
 
-export function RegisterCoverLetterModal({
+export default function RegisterCoverLetterModal({
   registerForm,
   setRegisterForm,
   isRegistering,
@@ -120,5 +115,3 @@ export function RegisterCoverLetterModal({
     </div>
   );
 }
-
-export default RegisterCoverLetterModal;
