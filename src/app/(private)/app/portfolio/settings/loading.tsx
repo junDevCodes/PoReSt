@@ -1,6 +1,6 @@
 export default function PortfolioSettingsLoading() {
   return (
-    <main className="mx-auto flex w-full max-w-3xl flex-col px-2 py-2">
+    <main className="mx-auto flex w-full max-w-3xl flex-col px-2 py-2" aria-busy="true" role="status" aria-label="페이지 로딩 중">
       {/* 헤더 */}
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div>

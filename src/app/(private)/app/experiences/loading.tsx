@@ -1,6 +1,6 @@
 export default function ExperiencesLoading() {
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col">
+    <div className="mx-auto flex w-full max-w-6xl flex-col" aria-busy="true" role="status" aria-label="페이지 로딩 중">
       {/* 헤더 */}
       <div>
         <div className="h-3 w-14 animate-pulse rounded bg-black/10 dark:bg-white/10" />
@@ -26,7 +26,7 @@ export default function ExperiencesLoading() {
         {Array.from({ length: 3 }).map((_, i) => (
           <div
             key={i}
-            className="animate-pulse rounded-xl border border-black/10 bg-[#faf9f6] p-4"
+            className="animate-pulse rounded-xl border border-black/10 bg-[#faf9f6] dark:bg-zinc-800 p-4"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1">

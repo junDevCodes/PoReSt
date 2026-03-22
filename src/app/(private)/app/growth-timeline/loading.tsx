@@ -1,6 +1,6 @@
 export default function GrowthTimelineLoading() {
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6" aria-busy="true" role="status" aria-label="페이지 로딩 중">
       {/* 헤더 */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>

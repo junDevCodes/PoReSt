@@ -1,6 +1,6 @@
 export default function AuditLoading() {
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6 py-12">
+    <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6 py-12" aria-busy="true" role="status" aria-label="페이지 로딩 중">
       {/* 헤더 */}
       <header>
         <div className="h-3 w-10 animate-pulse rounded bg-black/10 dark:bg-white/10" />
@@ -14,7 +14,7 @@ export default function AuditLoading() {
           {Array.from({ length: 5 }).map((_, i) => (
             <div
               key={i}
-              className="animate-pulse rounded-lg border border-black/10 bg-[#faf9f6] p-3"
+              className="animate-pulse rounded-lg border border-black/10 bg-[#faf9f6] dark:bg-zinc-800 p-3"
             >
               <div className="h-3 w-28 rounded bg-black/10 dark:bg-white/10" />
               <div className="mt-2 h-4 w-44 rounded bg-black/10 dark:bg-white/10" />

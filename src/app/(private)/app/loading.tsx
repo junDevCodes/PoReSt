@@ -1,6 +1,6 @@
 export default function AppHomeLoading() {
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6" aria-busy="true" role="status" aria-label="페이지 로딩 중">
       {/* 헤더 카드 스켈레톤 */}
       <section className="rounded-2xl border border-black/10 bg-white p-6">
         <div className="h-3 w-20 animate-pulse rounded bg-black/10 dark:bg-white/10" />

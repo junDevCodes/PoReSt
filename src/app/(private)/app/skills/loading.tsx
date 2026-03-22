@@ -1,6 +1,6 @@
 export default function SkillsLoading() {
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col">
+    <div className="mx-auto flex w-full max-w-6xl flex-col" aria-busy="true" role="status" aria-label="페이지 로딩 중">
       {/* 헤더 */}
       <div>
         <div className="h-3 w-14 animate-pulse rounded bg-black/10 dark:bg-white/10" />
@@ -28,7 +28,7 @@ export default function SkillsLoading() {
         </div>
         <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-5">
           {Array.from({ length: 10 }).map((_, i) => (
-            <div key={i} className="h-10 animate-pulse rounded-lg bg-[#faf9f6]" />
+            <div key={i} className="h-10 animate-pulse rounded-lg bg-[#faf9f6] dark:bg-zinc-800" />
           ))}
         </div>
       </div>
@@ -38,7 +38,7 @@ export default function SkillsLoading() {
         {Array.from({ length: 3 }).map((_, i) => (
           <div
             key={i}
-            className="animate-pulse rounded-xl border border-black/10 bg-[#faf9f6] p-4"
+            className="animate-pulse rounded-xl border border-black/10 bg-[#faf9f6] dark:bg-zinc-800 p-4"
           >
             <div className="flex items-center gap-3">
               <div className="h-8 w-8 rounded bg-black/10 dark:bg-white/10" />

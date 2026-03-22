@@ -1,6 +1,6 @@
 export default function NotesLoading() {
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col">
+    <div className="mx-auto flex w-full max-w-6xl flex-col" aria-busy="true" role="status" aria-label="페이지 로딩 중">
       {/* 헤더 */}
       <div>
         <div className="h-3 w-14 animate-pulse rounded bg-black/10 dark:bg-white/10" />
@@ -17,7 +17,7 @@ export default function NotesLoading() {
             <div className="mt-4 h-10 animate-pulse rounded-lg bg-black/5 dark:bg-white/5" />
             <div className="mt-3 space-y-2">
               {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="h-10 animate-pulse rounded-lg bg-[#faf9f6]" />
+                <div key={i} className="h-10 animate-pulse rounded-lg bg-[#faf9f6] dark:bg-zinc-800" />
               ))}
             </div>
           </div>
@@ -40,7 +40,7 @@ export default function NotesLoading() {
         {Array.from({ length: 3 }).map((_, i) => (
           <div
             key={i}
-            className="animate-pulse rounded-xl border border-black/10 bg-[#faf9f6] p-4"
+            className="animate-pulse rounded-xl border border-black/10 bg-[#faf9f6] dark:bg-zinc-800 p-4"
           >
             <div className="h-5 w-48 rounded bg-black/10 dark:bg-white/10" />
             <div className="mt-2 h-3 w-32 rounded bg-black/5 dark:bg-white/5" />

@@ -1,6 +1,6 @@
 export default function CoverLetterDetailLoading() {
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col">
+    <div className="mx-auto flex w-full max-w-4xl flex-col" aria-busy="true" role="status" aria-label="페이지 로딩 중">
       {/* 뒤로가기 */}
       <div className="h-4 w-32 animate-pulse rounded bg-black/10 dark:bg-white/10" />
 

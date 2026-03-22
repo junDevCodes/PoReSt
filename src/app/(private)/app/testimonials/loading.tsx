@@ -1,6 +1,6 @@
 export default function TestimonialsLoading() {
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6 py-12">
+    <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6 py-12" aria-busy="true" role="status" aria-label="페이지 로딩 중">
       {/* 헤더 */}
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div>

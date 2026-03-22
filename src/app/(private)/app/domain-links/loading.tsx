@@ -1,6 +1,6 @@
 export default function DomainLinksLoading() {
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6 py-12">
+    <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6 py-12" aria-busy="true" role="status" aria-label="페이지 로딩 중">
       {/* 헤더 */}
       <header>
         <div className="h-3 w-12 animate-pulse rounded bg-black/10 dark:bg-white/10" />
@@ -26,7 +26,7 @@ export default function DomainLinksLoading() {
           {Array.from({ length: 4 }).map((_, i) => (
             <div
               key={i}
-              className="animate-pulse rounded-lg border border-black/10 bg-[#faf9f6] p-4"
+              className="animate-pulse rounded-lg border border-black/10 bg-[#faf9f6] dark:bg-zinc-800 p-4"
             >
               <div className="h-4 w-48 rounded bg-black/10 dark:bg-white/10" />
               <div className="mt-2 h-4 w-56 rounded bg-black/5 dark:bg-white/5" />
