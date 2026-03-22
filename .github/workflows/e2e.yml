@@ -24,6 +24,8 @@ jobs:
 
       - name: 의존성 설치
         run: npm ci
+        env:
+          DATABASE_URL_UNPOOLED: "postgresql://dummy:dummy@localhost:5432/dummy"
 
       - name: Playwright 브라우저 설치
         run: npx playwright install chromium
