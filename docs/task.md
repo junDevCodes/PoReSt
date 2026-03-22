@@ -1,392 +1,424 @@
 # PoReSt 작업 상세 계획서
 
-기준일: 2026-03-19
+기준일: 2026-03-22
 문서 정의: `plan.md`에서 할당된 현재 기능 단위의 작업 상세 설계. 완료 시 `history.md`로 이동.
 관련 문서: `plan.md`(전체 계획), `checklist.md`(검증 체크리스트), `history.md`(완료 이력)
 
 ---
 
-## T91 ✅ / T92 ✅ / T93 ✅ / T94 ✅ (Sprint 3 완료)
+## Sprint 4 (T95~T98) ✅ 완료
 
-> history.md 참조. 기준선: 69 suites, 482 tests + E2E 17 tests.
-
----
-
-## T95 — 화면 전환 속도 병목 진단 ✅
-
-> history.md 참조. D1~D9 전체 완료. P1/P2/P3 우선순위 확정.
+> history.md 참조. 최종 기준선: 71 suites, 519 tests + E2E 17 tests.
 
 ---
 
-## T96 — 진단 기반 성능 최적화 적용 ✅ 완료 (통합 게이트 최종 검증 2026-03-19)
+> **T99 완료 ✅** — 다음: T100 + T102 병렬 진입 (Phase 2)
+
+---
+
+## 병렬 실행 구조
+
+### 파일 충돌 분석
+
+| 태스크 | 수정 대상 파일 | 충돌 |
+|---|---|---|
+| T100-A | `cover-letters/CoverLettersPageClient.tsx` + 신규 2개 + 테스트 | 없음 |
+| T100-B | `portfolio/settings/page.tsx` + 신규 1개 + 테스트 | T101#3 |
+| T100-C | `job-tracker/page.tsx` + 신규 1개 + 테스트 | 없음 |
+| T102 | `components/app/AppSidebar.tsx` | 없음 |
+| T101#1 | `resumes/[id]/edit/page.tsx` | 없음 |
+| T101#2 | `resumes/[id]/edit/page.tsx` | T101#1 (직렬) |
+| T101#3 | `portfolio/settings/page.tsx` | T100-B (직렬) |
+
+### Phase 1 — T99 (직렬 필수, 단일 세션)
+
+기준선 측정. 모든 후속 태스크의 before 수치가 여기서 확정되므로 반드시 먼저 완료.
+
+### Phase 2 — T100 + T102 + T101#1 (병렬 3세션)
+
+> T99 완료 후 동시 진입. 각 세션은 서로 다른 파일을 수정하므로 충돌 없음.
+
+| 세션 | 태스크 | 수정 파일 | 작업 내용 |
+|---|---|---|---|
+| **Session A** | T100-A | `cover-letters/CoverLettersPageClient.tsx` + 신규 모달 2개 + RTL 테스트 | AI 생성 모달 + 합격본 등록 모달 dynamic 분리 |
+| **Session B** | T100-B → T102 | `portfolio/settings/page.tsx` + 신규 오버레이 + RTL 테스트 → `AppSidebar.tsx` | 미리보기 오버레이 dynamic 분리 → prefetch 전략 적용 |
+| **Session C** | T100-C → T101#1 | `job-tracker/page.tsx` + 신규 모달 + RTL 테스트 → `resumes/[id]/edit/page.tsx` | 칸반 모달 dynamic 분리 → PDF import 동적 전환 |
+
+**세션 내 순서**: 각 세션 안에서는 직렬 (앞 작업 커밋 후 다음 진행)
+**세션 간**: 완전 독립 — 동시 실행 가능
+
+### Phase 2 통합 게이트
+
+3세션 전부 완료 후 병합 → 통합 게이트 실행:
+
+```
+1. 3세션 브랜치/변경사항 main에 병합
+2. npm run lint (0 errors)
+3. npm run build (성공)
+4. npx jest --runInBand (519 + RTL 신규분)
+5. E2E 17개 통과
+6. route별 First Load JS 중간 측정 (T99 대비)
+```
+
+### Phase 3 — T101#2~#3 (조건부, 직렬)
+
+> 통합 게이트 후 KPI 확인 결과에 따라 진행 여부 결정
+
+- T100/T102만으로 핵심 3개 route 감소 달성 → **T101#2 생략 가능**
+- T100-B에서 settings 미리보기 이미 처리 → **T101#3 skip**
+- KPI 미달 시에만 T101#2(프리뷰 결과 본문) + 2차 분해 진행
+
+### Phase 4 — T103 (직렬 필수, 단일 세션)
+
+최종 검증 + 프로덕션 배포. 모든 변경이 반영된 상태에서 실행.
+
+### 실행 흐름도
+
+```
+Phase 1 (직렬)          Phase 2 (병렬 3세션)                    Phase 3       Phase 4
+──────────────      ────────────────────────────────      ──────────    ──────────
+T99 (기준선)
+      ↓
+                    ┌─ Session A: T100-A (cover-letters)
+                    ├─ Session B: T100-B (settings) → T102 (sidebar)   → 통합     → T101#2~#3  → T103
+                    └─ Session C: T100-C (job-tracker) → T101#1 (PDF)     게이트     (조건부)     (최종)
+```
+
+---
+
+## T99 — 번들 분석 기준선 확립
 
 ### 배경
 
-T95 진단 결과: **P1 병목 = loading.tsx 전무 (27개 페이지) + 레이아웃 Suspense 없음**
+Sprint 5는 리팩토링 Sprint다. "감이 아닌 숫자"로 판단하려면 변경 전 기준선이 반드시 필요하다.
+총 static/chunks 2.6MB이지만 **route별 First Load JS**가 측정되지 않은 상태.
 
-현재 private 페이지 loading.tsx **0개**. 공개 포트폴리오에만 T90에서 3개 추가.
-사용자가 사이드바 메뉴를 클릭하면 빈 화면 → 콘텐츠가 나타나는 "깜빡임"이 체감 느림의 핵심 원인.
+코드 스플리팅은 총량이 약간 늘어도 정상이다. 성공 기준은 **route별 초기 JS 감소**다.
+Lighthouse만으로는 인증된 private 화면 최적화를 판별하기 어려우므로,
+`npm run build` 출력의 route별 크기 + Network 탭 실측을 병행한다.
 
-### 핵심 원칙
+### 작업 항목
 
-- **기존 포트폴리오 스켈레톤 패턴 재사용**: `animate-pulse` + `bg-black/10 dark:bg-white/10` (T90 패턴)
-- **실제 페이지 레이아웃 매칭**: 각 스켈레톤은 해당 page.tsx의 구조를 반영하여 CLS 방지
-- **공통 패턴 추출**: 목록 페이지(제목+카드 그리드), 대시보드 페이지(요약 카드+차트), 클라이언트 페이지(제목+로딩) 3가지 패턴
+| #   | 내용                                                                                    | 상태 |
+| --- | --------------------------------------------------------------------------------------- | ---- |
+| 1   | `@next/bundle-analyzer` devDependency 설치                                              | ✅   |
+| 2   | `next.config.ts`에 `ANALYZE=true` 조건부 래핑                                           | ✅   |
+| 3   | 번들 분석 빌드 실행 → 리포트 생성 (cross-env 또는 `$env:ANALYZE="true"; npm run build`) | ✅   |
+| 4   | 상위 10개 청크 내용물 식별 (어떤 모듈이 큰 청크에 들어가는지)                           | ✅   |
+| 5   | **route별 First Load JS 표** 작성 (핵심 측정 대상)                                      | ✅   |
+| 6   | 사이드바 진입 후 자동 prefetch 요청 수 기록 **(보조지표, 수동 측정 — 참고용)**          | ✅   |
+| 7   | 기준선 수치를 history.md에 기록                                                         | ✅   |
 
-### 스켈레톤 패턴 분류
+### prefetch / Network 측정 조건 (Sprint 5 전체 공통)
 
-| 패턴 | 구조 | 해당 페이지 |
-|---|---|---|
-| **목록형** | h1 제목 + 카드 그리드 (2~3열) | projects, resumes, experiences, notes, blog, skills, testimonials |
-| **대시보드형** | 요약 카드 행 + 차트/히트맵 영역 | 홈(page.tsx), analytics, growth-timeline |
-| **클라이언트형** | h1 제목 + 로딩 스피너/카드 | feedback, audit, company-targets, domain-links, experience-stories, job-tracker |
-| **설정형** | 폼 필드 스켈레톤 | portfolio/settings |
-
----
-
-### 확정 작업 항목 (18개 — 신규 파일 17개 + layout 수정 1개)
-
-#### Session A: 주요 페이지 loading.tsx (12개 신규) ✅
-
-| # | 파일 | 패턴 | 상태 |
-|---|---|---|---|
-| A1 | `app/loading.tsx` | 대시보드형 (헤더+체크리스트+메트릭 4카드) | ✅ |
-| A2 | `app/projects/loading.tsx` | 목록형 (h1+필터+카드 리스트) | ✅ |
-| A3 | `app/resumes/loading.tsx` | 목록형 (h1+2버튼+카드 리스트) | ✅ |
-| A4 | `app/experiences/loading.tsx` | 목록형 (h1+입력폼+카드 리스트) | ✅ |
-| A5 | `app/notes/loading.tsx` | 목록형 (h1+2열 노트북/작성폼+노트 목록) | ✅ |
-| A6 | `app/blog/loading.tsx` | 목록형 (h1+버튼+카드 리스트) | ✅ |
-| A7 | `app/skills/loading.tsx` | 목록형 (h1+폼+프리셋 그리드+스킬 리스트) | ✅ |
-| A8 | `app/analytics/loading.tsx` | 대시보드형 (4카드+바차트+2열 분포) | ✅ |
-| A9 | `app/growth-timeline/loading.tsx` | 대시보드형 (3카드+히트맵+2열 차트) | ✅ |
-| A10 | `app/feedback/loading.tsx` | 클라이언트형 (h1+버튼+카드 리스트) | ✅ |
-| A11 | `app/job-tracker/loading.tsx` | 클라이언트형 (h1+칸반 6열) | ✅ |
-| A12 | `app/testimonials/loading.tsx` | 클라이언트형 (h1+버튼+카드 리스트) | ✅ |
-
-#### Session B: 레이아웃 Suspense + 나머지 loading.tsx (5개 신규 + 1개 수정)
-
-| # | 파일 | 패턴 | 설명 |
-|---|---|---|---|
-| B1 | `layout.tsx` 수정 | — | `{children}`을 `<Suspense fallback={<워크스페이스 스켈레톤>}>` 래핑 |
-| B2 | `app/audit/loading.tsx` | 클라이언트형 | h1 "감사 로그" + 테이블 placeholder |
-| B3 | `app/company-targets/loading.tsx` | 클라이언트형 | h1 "기업 분석" + 카드 리스트 |
-| B4 | `app/domain-links/loading.tsx` | 클라이언트형 | h1 "교차 링크" + 테이블 placeholder |
-| B5 | `app/experience-stories/loading.tsx` | 클라이언트형 | h1 "STAR 스토리" + 카드 리스트 |
-| B6 | `app/portfolio/settings/loading.tsx` | 설정형 | h1 "설정" + 폼 필드 스켈레톤 |
-
-### 병렬 실행 구조
+prefetch 비교는 dev 모드가 아닌 **production 빌드 기준**으로 측정한다:
 
 ```
-Session A (주요 12개)                Session B (레이아웃 + 5개)
-──────────────────                  ──────────────────────
-A1. 홈 대시보드 ✅                   B1. layout.tsx Suspense ✅/❌
-A2. 프로젝트 ✅                     B2. 감사 로그 ✅/❌
-A3. 이력서 ✅                       B3. 기업 분석 ✅/❌
-A4. 경력 ✅                         B4. 교차 링크 ✅/❌
-A5. 노트 ✅                         B5. STAR 스토리 ✅/❌
-A6. 블로그 ✅                       B6. 포트폴리오 설정 ✅/❌
-A7. 스킬 ✅
-A8. 분석 ✅
-A9. 성장 타임라인 ✅
-A10. 피드백 ✅
-A11. 지원 트래커 ✅
-A12. 추천서 ✅
-       ↘      통합: 게이트 4종 + E2E 17개 + 체감 확인       ↙
+1. npm run build && npm run start (로컬 프로덕션) 또는 Vercel Preview
+2. 로그인 상태에서 측정
+3. Hard Reload (Ctrl+Shift+R) 후 캐시 비움
+4. 동일 브라우저 (Chrome), 동일 네트워크 조건
+5. Network 탭: Disable cache ON, 기록 시작 후 사이드바 진입
 ```
 
-### 세션별 수정 파일 (충돌 없음)
+### 핵심 측정 대상 route (인증된 private 페이지)
 
-| 세션 | 파일 | 수 |
-|---|---|---|
-| **Session A** | `app/loading.tsx` 외 11개 신규 (전부 loading.tsx) | 12개 |
-| **Session B** | `layout.tsx` 수정 1개 + `app/*/loading.tsx` 신규 5개 | 6개 |
-
-### B1 Suspense 경계 상세
-
-현재 `layout.tsx`:
-```tsx
-// 현재: 세션 페칭 블로킹
-const session = await getServerSession(authOptions);
-return <AppShellWrapper userName={userName}>{children}</AppShellWrapper>;
-```
-
-변경 방향:
-```tsx
-// Suspense로 children 스트리밍
-return (
-  <AppShellWrapper userName={userName}>
-    <Suspense fallback={<WorkspaceSkeleton />}>
-      {children}
-    </Suspense>
-  </AppShellWrapper>
-);
-```
-→ 사이드바는 즉시 렌더링, 메인 콘텐츠만 스트리밍 대기
+| Route                     | 이유                                 |
+| ------------------------- | ------------------------------------ |
+| `/app/resumes/[id]/edit`  | 1,330줄 거대 컴포넌트 — T101 대상    |
+| `/app/portfolio/settings` | 980줄 거대 컴포넌트 — T100/T101 대상 |
+| `/app/cover-letters`      | 500줄 + 인라인 모달 2개 — T100 대상  |
+| `/app/job-tracker`        | 529줄 + 칸반 모달 — T100 대상        |
+| `/app` (홈)               | 기본 대시보드 — 비교 기준            |
 
 ### 제약 사항
 
-- 기존 테스트 기준선 유지 (69 suites, 482 tests + E2E 17 tests)
-- 게이트 4종 통과 (lint/build/jest/vercel-build)
-- 스켈레톤 = 실제 페이지 구조 매칭 (CLS 방지)
-- `animate-pulse` + `bg-black/10 dark:bg-white/10` (기존 T90 패턴)
-- 외부 라이브러리 추가 없음 (Tailwind only)
-
-### 제외 (archive 이관)
-
-- P2: 중복 인증 통합 — 아키텍처 변경 큼, 체감 영향 낮음
-- P3: 번들 크기 심화 — 서버 전용 라이브러리 영향 없음
+- 프로덕션 코드 변경 없음 (devDependency + config만)
+- 게이트 4종 통과 유지
+- 기존 테스트 기준선 유지 (71 suites, 519 tests)
 
 ---
 
-## T96-H — T96 코드 리뷰 핫픽스 ✅ 완료 (2026-03-19)
+## T100 — next/dynamic 무거운 인라인 UI Lazy 로딩
 
 ### 배경
 
-T96 완료 후 시니어 코드 리뷰(2026-03-19)에서 발견된 이슈. 프로덕션 배포 완료 상태이므로 핫픽스로 처리.
+현재 UI 레벨 `next/dynamic` 사용 0건. 무거운 인라인 모달/폼/미리보기가 페이지 초기 JS에 전부 포함된다.
+모달은 사용자가 버튼을 클릭하기 전까지 화면에 없으므로 lazy 로딩의 가장 안전한 후보다.
 
-### 수정 항목
+> 참고: `src/lib/pdf-download.ts`에서 native `import()` 기반 분할은 이미 적용됨.
+> 이 태스크는 **UI 컴포넌트 레벨의 next/dynamic**을 도입한다.
 
-#### H1: Job Tracker 스켈레톤 레이아웃 불일치 (P1)
+### 대상 선별 기준
 
-**문제**: `job-tracker/loading.tsx`가 `grid grid-cols-6 gap-3`을 사용하지만, 실제 `page.tsx`는 `flex gap-4 overflow-x-auto` + `w-64 min-w-[256px]` 패턴. 모바일/태블릿에서 스켈레톤이 실제 페이지와 크게 다르고 CLS 유발 가능.
+- ✅ **무거운 조건부 인라인 폼/미리보기** (100줄+ JSX 블록, `{isOpen && ...}` 패턴) → dynamic 후보
+- ❌ **경량 공용 컴포넌트** (`ConfirmDialog` 59줄 등) → 이득 없음, 제외
+- ❌ **항상 렌더되는 폼** (`experience-stories` :354, `company-targets` :321) → 조건부 UI 아님, lazy 부적합
+- ❌ **20줄 이하 단순 조건부 UI** → overhead가 이득보다 큼, 제외
 
-**수정**:
+### 확정 대상
+
+> 라인 번호는 작성 시점(2026-03-22) 스냅샷. 실제 작업 시 컴포넌트명 및 조건부 렌더 패턴(`{isOpen && ...}`)으로 재확인.
+
+| #   | 파일                                       | 대상 (라인, 참고)              | 추출 컴포넌트명            | 상태 |
+| --- | ------------------------------------------ | ------------------------------ | -------------------------- | ---- |
+| 1   | `cover-letters/CoverLettersPageClient.tsx` | AI 생성 모달 (:301~398)        | `GenerateCoverLetterModal` |      |
+| 2   | `cover-letters/CoverLettersPageClient.tsx` | 합격본 등록 모달 (:401~498)    | `RegisterCoverLetterModal` |      |
+| 3   | `portfolio/settings/page.tsx`              | 미리보기 오버레이 (:930~980)   | `PortfolioPreviewOverlay`  |      |
+| 4   | `job-tracker/page.tsx`                     | 칸반 카드 상세 모달 (:361~526) | `JobCardDetailModal`       |      |
+
+### ssr 정책
+
+`ssr: false`는 기본값으로 쓰지 않는다.
+
+- **ssr: false 적용**: 브라우저 API(window, document, localStorage) 직접 의존하는 컴포넌트만
+- **ssr 기본 유지 (eager)**: 핵심 편집 UI, 상태 관리 컴포넌트
+
+### loading fallback 정책
+
+모달 lazy 시 첫 클릭이 비어 보이지 않도록 반드시 fallback 제공:
+
 ```tsx
-// Before: grid grid-cols-6 gap-3
-// After:
-<div className="mt-8 flex gap-4 overflow-x-auto pb-4">
-  {Array.from({ length: 6 }).map((_, col) => (
-    <div key={col} className="w-64 min-w-[256px] flex-shrink-0 rounded-xl border-2 border-black/10 bg-white p-3">
-      ...
+const HeavyModal = dynamic(() => import("./HeavyModal"), {
+  loading: () => (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div className="w-full max-w-lg rounded-2xl border border-black/10 bg-white p-6 shadow-xl">
+        <div className="h-6 w-32 animate-pulse rounded bg-black/10" />
+        <div className="mt-4 space-y-3">
+          <div className="h-4 w-full animate-pulse rounded bg-black/10" />
+          <div className="h-4 w-3/4 animate-pulse rounded bg-black/10" />
+        </div>
+      </div>
     </div>
-  ))}
-</div>
+  ),
+});
 ```
 
-**파일**: `src/app/(private)/app/job-tracker/loading.tsx` (1개)
+→ 오버레이 배경 dim + 모달 셸 골격 + 스켈레톤으로 "열리는 중"임을 즉시 전달
 
-### 리뷰에서 확인된 보류 항목 (archive 이관)
+### 작업 절차 (파일 단위 커밋 — 3단계)
 
-| 심각도 | 항목 | 처리 |
-|---|---|---|
-| P2 | AppShellWrapper 다크모드 FOUC (`useState(false)` → useEffect 전환) | archive — 아키텍처 변경 필요 |
-| P3 | `dark:` 접두사 이중 적용 방침 (globals.css 오버라이드 vs 명시적 dark:) | archive — 문서화만 필요 |
+T100은 파일별로 독립 커밋하여 문제 발생 시 해당 파일만 revert 가능하게 한다.
+
+#### T100-A: cover-letters (모달 2개)
+
+```
+1. CoverLettersPageClient.tsx 읽기 → AI 생성 모달 + 합격본 등록 모달 식별
+2. GenerateCoverLetterModal 추출 + dynamic 적용
+3. RegisterCoverLetterModal 추출 + dynamic 적용
+4. npm run build 확인
+5. RTL 테스트 작성 (2개 모달)
+6. 회귀 스모크: 모달 열기/닫기/제출/취소
+7. route별 First Load JS 변화 확인
+8. 커밋: "refactor(cover-letters): 모달 2개 dynamic 분리"
+```
+
+#### T100-B: portfolio/settings (오버레이 1개)
+
+```
+1. settings/page.tsx 읽기 → 미리보기 오버레이 식별
+2. PortfolioPreviewOverlay 추출 + dynamic 적용
+3. npm run build 확인
+4. RTL 테스트 작성
+5. 회귀 스모크: 미리보기 열기/닫기
+6. route별 First Load JS 변화 확인
+7. 커밋: "refactor(settings): 미리보기 오버레이 dynamic 분리"
+```
+
+#### T100-C: job-tracker (모달 1개)
+
+```
+1. job-tracker/page.tsx 읽기 → 칸반 상세 모달 식별
+2. JobCardDetailModal 추출 + dynamic 적용
+3. npm run build 확인
+4. RTL 테스트 작성
+5. 회귀 스모크: 카드 클릭 → 상세 → 상태 변경 → 닫기
+6. route별 First Load JS 변화 확인
+7. 커밋: "refactor(job-tracker): 칸반 상세 모달 dynamic 분리"
+```
+
+> 각 단계 완료 후 게이트 4종 확인. 실패 시 해당 단계만 revert.
+
+### 회귀 방어
+
+기존 E2E 17개는 public 전용이므로 private 모달 회귀를 커버하지 못한다.
+**자동화 + 수동 스모크 병행 전략**으로 방어한다.
+
+#### 자동화 (Jest/RTL — 각 모달별 최소 1개)
+
+dynamic 전환 후 각 추출 컴포넌트에 대해 RTL 테스트 추가:
+
+| 대상 컴포넌트             | 테스트 범위                                       |
+| ------------------------- | ------------------------------------------------- |
+| `GenerateCoverLetterModal` | 열기 → 필드 렌더 → 닫기                          |
+| `RegisterCoverLetterModal` | 열기 → 제목/본문 필드 렌더 → 닫기                |
+| `PortfolioPreviewOverlay`  | 열기 → PortfolioFullPreview 렌더 → 닫기          |
+| `JobCardDetailModal`       | 열기 → 상세 정보 렌더 → 닫기                     |
+
+> RTL 테스트 실패 시 해당 모달의 dynamic 전환을 즉시 revert, 원인 분석 후 재적용.
+
+#### 수동 스모크 (RTL 보완 — 제출/취소 등 서버 연동 흐름)
+
+> **측정 환경**: production 빌드 기준 (`npm run build && npm run start`). T99의 prefetch/Network 측정 조건과 동일 적용.
+
+| 대상              | 스모크 항목                                                              |
+| ----------------- | ------------------------------------------------------------------------ |
+| AI 생성 모달      | 열기 → loading fallback 표시 → 4필드 입력 → 생성 클릭 → 결과 확인 → 닫기 |
+| 합격본 등록 모달  | 열기 → loading fallback 표시 → 제목+본문 입력 → 등록 → 목록 반영 → 닫기  |
+| 미리보기 오버레이 | 열기 → loading fallback 표시 → PortfolioFullPreview 렌더링 → 닫기        |
+| 칸반 상세 모달    | 카드 클릭 → loading fallback 표시 → 상세 표시 → 상태 변경 → 닫기         |
 
 ### 제약 사항
 
-- 게이트 4종 통과 유지
-- 기존 E2E 17개 회귀 없음
+- 기존 기능 동작 100% 보존
+- 게이트 4종 + E2E 17개 통과 유지
+- **Jest/RTL 모달 회귀 테스트 전부 통과** (신규 게이트)
+- ConfirmDialog 등 경량 공용 컴포넌트는 건드리지 않음
+- experience-stories/company-targets 항상 렌더되는 폼은 건드리지 않음
+- 외부 라이브러리 추가 없음
 
 ---
 
-## T97 — 합격 자소서 RAG 파이프라인 ✅ 완료 (2026-03-19)
+## T102 — 네비게이션 prefetch 전략 최적화
 
 ### 배경
 
-구직 활동 진행 중. Gemini API KEY 입력 시 합격 자소서를 바탕으로 RAG 기반 프롬프팅.
-archive.md "AI 자기소개서 생성" 복귀 (복귀 조건: 이력서 AI 초안 안정화 ✅).
+현재 AppSidebar의 Link 20+개 전부 `prefetch` 미지정 → Next.js 기본 동작으로 자동 프리페치.
+사용자가 사이드바를 보기만 해도 20개 페이지의 JS/데이터를 미리 요청한다.
+T96에서 모든 페이지에 loading.tsx 스켈레톤을 추가했으므로, prefetch 비활성화해도 체감 저하 가능성 낮음.
 
-### 완료 범위
+### 분류
 
-1. **CoverLetter + CoverLetterEmbedding Prisma 모델** — 스키마 + 마이그레이션 + pgvector 인덱스
-2. **cover-letters 모듈** — CRUD 서비스 (create/list/get/update/delete/toggleReference) + Zod 검증
-3. **cover-letter-embeddings 모듈** — 임베딩 파이프라인 (rebuildForOwner/embedSingle/searchSimilarByQuery)
-4. **RAG 검색** — 쿼리 텍스트 → Gemini 벡터 → 코사인 유사도 상위 3~5개 합격 자소서 검색
-5. **프롬프트 설계** — "합격 자소서 작성 전문 컨설턴트" 페르소나 + few-shot 합격 예시 + 경력/스킬 자동 포함
-6. **withGeminiFallback** — API KEY 없으면 구조화된 템플릿 fallback (지원동기/역량/성장/포부)
-7. **테스트** — 37개 신규 (2 suites)
+> 분류 근거: 최근 dogfooding 사용 빈도 기반. PageViews 모듈은 public 포트폴리오 방문 분석 전용이므로 private workspace 메뉴 사용 빈도 데이터는 현재 없음. 정밀 분류는 workspace navigation telemetry 도입 후 후속 과제.
 
-### 산출물
+| 그룹       | 메뉴                                                                                                                          | prefetch           | 근거                                  |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------ | ------------------------------------- |
+| **핵심**   | 홈, 프로젝트, 이력서, 경력, 노트, 자기소개서                                                                                  | 유지 (기본)        | dogfooding 기간 일상 접근 메뉴        |
+| **저빈도** | 블로그, 스킬, 분석, 성장 타임라인, 피드백, 지원 트래커, 추천서, 감사 로그, 기업 분석, 교차 링크, STAR 스토리, 포트폴리오 설정 | `prefetch={false}` | 비일상 메뉴, loading.tsx 스켈레톤 있음 |
 
-- `prisma/schema.prisma`: CoverLetter + CoverLetterEmbedding 모델, enum 2개
-- `prisma/migrations/20260319120000_t97_cover_letter_rag/`: 마이그레이션 SQL
-- `src/modules/cover-letters/`: interface + implementation + http + index
-- `src/modules/cover-letter-embeddings/`: interface + implementation + http + index
-- 테스트: `cover-letters.test.ts` (24개), `cover-letter-embeddings.test.ts` (13개)
+### 작업 항목
 
-### 게이트
+| #   | 내용                                                                                      | 상태 |
+| --- | ----------------------------------------------------------------------------------------- | ---- |
+| 1   | AppSidebar.tsx 내 NAV_GROUPS 구조 확인                                                    |      |
+| 2   | 저빈도 메뉴 Link에 `prefetch={false}` 추가                                                |      |
+| 3   | NAV_GROUPS 코드에 분류 근거 주석 추가 (향후 재분류 시 판단 기준 보존)                     |      |
+| 4   | 빌드 확인                                                                                 |      |
+| 5   | 핵심 메뉴 네비게이션 체감 확인 (변화 없음)                                                |      |
+| 6   | 저빈도 메뉴 클릭 → loading.tsx 스켈레톤 표시 → 정상 로드 확인                             |      |
+| 7   | Network 탭: 사이드바 진입 후 prefetch 요청 수 before/after 비교 **(보조지표, 참고 기록)** |      |
 
-- lint: 0 errors, 9 warnings ✅
-- build: 성공 ✅
-- jest: 71 suites, 519 tests ✅ (기존 69/482 + 신규 2/37)
-- 기존 E2E 회귀 없음
+### 분류 재검토 계획
 
----
-
-## T97-H — T97 코드 리뷰 핫픽스 ✅ 완료 (2026-03-19)
-
-### 배경
-
-T97 완료 후 시니어 코드 리뷰(2026-03-19)에서 발견된 P1/P2 이슈. T98 착수 전 선행 수정.
-
-### 수정 항목
-
-#### H1: generateCoverLetter 자동 제목 120자 초과 버그 (P1)
-
-**문제**: `generateCoverLetter()`에서 자동 생성하는 title이 `${targetCompany} ${targetRole} AI 초안` 패턴인데, targetCompany(120자) + targetRole(120자) = 최대 246자. 이후 `service.create()` 호출 시 createSchema의 MAX_TITLE_LENGTH(120) 검증에 걸려 VALIDATION_ERROR 발생.
-
-**수정**: `implementation.ts:569` — title 생성 후 `.slice(0, 120)` 보호 추가
-
-```typescript
-// Before
-const title = `${parsed.targetCompany} ${parsed.targetRole} AI 초안`;
-// After
-const title = `${parsed.targetCompany} ${parsed.targetRole} AI 초안`.slice(0, 120);
-```
-
-**파일**: `src/modules/cover-letters/implementation.ts` (1줄)
-
-#### H2: Job Tracker 스켈레톤 다크모드 미대응 (P2)
-
-**문제**: `job-tracker/loading.tsx`의 칸반 열 외곽(`:16`)과 내부 카드(`:25`)에 `bg-white` 하드코딩. 다크모드에서 흰 블록이 뜸.
-
-**수정**: `bg-white` → `bg-white dark:bg-zinc-900` 적용
-
-**파일**: `src/app/(private)/app/job-tracker/loading.tsx` (2줄)
-
-### 리뷰 보류 항목 (archive 이관)
-
-| 심각도 | 항목 | 처리 |
-|---|---|---|
-| P2 | 프롬프트 내 합격 자소서 본문 길이 상수화 (C3) | archive — 토큰 한도 검증 필요 |
-| P2 | `$executeRawUnsafe` → `Prisma.sql` 전환 (E1) | archive — note-embeddings와 동시 리팩 |
-| P3 | rebuildForOwner 직렬 → 병렬 배치 (E3) | archive — 현재 합격본 수 소규모 |
-| P3 | CRUD findFirst+update 2쿼리 → 1쿼리 최적화 (C2) | archive — 성능 영향 미미 |
-| P3 | resumeId/experienceId FK 관계 미선언 (S1) | archive — 의도적 loose coupling |
-| P3 | generateCoverLetter 통합 테스트 부재 (T1) | archive — 서비스 단위 테스트 충분 |
+프로덕션 배포 후 1주일 실사용 기반으로 분류 재검토한다.
+NAV_GROUPS 코드에 `// prefetch 분류: 핵심(dogfooding 일상 접근) vs 저빈도(비일상). 2026-03-22 기준. telemetry 도입 후 재분류 예정` 주석을 남겨 향후 판단 근거를 보존한다.
 
 ### 제약 사항
 
-- 게이트 4종 통과 유지
-- 기존 테스트 기준선 유지 (71 suites, 519 tests)
+- 동작 변화 없음 (로딩 타이밍만 변경)
+- 체감 저하 가능성 낮음 — 핵심 메뉴 prefetch 유지 + loading.tsx 스켈레톤 이미 있음
+- 게이트 4종 + E2E 17개 통과 유지
 
 ---
 
-## T98 — 자기소개서 생성 API + 워크스페이스 UI ✅ 완료 (통합 게이트 최종 검증 2026-03-19)
+## T101 — 초기 화면 불필요 섹션 lazy 분리
 
 ### 배경
 
-T97에서 합격 자소서 RAG 파이프라인(스키마 + 모듈 + 테스트) 완료. 이제 사용자가 실제로 자기소개서를 생성/관리할 수 있는 API 엔드포인트와 워크스페이스 UI를 구현한다.
+`resumes/[id]/edit/page.tsx` (1,330줄)과 `portfolio/settings/page.tsx` (980줄)은
+단일 `'use client'` 파일에 전체 로직이 들어있다.
+**전체를 분할하지 않는다.** 초기 화면에 안 필요한 섹션만 추출 + dynamic 적용한다.
 
 ### 핵심 원칙
 
-- **기존 패턴 재사용**: resumes/notes API 라우트 + 페이지 패턴 그대로 따름
-- **T97 모듈 활용**: `createCoverLettersService`, `generateCoverLetter`, `createCoverLetterEmbeddingPipelineService` 그대로 사용
-- **구직 실전**: 합격본 등록 → RAG 검색 → AI 생성 → 편집 → 저장 흐름 완성
+- **"거대 파일 분할" 자체가 목표가 아니다** — 초기 화면 불필요 영역만 lazy
+- **1차 적용 후 수치 확인** → 부족할 때만 2차 분해
+- 상태(state)와 핸들러는 부모에서 props로 전달
+- 로직 변경 X — 기존 JSX 블록을 그대로 컴포넌트로 잘라내기
 
-### 확정 작업 항목 (2세션 병렬 — 파일 무충돌)
+### 1차 대상 — 명확하게 지연 로딩 효과가 있는 영역
 
-#### Session A: API 라우트 (5개 파일 신규) ✅ 완료
+> 라인 번호는 작성 시점(2026-03-22) 스냅샷. 실제 작업 시 함수명/import 경로로 재확인.
+> T100/T102만으로 KPI 달성 시 #2(프리뷰 결과 본문)는 생략 가능.
 
-| # | 파일 | 메서드 | 설명 | 상태 |
-|---|---|---|---|---|
-| A1 | `api/app/cover-letters/route.ts` | GET, POST | 목록 조회 + 수동 생성 (CRUD) | ✅ |
-| A2 | `api/app/cover-letters/[id]/route.ts` | GET, PATCH, DELETE | 상세 조회 + 수정 + 삭제 | ✅ |
-| A3 | `api/app/cover-letters/[id]/toggle-reference/route.ts` | POST | 합격본 마킹 토글 (isReference) | ✅ |
-| A4 | `api/app/cover-letters/generate/route.ts` | POST | RAG 기반 AI 자기소개서 생성 | ✅ |
-| A5 | `api/app/cover-letters/[id]/embed/route.ts` | POST | 임베딩 수동 트리거 | ✅ |
+| 우선순위 | 파일                          | 대상                                                   | 구현 방향                                                                                                                                      | 기대 효과              | 상태 |
+| -------- | ----------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- | ---- |
+| **1**    | `resumes/[id]/edit/page.tsx`  | PDF: `_lib/pdf` on-demand import (:13→동적, :846 호출) | 현재 정적 `import { openResumePdfPrintWindow }` → 버튼 클릭 시 `const { openResumePdfPrintWindow } = await import(...)`                        | route JS 직접 절감 (주의: pdf-download.ts 내부의 jsPDF/html2canvas-pro는 이미 native import()로 분리됨. 래퍼 함수 자체의 route chunk 기여도를 T99에서 먼저 확인 필요. 기여도 낮을 시 #2를 1순위로 승격) |      |
+| 2        | `resumes/[id]/edit/page.tsx`  | 프리뷰 **결과 본문** (:1272~1327)                      | 헤더/버튼/빈 상태 문구(:1244~1270)는 부모에 남기고, `{preview && <ResumePreviewResult/>}` 부분만 dynamic 분리. preview 상태가 있을 때만 mount. | 소폭 감소, 보조 최적화 |      |
+| 3        | `portfolio/settings/page.tsx` | 미리보기 모달 (:930~980)                               | T100에서 이미 분리 시 skip, 아니면 여기서 처리                                                                                                 | T100 의존              |      |
 
-**A1 상세 — Collection Route**:
-```typescript
-// GET: requireAuth → service.listForOwner(ownerId) → { data: [...] }
-// POST: requireAuth → parseJsonBodyWithLimit → service.create(ownerId, body) → 201 { data }
-```
+**제외 (이번 Sprint에서 대상 아님)**:
 
-**A2 상세 — Item Route**:
-```typescript
-// GET: requireAuth → params.id → service.getForOwner(ownerId, id) → { data }
-// PATCH: requireAuth → parseJsonBodyWithLimit → service.update(ownerId, id, body) → { data }
-// DELETE: requireAuth → params.id → service.delete(ownerId, id) → { data: { id } }
-```
+- `ShareLinksSection` (:336~) — mount 시 useEffect로 즉시 fetch하는 구조. 단순 dynamic만 하면 초기 hydration 직후 import+fetch가 이어져서 지연 로딩 효과 제한적. 명시적 "펼치기" 액션 추가 시에만 의미 있으므로 후속 항목으로 이동.
 
-**A3 상세 — Toggle Reference**:
-```typescript
-// POST: requireAuth → params.id → service.toggleReference(ownerId, id)
-//       → isReference=true 전환 시 queueEmbeddingForCoverLetter() 자동 트리거
-//       → { data: updatedCoverLetter }
-```
+### 2차 대상 (수치 부족 시에만)
 
-**A4 상세 — Generate (핵심)**:
-```typescript
-// POST: requireAuth → parseJsonBodyWithLimit
-//       → generateCoverLetter(service, prisma, ownerId, body, searchSimilar)
-//       → 201 { data: { coverLetter, source: "gemini" | "fallback" } }
-//
-// searchSimilar: embeddingService.searchSimilarByQuery(ownerId, queryText)
-```
+- resume edit: 기본 정보/항목 CRUD 영역 세분화
+- settings: 폼 영역별 (기본정보/연락처/구직/레이아웃) 분할
+- ShareLinksSection: "공유 링크 펼치기" UI 전환 후 lazy mount (아키텍처 변경 필요)
 
-**A5 상세 — Embed**:
-```typescript
-// POST: requireAuth → params.id → embeddingService.embedSingle(ownerId, id) → { data: result }
-```
-
-#### Session B: 워크스페이스 UI (7개 파일 신규 + 2개 수정) ✅ 완료 (2026-03-19)
-
-| # | 파일 | 유형 | 상태 |
-|---|---|---|---|
-| B1 | `components/app/AppSidebar.tsx` | 수정 | ✅ NAV_GROUPS에 "자기소개서" 추가 |
-| B2 | `app/cover-letters/loading.tsx` | 신규 | ✅ 목록형 스켈레톤 (T96 패턴) |
-| B3 | `app/cover-letters/page.tsx` | 신규 | ✅ 서버 컴포넌트: listForOwner → PageClient |
-| B4 | `app/cover-letters/CoverLettersPageClient.tsx` | 신규 | ✅ 목록 + AI 생성 다이얼로그 + 합격본 등록 |
-| B5 | `app/cover-letters/[id]/page.tsx` | 신규 | ✅ 서버 컴포넌트: getForOwner → DetailClient |
-| B6 | `app/cover-letters/[id]/CoverLetterDetailClient.tsx` | 신규 | ✅ 편집 + 저장 + 삭제 + 합격본 토글 |
-| B7 | `app/cover-letters/[id]/loading.tsx` | 신규 | ✅ 상세 페이지 스켈레톤 |
-| B8 | `_lib/server-serializers.ts` | 수정 | ✅ CoverLetter List/Detail 직렬화 추가 |
-
-**B3 상세 — List Page (서버 컴포넌트)**:
-```typescript
-// getRequiredOwnerSession("/app/cover-letters")
-// → service.listForOwner(ownerId)
-// → 직렬화(Date → ISO string)
-// → <CoverLettersPageClient initialData={serialized} />
-```
-
-**B4 상세 — PageClient (핵심 UI)**:
-
-1. **목록 카드**: 제목 + 회사/직무 + 상태(DRAFT/FINAL) + isReference 배지 + 업데이트 일시
-2. **"AI 생성" 버튼**: 다이얼로그 열기 → targetCompany + targetRole + JD + 동기 힌트 입력 → POST /generate
-3. **"합격본 등록" 버튼**: 다이얼로그 → 제목 + 본문 붙여넣기 + isReference=true + status=FINAL → POST /cover-letters
-4. **카드 클릭**: `/app/cover-letters/[id]` 상세 페이지로 이동
-
-**B5 상세 — Detail Page**:
-
-1. **마크다운 편집기**: textarea + 실시간 미리보기 (또는 간단한 textarea)
-2. **메타 편집**: title, targetCompany, targetRole, status 수정
-3. **액션 버튼**: 저장(PATCH) + 삭제(DELETE) + 합격본 토글(POST toggle-reference)
-
-### 병렬 실행 구조
+### 작업 절차
 
 ```
-Session A (API 5개)                    Session B (UI 6개 + 수정 1개)
-──────────────────                    ──────────────────────────
-A1. Collection route (GET/POST) ✅     B1. AppSidebar 메뉴 추가 ✅
-A2. Item route (GET/PATCH/DELETE) ✅   B2. loading.tsx 스켈레톤 ✅
-A3. toggle-reference route ✅          B3. page.tsx 서버 컴포넌트 ✅
-A4. generate route (RAG) ✅            B4. PageClient 클라이언트 ✅
-A5. embed route ✅                     B5. [id]/page.tsx 상세 ✅
-                                       B6. [id]/loading.tsx 스켈레톤 ✅
-       ↘      통합: 게이트 4종 + E2E + 브라우저 확인       ↙
+1. (1순위) PDF import 동적 전환 — resume edit 읽기 → openResumePdfPrintWindow import 확인 → await import() 전환 → 빌드 확인
+2. route별 First Load JS 확인 → 효과 측정
+3. (2순위, KPI 달성 시 생략 가능) 프리뷰 결과 본문 경계 확인 → props 인터페이스 설계 → ResumePreviewResult 추출 + dynamic → 빌드 확인
+4. route별 First Load JS 재확인
+5. settings 동일 절차 (T100 미처리 영역만)
+6. 1차 수치 확인 → 목표 미달 시에만 2차 분해 진행
+7. 회귀 스모크: 이력서 편집 전 기능 (항목 추가/수정/삭제/순서변경/저장/프리뷰/PDF)
 ```
 
-### 세션별 수정 파일 (충돌 없음)
+### 회귀 방어
 
-| 세션 | 파일 | 수 |
-|---|---|---|
-| **Session A** | `src/app/api/app/cover-letters/**/*.ts` 신규 5개 | 5개 |
-| **Session B** | `AppSidebar.tsx` 수정 1개 + `app/cover-letters/**` 신규 5~6개 | 6~7개 |
-
-### UI 디자인 기준
-
-- **카드 스타일**: 기존 resumes/projects 카드 패턴 재사용
-- **생성 다이얼로그**: shadcn Dialog + 폼 필드 4개 (회사/직무/JD/동기)
-- **상태 배지**: DRAFT(회색), FINAL(초록), isReference=true(별 아이콘)
-- **다크모드**: 기존 패턴 (`bg-black/10 dark:bg-white/10`) 준수
-- **반응형**: 모바일 1열, 데스크톱 2~3열 카드 그리드
+| 대상          | 스모크 항목                                                      |
+| ------------- | ---------------------------------------------------------------- |
+| 이력서 편집   | 항목 추가 → 수정 → 순서 변경 → 저장 → 프리뷰 갱신 → PDF 다운로드 |
+| 공유 링크     | 링크 생성 → 복사 → 비활성화                                      |
+| 설정 미리보기 | 설정 변경 → 미리보기 열기 → 닫기 → 저장                          |
 
 ### 제약 사항
 
-- 기존 테스트 기준선 유지 (71 suites, 519 tests)
-- 게이트 4종 통과 (lint/build/jest/vercel-build)
-- T97 모듈 코드 수정 없음 (API 라우트에서 조합만)
-- 스켈레톤: `animate-pulse` + `bg-black/10 dark:bg-white/10` (T96 패턴)
-- 외부 라이브러리 추가 없음 (기존 shadcn/ui + Tailwind only)
+- 기존 기능 동작 100% 보존
+- 상태 흐름 변경 없음 (props 전달만)
+- 게이트 4종 + E2E 17개 통과 유지
+- 파일 1개 완료 후 다음 진행
+
+---
+
+## T103 — 최종 route별 First Load JS 비교 + 프로덕션 배포 검증
+
+### 배경
+
+Sprint 5 전체 리팩토링 완료 후 T99 기준선 대비 route별 before/after를 비교하고 프로덕션 배포한다.
+
+### 작업 항목
+
+| #   | 내용                                                                                                        | 상태 |
+| --- | ----------------------------------------------------------------------------------------------------------- | ---- |
+| 1   | 번들 분석 빌드 최종 실행 → 리포트 (cross-env 또는 `$env:ANALYZE="true"; npm run build`)                     |      |
+| 2   | T99 기준선 대비 **route별 First Load JS 변화표** (핵심 5개)                                                 |      |
+| 3   | 사이드바 prefetch 요청 수 before/after                                                                      |      |
+| 4   | lazy 대상 모달 초기 번들 미포함 확인 (bundle analyzer route chunk 제외 + Network waterfall 미포함 2중 확인) |      |
+| 5   | 게이트 4종 최종 통과 (lint/build/jest/vercel-build)                                                         |      |
+| 6   | E2E 17개 최종 통과                                                                                          |      |
+| 7   | 프로덕션 배포 + HTTP 200 확인                                                                               |      |
+| 8   | 프로덕션 스모크: resumes/edit, settings, cover-letters, 저빈도 메뉴 1개 클릭                                |      |
+| 9   | T102 prefetch 분류 재검토 기록 (배포 후 1주일 실사용 후 재분류 계획 history.md 기록)                         |      |
+| 10  | history.md Sprint 5 완료 기록                                                                               |      |
+| 11  | plan.md Phase 체크                                                                                          |      |
+
+### 성공 판정 기준
+
+| KPI                          | 기준                                                                                                                                    | 구분                        |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- |
+| route별 First Load JS       | 핵심 3개(resumes/edit, settings, cover-letters)에서 T99 대비 감소. 나머지 2개(job-tracker, 홈)는 보조 지표이며 비정상 증가 시 원인 확인 | **pass/fail 주지표 (유일)** |
+| 모달 초기 번들 포함          | lazy 대상 전부 제거 확인 (bundle analyzer route chunk + Network waterfall 2중)                                                          | 필수 확인                   |
+| 기능 회귀                    | Jest 519+ / E2E 17 / RTL 모달 테스트 (열기/닫기) / 수동 스모크 (제출/취소) 전부 통과                                                    | 필수 확인                   |
+| 프로덕션 스모크              | edit, settings, cover-letters, 저빈도 메뉴 1개 정상                                                                                     | 필수 확인                   |
+| prefetch 요청 수             | T99 대비 감소 (수동 측정, 참고 기록)                                                                                                    | 보조지표                    |
+
+### 제약 사항
+
+- 총 번들 크기 소폭 증가는 허용 (route별 감소가 KPI)
+- 전 기능 회귀 없음 확인

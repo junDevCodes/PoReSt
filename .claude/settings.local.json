@@ -66,7 +66,18 @@
       "Bash(sort -k5 -h -r)",
       "Bash(ls src/app/\\\\\\(private\\\\\\)/app/*/loading.tsx src/app/\\\\\\(private\\\\\\)/app/loading.tsx)",
       "Bash(find \"C:/workspace/Portfolio/PoReSt/src/app/\\(private\\)/app\" -type d)",
-      "Bash(find \"C:/workspace/Portfolio/PoReSt/src/app/\\(private\\)/app\" -name \"page.tsx\" -o -name \"loading.tsx\")"
+      "Bash(find \"C:/workspace/Portfolio/PoReSt/src/app/\\(private\\)/app\" -name \"page.tsx\" -o -name \"loading.tsx\")",
+      "Bash(npx tsc:*)",
+      "Bash(mkdir -p C:/workspace/Portfolio/PoReSt/src/app/api/app/cover-letters/[id]/toggle-reference)",
+      "Bash(mkdir -p C:/workspace/Portfolio/PoReSt/src/app/api/app/cover-letters/[id]/embed)",
+      "Bash(ls \"C:\\\\workspace\\\\Portfolio\\\\PoReSt\\\\src\\\\app\\\\\\(private\\)\\\\app\" \")",
+      "Bash(ls \"C:/workspace/Portfolio/PoReSt/src/app/\\(private\\)/app/\")",
+      "Bash(gh workflow:*)",
+      "Bash(2)",
+      "Bash(sort -k5 -rh)",
+      "Bash(npx cross-env:*)",
+      "Bash(NEXT_BUNDLER=webpack npm run build)",
+      "Bash(NEXT_BUNDLER=webpack ANALYZE=true npm run build)"
     ]
   }
 }

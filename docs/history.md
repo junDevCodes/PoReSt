@@ -1,6 +1,6 @@
 # PoReSt 작업 맥락서
 
-기준일: 2026-03-19
+기준일: 2026-03-22
 문서 정의: 완료된 작업의 이력과 현재 작업이 진행되는 맥락을 기록. 새 세션에서 "지금 왜 이걸 하는가"를 즉시 파악하는 용도.
 관련 문서: `plan.md`(전체 계획), `task.md`(현재 태스크 상세), `checklist.md`(검증 체크리스트)
 
@@ -1438,12 +1438,80 @@ Phase 2: AI 자기소개서 RAG
 
 ---
 
+### T99: 번들 분석 기준선 확립 (2026-03-22) ✅
+
+**범위**: devDependency 2개 설치 + next.config.ts 분석기 래핑 + 기준선 측정
+
+**핵심 변경**:
+
+1. **도구 설정**
+   - `@next/bundle-analyzer` (v16.2.1) + `cross-env` devDependency 설치
+   - `next.config.ts` — `withBundleAnalyzer({ enabled: ANALYZE=true })` 조건부 래핑
+   - webpack `--webpack` 모드에서 분석 리포트 생성 (.next/analyze/client.html)
+   - 참고: Turbopack(기본 빌드)에서는 `@next/bundle-analyzer` 미지원, `next experimental-analyze` 별도 필요
+
+2. **상위 10개 청크 분석 (Webpack stat size 기준)**
+
+   | # | 청크 내용 | Stat Size | 비고 |
+   |---|-----------|-----------|------|
+   | 1 | Next.js 클라이언트 (segment-cache, router-reducer, RSC) | 692.6 kB | 프레임워크 |
+   | 2 | react-hook-form (109.1 kB) + zod v4 (119.7 kB) + 공유 라이브러리 | 636.1 kB | 공유 |
+   | 3 | react-dom (compiled) | 594.0 kB | 프레임워크 |
+   | 4 | react-dom-client + react + scheduler | 560.9 kB | 프레임워크 |
+   | 5 | html2canvas-pro (동적 import) | 508.9 kB | 이미 분리됨 |
+   | 6 | html2canvas (동적 import) | 431.2 kB | 이미 분리됨 |
+   | 7 | Next.js client router + index | 363.8 kB | 프레임워크 |
+   | 8 | jsPDF (동적 import) | 335.5 kB | 이미 분리됨 |
+   | 9 | pako 압축 (PDF 의존) | 221.0 kB | 이미 분리됨 |
+   | 10 | stackblur-canvas + svg-pathdata + core-js (PDF 의존) | 189.6 kB | 이미 분리됨 |
+
+   → PDF 관련 청크(#5~#10)는 native `import()` 덕분에 이미 동적 분리. route 초기 로드에 미포함 확인.
+
+3. **Route-specific 페이지 청크 (Webpack stat size)**
+
+   | Route | Page Chunk (stat) | 주요 내용 |
+   |-------|-------------------|-----------|
+   | `/app/resumes/[id]/edit` | 87.8 kB | 페이지 컴포넌트 74.7 kB |
+   | `/app/portfolio/settings` | 87.0 kB | 페이지 컴포넌트 66.4 kB |
+   | `/app/cover-letters` | 42.4 kB | 페이지 컴포넌트 34.5 kB |
+   | `/app/job-tracker` | 32.8 kB | 칸반 보드 |
+   | `/app` (홈) | 0.2 kB | 서버 컴포넌트, 최소 클라이언트 JS |
+
+4. **Route별 First Load JS 기준선 (Turbopack 프로덕션 빌드)**
+
+   **Shared Base**: Framework 400.6 kB (118.2 kB gz) + Polyfill 110.0 kB (38.7 kB gz) + CSS 76.8 kB (13.0 kB gz) = **587.3 kB (169.9 kB gz)**
+
+   | Route | Route Chunks | Route Chunks (gz) | First Load JS | First Load JS (gz) |
+   |-------|-------------|-------------------|---------------|-------------------|
+   | `/app` (홈) | 76.5 kB | 21.8 kB | 663.8 kB | **191.7 kB** |
+   | `/app/resumes/[id]/edit` | 109.4 kB | 30.2 kB | 696.7 kB | **200.1 kB** |
+   | `/app/portfolio/settings` | 106.4 kB | 30.7 kB | 693.7 kB | **200.5 kB** |
+   | `/app/cover-letters` | 91.2 kB | 25.7 kB | 678.5 kB | **195.6 kB** |
+   | `/app/job-tracker` | 88.1 kB | 25.3 kB | 675.4 kB | **195.2 kB** |
+
+   > 측정 기준: Turbopack `npm run build` → client-reference-manifest 기반 청크 매핑 + gzip 압축 크기 계산
+
+5. **사이드바 prefetch 요청 수 (보조지표)**
+   - Network 측정은 프로덕션 빌드+실행 필요 (로컬 서버 환경 제약)
+   - AppSidebar Link 20+개 전부 prefetch 미지정 → Next.js 기본 자동 prefetch 동작
+   - T102에서 저빈도 12개 메뉴 `prefetch={false}` 적용 예정
+
+**게이트**: `lint(0 errors, 9 warnings) / build(73 pages) / jest(71 suites, 519 tests)` 통과
+**프로덕션 코드 변경 없음**: `src/` 디렉토리 변경 0건
+
+---
+
 ## 현재 진행 맥락
 
-### Sprint 4 완료 — 다음 작업 대기
+### Sprint 5 (M14: 코드 스플리팅 & Lazy 로딩) 진행 중
 
 - Sprint 1~4 전체 완료
+- **T99 완료** — 번들 기준선 확립
+- **Sprint 5 목표**: 기존 기능 100% 유지하면서 클라이언트 번들 크기 축소
 - 테스트 기준선: Jest 71 suites, 519 tests + E2E 17 tests
 - lint: 0 errors, 9 warnings
+- static/chunks: 2.6MB (52개 파일)
 - 브랜치: main
-- 다음: Sprint 5 계획 수립 또는 archive.md 복귀 항목 검토
+- **핵심 원칙**: 기능 변경 ZERO, 측정→변경→검증, 태스크당 독립 배포
+- **핵심 인사이트**: PDF 라이브러리(jsPDF/html2canvas)는 이미 native import()로 동적 분리 완료. 최적화 여지는 **UI 컴포넌트 레벨 dynamic 미활용**(모달/오버레이) + **prefetch 과다**(사이드바 20+개 Link)에 있음.
+- 다음: T100(모달 dynamic 분리) + T102(prefetch) + T101(lazy 분리) → T103(최종 검증)

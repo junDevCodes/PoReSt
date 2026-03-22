@@ -1,6 +1,6 @@
 # PoReSt 아카이브
 
-기준일: 2026-03-19
+기준일: 2026-03-22
 문서 정의: 차후 계획에 편입할 아이디어, 현재 기술적 해결이 불가능한 이슈, 우선순위 하향된 기능을 기록하는 보관 문서.
 관련 문서: `plan.md`(전체 계획), `task.md`(현재 태스크), `history.md`(완료 이력)
 
@@ -179,3 +179,46 @@
 
 - 디자인 템플릿 선택 (현재는 단일 디자인)
 - 복귀 조건: 멀티유저 확장 결정 시
+
+---
+
+## Sprint 5 제외 항목 (M14 — 코드 스플리팅, 2026-03-22)
+
+### 서버/클라이언트 경계 재설계
+
+- **내용**: GrowthTimeline, CoverLetters 등 혼합 컴포넌트의 서버/클라이언트 분리
+- **보관 사유**: 아키텍처 변경 — 리팩토링 Sprint에서 부적합 (상태 흐름 재설계 필요)
+- **복귀 조건**: Sprint 5 완료 후 추가 최적화 필요 시
+- **관련**: T100, T101
+
+### next/Image 일관 적용
+
+- **내용**: 포트폴리오 아바타 등 일반 `<img>` 태그를 next/Image로 전환
+- **보관 사유**: 이미지 사용 적음, 체감 영향 미미
+- **복귀 조건**: 이미지 콘텐츠 증가 또는 Lighthouse 이미지 점수 저하 시
+
+### blog edit 컴포넌트 분할 (615줄)
+
+- **내용**: `blog/[id]/edit/page.tsx` 615줄 단일 파일 분할
+- **보관 사유**: T101에서 상위 2개(resume edit 1,330줄, settings 980줄)만 대상, 범위 제한
+- **복귀 조건**: T101 완료 후 추가 분할 효과 확인 시
+
+### ShareLinksSection lazy mount
+
+- **내용**: `resumes/[id]/edit/page.tsx:336`의 ShareLinksSection을 "공유 링크 펼치기" 같은 명시적 사용자 액션 뒤에 lazy mount 전환
+- **보관 사유**: 현재 mount 시 useEffect로 즉시 fetch하는 구조. 단순 dynamic만 하면 hydration 직후 import+fetch가 이어져 지연 로딩 효과 제한적. "펼치기" UI 전환이 필요하여 아키텍처 변경 동반.
+- **복귀 조건**: T101 1차 완료 후 수치 부족 시 2차 분해로 검토
+- **관련**: T101, resume edit 페이지
+
+### @google/generative-ai 동적 import
+
+- **내용**: `modules/gemini/implementation.ts`에서 정적 import 중
+- **보관 사유**: 서버 전용 모듈 — 클라이언트 번들에 포함되지 않음
+- **복귀 조건**: 서버 번들 크기 문제 또는 cold start 최적화 필요 시
+
+### CoverLetter.resumeId / experienceId FK relation 미정의
+
+- **내용**: `cover_letters` 테이블의 `resumeId`, `experienceId` 필드가 plain String으로만 선언되어 @relation 없음. Resume/Experience 삭제 시 orphaned ID 잔존 가능. 같은 스키마의 ResumeShareLink.resumeId는 relation이 있어 패턴 불일치.
+- **보관 사유**: 마이그레이션 필요 + FK 추가 시 기존 데이터 정합성 사전 점검 필요. Sprint 5는 기능 변경 ZERO 원칙.
+- **복귀 조건**: DB 스키마 정비 Sprint 진입 시. `@relation(onDelete: SetNull)` 추가 + 마이그레이션.
+- **관련**: T98, 코드 리뷰 [H-1]
