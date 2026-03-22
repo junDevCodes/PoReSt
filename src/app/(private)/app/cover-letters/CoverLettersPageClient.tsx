@@ -74,7 +74,7 @@ export function CoverLettersPageClient({ initialCoverLetters }: CoverLettersPage
         setCoverLetters(parsed.data ?? []);
       }
     } catch (err) {
-      setError(parseApiResponse<unknown>(err).toString());
+      setError(err instanceof Error ? err.message : "알 수 없는 오류가 발생했습니다.");
     } finally {
       setIsLoading(false);
     }
