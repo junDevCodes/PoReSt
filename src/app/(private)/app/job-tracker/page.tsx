@@ -5,6 +5,14 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { parseApiResponse } from "@/app/(private)/app/_lib/admin-api";
+import type {
+  BoardCardDto,
+  BoardDto,
+  ApplicationEventDto,
+  JdMatchResult,
+  CompanyTargetStatus,
+} from "./types";
+import { STATUS_ORDER, STATUS_COLORS, STATUS_LABELS, getScoreColor } from "./types";
 
 const JobCardDetailModal = dynamic(
   () => import("./JobCardDetailModal"),
@@ -23,82 +31,6 @@ const JobCardDetailModal = dynamic(
     ),
   },
 );
-
-type CompanyTargetStatus =
-  | "INTERESTED"
-  | "APPLIED"
-  | "INTERVIEWING"
-  | "OFFER"
-  | "REJECTED"
-  | "ARCHIVED";
-
-type BoardCardDto = {
-  id: string;
-  company: string;
-  role: string;
-  status: CompanyTargetStatus;
-  priority: number;
-  summary: string | null;
-  tags: string[];
-  jobDescriptionMd: string | null;
-  appliedAt: string | null;
-  matchScoreJson: JdMatchResult | null;
-  eventCount: number;
-  updatedAt: string;
-};
-
-type BoardColumnDto = {
-  status: CompanyTargetStatus;
-  label: string;
-  cards: BoardCardDto[];
-};
-
-type BoardDto = {
-  columns: BoardColumnDto[];
-  totalCount: number;
-};
-
-type ApplicationEventDto = {
-  id: string;
-  fromStatus: CompanyTargetStatus | null;
-  toStatus: CompanyTargetStatus;
-  note: string | null;
-  createdAt: string;
-};
-
-type JdMatchResult = {
-  score: number;
-  matchedSkills: string[];
-  gaps: string[];
-  summary: string;
-};
-
-const STATUS_ORDER: CompanyTargetStatus[] = [
-  "INTERESTED",
-  "APPLIED",
-  "INTERVIEWING",
-  "OFFER",
-  "REJECTED",
-  "ARCHIVED",
-];
-
-const STATUS_COLORS: Record<CompanyTargetStatus, string> = {
-  INTERESTED: "border-blue-300 bg-blue-50",
-  APPLIED: "border-indigo-300 bg-indigo-50",
-  INTERVIEWING: "border-amber-300 bg-amber-50",
-  OFFER: "border-emerald-300 bg-emerald-50",
-  REJECTED: "border-rose-300 bg-rose-50",
-  ARCHIVED: "border-gray-300 bg-gray-50",
-};
-
-const STATUS_LABELS: Record<CompanyTargetStatus, string> = {
-  INTERESTED: "관심",
-  APPLIED: "지원 완료",
-  INTERVIEWING: "면접 진행",
-  OFFER: "오퍼 수령",
-  REJECTED: "탈락/거절",
-  ARCHIVED: "보관",
-};
 
 export default function JobTrackerPage() {
   const [board, setBoard] = useState<BoardDto | null>(null);
@@ -236,13 +168,6 @@ export default function JobTrackerPage() {
       setError(parsed.error);
     }
     setMatchLoading(false);
-  }
-
-  function getScoreColor(score: number): string {
-    if (score >= 80) return "text-emerald-700";
-    if (score >= 60) return "text-blue-700";
-    if (score >= 40) return "text-amber-700";
-    return "text-rose-700";
   }
 
   return (

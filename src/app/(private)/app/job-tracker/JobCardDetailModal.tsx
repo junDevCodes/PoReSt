@@ -1,69 +1,12 @@
 "use client";
 
-type CompanyTargetStatus =
-  | "INTERESTED"
-  | "APPLIED"
-  | "INTERVIEWING"
-  | "OFFER"
-  | "REJECTED"
-  | "ARCHIVED";
-
-type BoardCardDto = {
-  id: string;
-  company: string;
-  role: string;
-  status: CompanyTargetStatus;
-  priority: number;
-  summary: string | null;
-  tags: string[];
-  jobDescriptionMd: string | null;
-  appliedAt: string | null;
-  matchScoreJson: JdMatchResult | null;
-  eventCount: number;
-  updatedAt: string;
-};
-
-type ApplicationEventDto = {
-  id: string;
-  fromStatus: CompanyTargetStatus | null;
-  toStatus: CompanyTargetStatus;
-  note: string | null;
-  createdAt: string;
-};
-
-type JdMatchResult = {
-  score: number;
-  matchedSkills: string[];
-  gaps: string[];
-  summary: string;
-};
-
-const STATUS_ORDER: CompanyTargetStatus[] = [
-  "INTERESTED",
-  "APPLIED",
-  "INTERVIEWING",
-  "OFFER",
-  "REJECTED",
-  "ARCHIVED",
-];
-
-const STATUS_BADGE_COLORS: Record<CompanyTargetStatus, string> = {
-  INTERESTED: "bg-blue-100 text-blue-800",
-  APPLIED: "bg-indigo-100 text-indigo-800",
-  INTERVIEWING: "bg-amber-100 text-amber-800",
-  OFFER: "bg-emerald-100 text-emerald-800",
-  REJECTED: "bg-rose-100 text-rose-800",
-  ARCHIVED: "bg-gray-100 text-gray-600",
-};
-
-const STATUS_LABELS: Record<CompanyTargetStatus, string> = {
-  INTERESTED: "관심",
-  APPLIED: "지원 완료",
-  INTERVIEWING: "면접 진행",
-  OFFER: "오퍼 수령",
-  REJECTED: "탈락/거절",
-  ARCHIVED: "보관",
-};
+import type {
+  BoardCardDto,
+  ApplicationEventDto,
+  JdMatchResult,
+  CompanyTargetStatus,
+} from "./types";
+import { STATUS_ORDER, STATUS_BADGE_COLORS, STATUS_LABELS, getScoreColor } from "./types";
 
 export type JobCardDetailModalProps = {
   card: BoardCardDto;
@@ -79,13 +22,6 @@ export type JobCardDetailModalProps = {
   onJdMatch: (targetId: string) => void;
   onClose: () => void;
 };
-
-function getScoreColor(score: number): string {
-  if (score >= 80) return "text-emerald-700";
-  if (score >= 60) return "text-blue-700";
-  if (score >= 40) return "text-amber-700";
-  return "text-rose-700";
-}
 
 export default function JobCardDetailModal({
   card,
