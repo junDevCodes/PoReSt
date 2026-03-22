@@ -95,7 +95,7 @@ export function isCoverLetterServiceError(
 
 export type CoverLetterServicePrismaClient = Pick<
   Prisma.TransactionClient,
-  "coverLetter" | "coverLetterEmbedding" | "experience" | "skill" | "$queryRaw" | "$executeRawUnsafe"
+  "coverLetter" | "coverLetterEmbedding" | "experience" | "skill" | "$queryRaw"
 >;
 
 export interface CoverLettersService {

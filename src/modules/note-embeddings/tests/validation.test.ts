@@ -16,7 +16,7 @@ function createMockPrisma(): NoteEmbeddingServicePrismaClient {
       update: jest.fn(),
       create: jest.fn(),
     },
-    $executeRawUnsafe: jest.fn(),
+    $executeRaw: jest.fn(),
     $queryRaw: jest.fn(),
   } as unknown as NoteEmbeddingServicePrismaClient;
 }

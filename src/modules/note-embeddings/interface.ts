@@ -58,7 +58,7 @@ export function isNoteEmbeddingServiceError(error: unknown): error is NoteEmbedd
 
 export type NoteEmbeddingServicePrismaClient = Pick<
   Prisma.TransactionClient,
-  "note" | "noteEmbedding" | "$executeRawUnsafe" | "$queryRaw"
+  "note" | "noteEmbedding" | "$executeRaw" | "$queryRaw"
 >;
 
 export interface NoteEmbeddingPipelineService {

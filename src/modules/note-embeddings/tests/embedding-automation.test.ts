@@ -43,7 +43,7 @@ function createMockPrisma() {
       create: jest.fn().mockResolvedValue({ id: "emb-1" }),
       update: jest.fn().mockResolvedValue({ id: "emb-1" }),
     },
-    $executeRawUnsafe: jest.fn().mockResolvedValue(1),
+    $executeRaw: jest.fn().mockResolvedValue(1),
     $queryRaw: jest.fn().mockResolvedValue([]),
   };
 }
@@ -122,7 +122,7 @@ describe("임베딩 자동화 (T80-2)", () => {
       expect(result.succeeded).toBe(1);
       expect(result.failed).toBe(0);
       expect(mockGemini.generateEmbedding).toHaveBeenCalled();
-      expect(mockPrisma.$executeRawUnsafe).toHaveBeenCalled();
+      expect(mockPrisma.$executeRaw).toHaveBeenCalled();
     });
 
     it("Gemini 미설정 시 deterministic fallback을 사용해야 한다", async () => {
@@ -145,7 +145,7 @@ describe("임베딩 자동화 (T80-2)", () => {
 
       expect(result.succeeded).toBe(1);
       expect(mockGemini.generateEmbedding).not.toHaveBeenCalled();
-      expect(mockPrisma.$executeRawUnsafe).toHaveBeenCalled();
+      expect(mockPrisma.$executeRaw).toHaveBeenCalled();
     });
 
     it("Gemini API 에러(retryable) 시 fallback으로 전환해야 한다", async () => {
@@ -324,7 +324,7 @@ describe("임베딩 자동화 (T80-2)", () => {
 
       expect(result.succeeded).toBe(1);
       expect(mockGemini.generateEmbedding).not.toHaveBeenCalled();
-      expect(mockPrisma.$executeRawUnsafe).toHaveBeenCalled();
+      expect(mockPrisma.$executeRaw).toHaveBeenCalled();
     });
   });
 

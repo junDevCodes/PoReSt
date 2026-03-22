@@ -35,7 +35,7 @@ function createMockPrisma() {
       create: jest.fn().mockResolvedValue({ id: "emb-1" }),
       update: jest.fn().mockResolvedValue({ id: "emb-1" }),
     },
-    $executeRawUnsafe: jest.fn().mockResolvedValue(0),
+    $executeRaw: jest.fn().mockResolvedValue(0),
     $queryRaw: jest.fn().mockResolvedValue([]),
   } as unknown as Parameters<
     typeof createCoverLetterEmbeddingPipelineService

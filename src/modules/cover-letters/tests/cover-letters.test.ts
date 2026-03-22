@@ -29,7 +29,6 @@ function createMockPrisma() {
       findMany: jest.fn().mockResolvedValue([]),
     },
     $queryRaw: jest.fn().mockResolvedValue([]),
-    $executeRawUnsafe: jest.fn().mockResolvedValue(0),
   } as unknown as Parameters<typeof createCoverLettersService>[0]["prisma"];
 }
 

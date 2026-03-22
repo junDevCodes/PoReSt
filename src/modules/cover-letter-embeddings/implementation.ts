@@ -186,16 +186,15 @@ async function applyEmbeddingVector(
   vector: number[],
 ) {
   const vectorLiteral = buildVectorLiteral(vector);
-  await prisma.$executeRawUnsafe(
-    `UPDATE "cover_letter_embeddings"
-        SET "embedding" = '${vectorLiteral}'::vector,
-            "status" = 'SUCCEEDED',
-            "lastEmbeddedAt" = CURRENT_TIMESTAMP,
-            "error" = NULL,
-            "updatedAt" = CURRENT_TIMESTAMP
-      WHERE "id" = $1`,
-    embeddingId,
-  );
+  await prisma.$executeRaw`
+    UPDATE "cover_letter_embeddings"
+       SET "embedding" = ${Prisma.raw(`'${vectorLiteral}'::vector`)},
+           "status" = 'SUCCEEDED',
+           "lastEmbeddedAt" = CURRENT_TIMESTAMP,
+           "error" = NULL,
+           "updatedAt" = CURRENT_TIMESTAMP
+     WHERE "id" = ${embeddingId}
+  `;
 }
 
 async function markEmbeddingFailed(

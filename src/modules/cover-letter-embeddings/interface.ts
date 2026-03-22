@@ -65,7 +65,7 @@ export function isCoverLetterEmbeddingServiceError(
 
 export type CoverLetterEmbeddingPrismaClient = Pick<
   Prisma.TransactionClient,
-  "coverLetter" | "coverLetterEmbedding" | "$executeRawUnsafe" | "$queryRaw"
+  "coverLetter" | "coverLetterEmbedding" | "$executeRaw" | "$queryRaw"
 >;
 
 export interface CoverLetterEmbeddingPipelineService {
