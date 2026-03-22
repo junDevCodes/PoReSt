@@ -1499,14 +1499,46 @@ Phase 2: AI 자기소개서 RAG
 **게이트**: `lint(0 errors, 9 warnings) / build(73 pages) / jest(71 suites, 519 tests)` 통과
 **프로덕션 코드 변경 없음**: `src/` 디렉토리 변경 0건
 
+### 코드 리뷰 기반 수정 (2026-03-22) ✅
+
+**범위**: Sprint 4 코드 전체 리뷰 → 리뷰 지적 5건 수정 (39개 파일)
+
+**핵심 변경**:
+
+1. **[C-1] $executeRawUnsafe → $executeRaw 전환** (보안)
+   - `cover-letter-embeddings/implementation.ts` + `note-embeddings/implementation.ts` — Prisma.sql 템플릿 리터럴로 전환
+   - 인터페이스 타입 3곳, 테스트 mock 4곳 동기화 (총 9파일)
+   - SQL Injection 잠재 위험 제거
+
+2. **[H-2] CoverLettersPageClient catch 에러 표시 수정** (UX)
+   - `parseApiResponse().toString()` → `err instanceof Error ? err.message : 한국어 폴백`
+   - `[object Object]` 표시 문제 해결
+
+3. **[H-3] E2E CI timeout 상향** (CI)
+   - `timeout-minutes: 10 → 15` (단일 워커 직렬 실행 여유)
+
+4. **[M-1] 스켈레톤 다크모드 페어 추가** (접근성)
+   - `bg-[#faf9f6]` 하드코딩 13곳에 `dark:bg-zinc-800` 추가
+
+5. **[M-2] 스켈레톤 ARIA 속성 전면 적용** (접근성)
+   - 18개 loading.tsx에 `aria-busy="true" role="status" aria-label="페이지 로딩 중"` 추가
+
+6. **[T99] 번들 분석기 인프라** (인프라)
+   - `@next/bundle-analyzer` + `cross-env` devDependency 추가
+   - `next.config.ts`에 `ANALYZE=true` 조건부 래핑
+
+**게이트**: `lint(0 errors, 9 warnings) / build / jest(71 suites, 519 tests) / E2E(17 passed)` 통과
+**프로덕션 검증**: push → Vercel 배포 → HTTP 200 + 브라우저 스모크 (다크/라이트 모드, 경력, 프로젝트, sitemap)
+**커밋**: `a416091`, `7e02d51`, `75d8250`, `0535ec7`, `8620a3a`
+
 ---
 
 ## 현재 진행 맥락
 
 ### Sprint 5 (M14: 코드 스플리팅 & Lazy 로딩) 진행 중
 
-- Sprint 1~4 전체 완료
-- **T99 완료** — 번들 기준선 확립
+- Sprint 1~4 전체 완료 + **코드 리뷰 수정 완료**
+- **T99 완료** — 번들 기준선 확립 + 분석 인프라 설정
 - **Sprint 5 목표**: 기존 기능 100% 유지하면서 클라이언트 번들 크기 축소
 - 테스트 기준선: Jest 71 suites, 519 tests + E2E 17 tests
 - lint: 0 errors, 9 warnings
