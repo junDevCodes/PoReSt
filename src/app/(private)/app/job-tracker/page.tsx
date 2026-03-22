@@ -1,9 +1,28 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { parseApiResponse } from "@/app/(private)/app/_lib/admin-api";
+
+const JobCardDetailModal = dynamic(
+  () => import("./JobCardDetailModal"),
+  {
+    loading: () => (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+        <div className="w-full max-w-3xl rounded-2xl border border-black/10 bg-white p-6 shadow-xl mx-4">
+          <div className="h-6 w-48 animate-pulse rounded bg-black/10" />
+          <div className="mt-4 space-y-3">
+            <div className="h-4 w-full animate-pulse rounded bg-black/10" />
+            <div className="h-4 w-3/4 animate-pulse rounded bg-black/10" />
+            <div className="h-32 w-full animate-pulse rounded bg-black/10" />
+          </div>
+        </div>
+      </div>
+    ),
+  },
+);
 
 type CompanyTargetStatus =
   | "INTERESTED"
@@ -70,15 +89,6 @@ const STATUS_COLORS: Record<CompanyTargetStatus, string> = {
   OFFER: "border-emerald-300 bg-emerald-50",
   REJECTED: "border-rose-300 bg-rose-50",
   ARCHIVED: "border-gray-300 bg-gray-50",
-};
-
-const STATUS_BADGE_COLORS: Record<CompanyTargetStatus, string> = {
-  INTERESTED: "bg-blue-100 text-blue-800",
-  APPLIED: "bg-indigo-100 text-indigo-800",
-  INTERVIEWING: "bg-amber-100 text-amber-800",
-  OFFER: "bg-emerald-100 text-emerald-800",
-  REJECTED: "bg-rose-100 text-rose-800",
-  ARCHIVED: "bg-gray-100 text-gray-600",
 };
 
 const STATUS_LABELS: Record<CompanyTargetStatus, string> = {
@@ -357,172 +367,22 @@ export default function JobTrackerPage() {
         </section>
       )}
 
-      {/* 상세 모달 */}
+      {/* 상세 모달 — dynamic lazy 로딩 */}
       {selectedCard && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) closeModal();
-          }}
-        >
-          <div className="mx-4 flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-black/10 bg-white shadow-2xl">
-            {/* 헤더 */}
-            <div className="flex items-start justify-between border-b border-black/10 p-6">
-              <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="text-xl font-semibold">{selectedCard.company}</h2>
-                  <span className={`rounded px-2 py-0.5 text-xs font-medium ${STATUS_BADGE_COLORS[selectedCard.status]}`}>
-                    {STATUS_LABELS[selectedCard.status]}
-                  </span>
-                </div>
-                <p className="mt-1 text-sm text-black/60">{selectedCard.role}</p>
-                {selectedCard.appliedAt && (
-                  <p className="mt-1 text-xs text-black/40">
-                    지원일: {new Date(selectedCard.appliedAt).toLocaleDateString("ko-KR")}
-                  </p>
-                )}
-              </div>
-              <button
-                type="button"
-                onClick={closeModal}
-                className="rounded-lg p-2 text-black/40 hover:bg-black/5 hover:text-black"
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* 본문 */}
-            <div className="flex-1 overflow-y-auto p-6">
-              <div className="grid gap-6">
-                {/* 상태 변경 */}
-                <div>
-                  <h3 className="text-sm font-semibold text-black/80">상태 변경</h3>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {STATUS_ORDER.filter((s) => s !== selectedCard.status).map((status) => (
-                      <button
-                        key={status}
-                        type="button"
-                        onClick={() => void handleStatusChange(selectedCard.id, status)}
-                        className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition hover:shadow-sm ${STATUS_BADGE_COLORS[status]}`}
-                      >
-                        {STATUS_LABELS[status]}
-                      </button>
-                    ))}
-                  </div>
-                  <input
-                    type="text"
-                    placeholder="상태 변경 메모 (선택)"
-                    value={statusNote}
-                    onChange={(e) => setStatusNote(e.target.value)}
-                    className="mt-2 w-full rounded-lg border border-black/15 px-3 py-2 text-sm"
-                  />
-                </div>
-
-                {/* 요약 */}
-                {selectedCard.summary && (
-                  <div>
-                    <h3 className="text-sm font-semibold text-black/80">요약</h3>
-                    <p className="mt-1 text-sm text-black/70 whitespace-pre-wrap">{selectedCard.summary}</p>
-                  </div>
-                )}
-
-                {/* JD 매칭 */}
-                <div>
-                  <h3 className="text-sm font-semibold text-black/80">JD 매칭 분석</h3>
-                  <textarea
-                    className="mt-2 min-h-[120px] w-full rounded-lg border border-black/15 px-3 py-2 text-sm"
-                    placeholder="채용 공고(JD)를 붙여넣으세요..."
-                    value={jdInput}
-                    onChange={(e) => setJdInput(e.target.value)}
-                  />
-                  <button
-                    type="button"
-                    disabled={matchLoading || !jdInput.trim()}
-                    onClick={() => void handleJdMatch(selectedCard.id)}
-                    className="mt-2 rounded-lg bg-black px-4 py-2 text-sm text-white hover:bg-black/90 disabled:opacity-50"
-                  >
-                    {matchLoading ? "분석 중..." : "AI 매칭 분석"}
-                  </button>
-
-                  {matchResult && (
-                    <div className="mt-4 rounded-xl border border-black/10 bg-[#faf9f6] p-4">
-                      <div className="flex items-center gap-3">
-                        <span className={`text-3xl font-bold ${getScoreColor(matchResult.score)}`}>
-                          {matchResult.score}
-                        </span>
-                        <span className="text-sm text-black/60">/ 100점</span>
-                      </div>
-                      <p className="mt-2 text-sm text-black/70">{matchResult.summary}</p>
-
-                      {matchResult.matchedSkills.length > 0 && (
-                        <div className="mt-3">
-                          <p className="text-xs font-medium text-black/50">일치 기술</p>
-                          <div className="mt-1 flex flex-wrap gap-1">
-                            {matchResult.matchedSkills.map((skill) => (
-                              <span
-                                key={skill}
-                                className="rounded bg-emerald-100 px-2 py-0.5 text-xs text-emerald-800"
-                              >
-                                {skill}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {matchResult.gaps.length > 0 && (
-                        <div className="mt-3">
-                          <p className="text-xs font-medium text-black/50">보완 필요</p>
-                          <ul className="mt-1 list-disc pl-4">
-                            {matchResult.gaps.map((gap, i) => (
-                              <li key={i} className="text-xs text-black/60">{gap}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* 타임라인 */}
-                <div>
-                  <h3 className="text-sm font-semibold text-black/80">
-                    상태 변경 이력 ({events.length})
-                  </h3>
-                  {eventsLoading ? (
-                    <p className="mt-2 text-xs text-black/40">로딩 중...</p>
-                  ) : events.length === 0 ? (
-                    <p className="mt-2 text-xs text-black/40">아직 상태 변경 이력이 없습니다.</p>
-                  ) : (
-                    <div className="mt-2 space-y-2">
-                      {events.map((event) => (
-                        <div
-                          key={event.id}
-                          className="flex items-start gap-3 rounded-lg border border-black/5 bg-[#faf9f6] p-3"
-                        >
-                          <div className="mt-0.5 h-2 w-2 flex-shrink-0 rounded-full bg-black/20" />
-                          <div className="flex-1">
-                            <p className="text-xs text-black/70">
-                              {event.fromStatus
-                                ? `${STATUS_LABELS[event.fromStatus]} → ${STATUS_LABELS[event.toStatus]}`
-                                : `${STATUS_LABELS[event.toStatus]} 설정`}
-                            </p>
-                            {event.note && (
-                              <p className="mt-0.5 text-xs text-black/50">{event.note}</p>
-                            )}
-                            <p className="mt-0.5 text-[10px] text-black/30">
-                              {new Date(event.createdAt).toLocaleString("ko-KR")}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <JobCardDetailModal
+          card={selectedCard}
+          events={events}
+          eventsLoading={eventsLoading}
+          jdInput={jdInput}
+          onJdInputChange={setJdInput}
+          matchLoading={matchLoading}
+          matchResult={matchResult}
+          statusNote={statusNote}
+          onStatusNoteChange={setStatusNote}
+          onStatusChange={(targetId, newStatus) => void handleStatusChange(targetId, newStatus)}
+          onJdMatch={(targetId) => void handleJdMatch(targetId)}
+          onClose={closeModal}
+        />
       )}
     </main>
   );

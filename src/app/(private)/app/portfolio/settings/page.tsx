@@ -1,15 +1,32 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import { parseApiResponse } from "@/app/(private)/app/_lib/admin-api";
 import { ErrorBanner, LoadingBlock } from "@/components/ui/AsyncState";
-import { PortfolioFullPreview } from "@/components/portfolio/PortfolioFullPreview";
 import {
   DEFAULT_LAYOUT,
   parseLayoutConfig,
   type LayoutSectionId,
   type LayoutSection,
 } from "@/modules/portfolio-settings/interface";
+
+const PortfolioPreviewOverlay = dynamic(
+  () => import("./PortfolioPreviewOverlay"),
+  {
+    loading: () => (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+        <div className="w-full max-w-5xl rounded-2xl border border-black/10 bg-[#f6f5f2] p-6 shadow-xl">
+          <div className="h-6 w-32 animate-pulse rounded bg-black/10" />
+          <div className="mt-4 space-y-3">
+            <div className="h-4 w-full animate-pulse rounded bg-black/10" />
+            <div className="h-4 w-3/4 animate-pulse rounded bg-black/10" />
+          </div>
+        </div>
+      </div>
+    ),
+  },
+);
 
 const PORTFOLIO_LINK_TYPES = [
   { value: "GITHUB", label: "GitHub" },
@@ -926,52 +943,24 @@ export default function PortfolioSettingsPage() {
 
         </div>
 
-        {/* 미리보기 — 다크 배경 오버레이 + 제한된 너비 카드 (공백 클릭 시 닫기) */}
+        {/* 미리보기 — dynamic 로딩 오버레이 */}
         {showPreview ? (
-          <div
-            className="fixed inset-0 z-50 overflow-y-auto bg-black/50 p-4 md:p-8"
-            onClick={handleModalClose}
-          >
-            <div
-              className="mx-auto max-w-5xl overflow-hidden rounded-2xl bg-[#f6f5f2] shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* 미리보기 툴바 */}
-              <div
-                ref={modalRef}
-                className="sticky top-0 z-10 flex items-center justify-between border-b border-black/10 bg-[#f6f5f2]/95 px-6 py-3 backdrop-blur-sm"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-sm font-semibold text-black/80">미리보기</span>
-                  <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">
-                    저장 전
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleModalClose}
-                  className="flex items-center gap-1.5 rounded-full border border-black/20 px-4 py-1.5 text-sm font-medium hover:bg-black/5"
-                >
-                  ✕ 닫기
-                </button>
-              </div>
-              {/* 실제 크기 포트폴리오 렌더링 */}
-              <PortfolioFullPreview
-                publicSlug={form.publicSlug}
-                displayName={form.displayName}
-                headline={form.headline}
-                bio={form.bio}
-                avatarUrl={form.avatarUrl}
-                email={form.email}
-                isEmailPublic={form.isEmailPublic}
-                location={form.location}
-                availabilityStatus={form.availabilityStatus}
-                resumeUrl={resumeMode === "upload" ? form.resumeUrl : ""}
-                featuredResumeTitle={resumeMode === "internal" ? featuredResumeTitle : ""}
-                links={form.links}
-              />
-            </div>
-          </div>
+          <PortfolioPreviewOverlay
+            modalRef={modalRef}
+            publicSlug={form.publicSlug}
+            displayName={form.displayName}
+            headline={form.headline}
+            bio={form.bio}
+            avatarUrl={form.avatarUrl}
+            email={form.email}
+            isEmailPublic={form.isEmailPublic}
+            location={form.location}
+            availabilityStatus={form.availabilityStatus}
+            resumeUrl={resumeMode === "upload" ? form.resumeUrl : ""}
+            featuredResumeTitle={resumeMode === "internal" ? featuredResumeTitle : ""}
+            links={form.links}
+            onClose={handleModalClose}
+          />
         ) : null}
         </>
       )}

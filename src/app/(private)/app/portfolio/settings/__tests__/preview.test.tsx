@@ -66,11 +66,18 @@ describe("PortfolioSettingsPage preview", () => {
     // 미리보기 모달 열기
     fireEvent.click(screen.getByRole("button", { name: "미리보기" }));
 
+    // dynamic import 로딩 대기
+    await waitFor(() => {
+      expect(screen.getByText("미리보기", { selector: "span" })).toBeInTheDocument();
+    });
+
     const displayNameInput = screen.getByLabelText("표시 이름");
     fireEvent.change(displayNameInput, { target: { value: "새 이름" } });
 
     // 모달 내 미리보기에 새 이름이 즉시 반영되어야 한다
-    expect(screen.getAllByText("새 이름").length).toBeGreaterThan(0);
+    await waitFor(() => {
+      expect(screen.getAllByText("새 이름").length).toBeGreaterThan(0);
+    });
   });
 
   it("publicSlug를 변경하면 경고 배너가 노출되어야 한다", async () => {

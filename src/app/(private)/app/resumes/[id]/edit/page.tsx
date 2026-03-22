@@ -10,7 +10,7 @@ import {
   type ResumeReorderItem,
 } from "@/app/(private)/app/resumes/_lib/reorder";
 import { resolveResumeItemComparison } from "@/app/(private)/app/resumes/_lib/compare";
-import { openResumePdfPrintWindow } from "@/app/(private)/app/resumes/_lib/pdf";
+import type { PdfOpenResult } from "@/app/(private)/app/resumes/_lib/pdf";
 import {
   getResumeItemSyncBadgeText,
   getResumeItemSyncStatus,
@@ -843,7 +843,8 @@ export default function ResumeEditPage() {
       setPreview(parsed.data);
     }
 
-    const result = openResumePdfPrintWindow(currentPreview);
+    const { openResumePdfPrintWindow } = await import("@/app/(private)/app/resumes/_lib/pdf");
+    const result: PdfOpenResult = openResumePdfPrintWindow(currentPreview);
     if (!result.ok) {
       setError("PDF 창을 열 수 없습니다. 팝업 차단 설정을 확인해주세요.");
       setIsDownloadingPdf(false);
