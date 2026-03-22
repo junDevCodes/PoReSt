@@ -1724,11 +1724,44 @@ Phase 4: 최종 검증
 
 ---
 
+### Sprint 5 코드 리뷰 수정사항 (2026-03-23) ✅
+
+**범위**: 코드 리뷰 HIGH/MEDIUM/LOW 3건 수정 (2커밋)
+
+**핵심 변경**:
+
+1. **[HIGH] job-tracker 타입/상수 중복 제거**
+   - `job-tracker/types.ts` 신규 생성: 4개 타입(CompanyTargetStatus, BoardCardDto, ApplicationEventDto, JdMatchResult) + 4개 상수(STATUS_ORDER, STATUS_COLORS, STATUS_BADGE_COLORS, STATUS_LABELS) + getScoreColor 함수
+   - page.tsx, JobCardDetailModal.tsx 양쪽에서 import로 통일
+
+2. **[MEDIUM] cover-letters 모달 export 통일**
+   - GenerateCoverLetterModal, RegisterCoverLetterModal: Named+Default 이중 export → `export default function` 단일 패턴
+   - 테스트도 default import로 통일
+
+3. **[LOW] cover-letters 타입 공유**
+   - `cover-letters/types.ts` 신규 생성: GenerateFormData, RegisterFormData
+   - 모달 2개 + 부모 CoverLettersPageClient 3파일에서 공유
+
+4. **[INFO] archive.md 기록**
+   - 모달 접근성 기본기 부재 (pre-existing) → 접근성 Sprint에서 일괄 처리
+   - 모달 다크모드 미지원 (pre-existing) → 디자인 시스템 Sprint에서 처리
+
+**커밋**: `f76fd34` refactor(job-tracker), `231c23b` refactor(cover-letters)
+
+**게이트**: lint 0 errors, 9 warnings / build ✅ / jest 74 suites, 540 tests / E2E 17/17
+**프로덕션 배포**: `231c23b` push → Vercel 자동 배포 ✅
+**프로덕션 스모크** (Playwright MCP):
+- `/app/cover-letters`: AI 생성 + 합격본 등록 버튼 정상 ✅
+- `/app/job-tracker`: 칸반 보드 정상 ✅
+- `/app/portfolio/settings`: 설정 폼 + 미리보기 버튼 정상 ✅
+
+---
+
 ## 현재 진행 맥락
 
-### Sprint 5 완료 — 다음 Sprint 계획 필요
+### Sprint 5 완료 + 코드 리뷰 수정 완료 — 다음 Sprint 계획 필요
 
-- Sprint 1~5 전체 완료
+- Sprint 1~5 전체 완료 + 코드 리뷰 수정사항 반영
 - 최종 기준선: Jest 74 suites, 540 tests + E2E 17 tests
 - lint: 0 errors, 9 warnings
 - 브랜치: main

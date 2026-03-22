@@ -208,3 +208,37 @@
 
 - [x] history.md Sprint 5 완료 기록
 - [x] plan.md Phase 체크
+
+---
+
+## Sprint 5 코드 리뷰 수정 (2026-03-23)
+
+### [HIGH] job-tracker 타입/상수 중복 제거
+
+- [x] `job-tracker/types.ts` 생성 — 4개 타입 + 4개 상수 + getScoreColor 추출
+- [x] page.tsx 중복 타입/상수 제거 → types.ts import
+- [x] JobCardDetailModal.tsx 중복 타입/상수 제거 → types.ts import
+
+### [MEDIUM] cover-letters export 통일
+
+- [x] GenerateCoverLetterModal: Named+Default → `export default function` 단일
+- [x] RegisterCoverLetterModal: Named+Default → `export default function` 단일
+- [x] 테스트 default import 통일
+
+### [LOW] cover-letters 타입 공유
+
+- [x] `cover-letters/types.ts` 생성 — GenerateFormData, RegisterFormData
+- [x] 모달 2개 + CoverLettersPageClient에서 공유 import
+
+### [INFO] archive.md 기록
+
+- [x] 모달 접근성 기본기 부재 — archive.md 기록
+- [x] 모달 다크모드 미지원 — archive.md 기록
+
+### 게이트 + 프로덕션 검증
+
+- [x] `npm run lint` 통과 (0 errors, 9 warnings)
+- [x] `npm run build` 통과
+- [x] `npx jest --runInBand` 통과 (74 suites, 540 tests)
+- [x] E2E 17개 통과
+- [x] 프로덕션 배포 + 스모크 (cover-letters, job-tracker, settings 정상)
