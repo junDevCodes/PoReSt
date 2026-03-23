@@ -92,7 +92,7 @@
 - [x] `npm run build` 통과 (73 routes, Turbopack 4.7s)
 - [x] `npx jest --runInBand` 통과 (74 suites, 540 tests)
 - [x] E2E 17개 통과 (17/17, 13.1s)
-- [ ] 전환된 10개 페이지 CRUD 전체 스모크 _(프로덕션 배포 후 수동 확인 필요)_
+- [x] 전환된 페이지 프로덕션 스모크 7개 확인 (Playwright MCP, 2026-03-24)
 
 ---
 
