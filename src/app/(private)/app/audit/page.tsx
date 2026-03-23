@@ -1,160 +1,46 @@
-"use client";
+import { prisma } from "@/lib/prisma";
+import { getRequiredOwnerSession } from "@/app/(private)/app/_lib/server-auth";
+import { AuditPageClient } from "./AuditPageClient";
 
-import { useEffect, useState } from "react";
-import { parseApiResponse } from "@/app/(private)/app/_lib/admin-api";
+const DEFAULT_LIMIT = 20;
 
-type AuditLogDto = {
-  id: string;
-  actorId: string;
-  action: string;
-  entityType: string;
-  entityId: string;
-  metaJson: unknown;
-  createdAt: string;
-};
+/** audit 모듈(서비스 레이어)이 없으므로 Prisma 직접 쿼리 — API route(api/app/audit)와 동일 패턴 */
+async function fetchInitialAuditLogs(ownerId: string) {
+  const rawLogs = await prisma.auditLog.findMany({
+    where: { actorId: ownerId },
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    take: DEFAULT_LIMIT + 1,
+    select: {
+      id: true,
+      actorId: true,
+      action: true,
+      entityType: true,
+      entityId: true,
+      metaJson: true,
+      createdAt: true,
+    },
+  });
 
-type AuditMeta = {
-  nextCursor: string | null;
-  hasNext: boolean;
-  limit: number;
-};
+  const hasNext = rawLogs.length > DEFAULT_LIMIT;
+  const trimmed = hasNext ? rawLogs.slice(0, DEFAULT_LIMIT) : rawLogs;
+  const items = trimmed.map((log) => ({
+    ...log,
+    createdAt: log.createdAt.toISOString(),
+  }));
+  const nextCursor = hasNext ? (trimmed[trimmed.length - 1]?.id ?? null) : null;
 
-type AuditResponse = {
-  items: AuditLogDto[];
-  meta: AuditMeta;
-};
-
-function formatDateTime(value: string): string {
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) {
-    return "날짜 정보 없음";
-  }
-  return parsed.toISOString().replace("T", " ").slice(0, 16);
+  return { items, nextCursor, hasNext };
 }
 
-function stringifyMeta(meta: unknown): string {
-  if (meta === null || meta === undefined) {
-    return "-";
-  }
-  try {
-    return JSON.stringify(meta);
-  } catch {
-    return "-";
-  }
-}
-
-export default function AuditPage() {
-  const [logs, setLogs] = useState<AuditLogDto[]>([]);
-  const [nextCursor, setNextCursor] = useState<string | null>(null);
-  const [hasNext, setHasNext] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  async function requestAudit(cursor?: string | null) {
-    const search = new URLSearchParams({ limit: "20" });
-    if (cursor) {
-      search.set("cursor", cursor);
-    }
-    const response = await fetch(`/api/app/audit?${search.toString()}`, { method: "GET" });
-    return parseApiResponse<AuditResponse>(response);
-  }
-
-  useEffect(() => {
-    let mounted = true;
-
-    async function loadInitial() {
-      const parsed = await requestAudit();
-      if (!mounted) {
-        return;
-      }
-
-      if (parsed.error || !parsed.data) {
-        setError(parsed.error ?? "감사 로그를 불러오지 못했습니다.");
-        setIsLoading(false);
-        return;
-      }
-
-      setLogs(parsed.data.items ?? []);
-      setNextCursor(parsed.data.meta?.nextCursor ?? null);
-      setHasNext(parsed.data.meta?.hasNext ?? false);
-      setIsLoading(false);
-    }
-
-    void loadInitial();
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  async function handleLoadMore() {
-    if (!nextCursor) {
-      return;
-    }
-
-    setIsLoadingMore(true);
-    setError(null);
-
-    const parsed = await requestAudit(nextCursor);
-    if (parsed.error || !parsed.data) {
-      setError(parsed.error ?? "추가 로그를 불러오지 못했습니다.");
-      setIsLoadingMore(false);
-      return;
-    }
-
-    setLogs((prev) => [...prev, ...(parsed.data?.items ?? [])]);
-    setNextCursor(parsed.data.meta?.nextCursor ?? null);
-    setHasNext(parsed.data.meta?.hasNext ?? false);
-    setIsLoadingMore(false);
-  }
+export default async function AuditPage() {
+  const { ownerId } = await getRequiredOwnerSession("/app/audit");
+  const { items, nextCursor, hasNext } = await fetchInitialAuditLogs(ownerId);
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6 py-12">
-      <header>
-        <p className="text-xs uppercase tracking-[0.3em] text-black/60">관리</p>
-        <h1 className="mt-2 text-3xl font-semibold">Audit Log</h1>
-        <p className="mt-3 text-sm text-black/65">최근 액션 이력을 시간순으로 확인합니다.</p>
-      </header>
-
-      {error ? (
-        <p className="mt-6 rounded-xl border border-rose-400/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
-          {error}
-        </p>
-      ) : null}
-
-      <section className="mt-8 rounded-2xl border border-black/10 bg-white p-6">
-        {isLoading ? (
-          <p className="text-sm text-black/60">로그를 불러오는 중입니다.</p>
-        ) : logs.length === 0 ? (
-          <p className="text-sm text-black/60">표시할 로그가 없습니다.</p>
-        ) : (
-          <div className="space-y-3">
-            {logs.map((log) => (
-              <article key={log.id} className="rounded-lg border border-black/10 bg-[#faf9f6] p-3">
-                <p className="text-xs text-black/60">{formatDateTime(log.createdAt)}</p>
-                <p className="mt-1 text-sm font-semibold text-black">
-                  {log.action} / {log.entityType}
-                </p>
-                <p className="mt-1 text-xs text-black/70">entityId: {log.entityId}</p>
-                <p className="mt-1 break-all text-[11px] text-black/55">
-                  meta: {stringifyMeta(log.metaJson)}
-                </p>
-              </article>
-            ))}
-          </div>
-        )}
-
-        {hasNext ? (
-          <button
-            type="button"
-            onClick={() => void handleLoadMore()}
-            disabled={isLoadingMore}
-            className="mt-4 rounded-lg border border-black/20 px-3 py-2 text-sm text-black/85 disabled:opacity-60"
-          >
-            {isLoadingMore ? "불러오는 중..." : "더 보기"}
-          </button>
-        ) : null}
-      </section>
-    </main>
+    <AuditPageClient
+      initialLogs={items}
+      initialNextCursor={nextCursor}
+      initialHasNext={hasNext}
+    />
   );
 }
