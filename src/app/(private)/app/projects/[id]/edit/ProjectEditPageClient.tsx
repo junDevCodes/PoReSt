@@ -1,0 +1,127 @@
+"use client";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
+import { ProjectForm } from "@/components/projects/ProjectForm";
+import { parseApiResponse } from "@/app/(private)/app/_lib/admin-api";
+import type { SerializedOwnerProjectDto } from "@/app/(private)/app/_lib/server-serializers";
+import {
+  fromOwnerProjectToFormValues,
+  toProjectUpdatePayload,
+  type ProjectFormValues,
+} from "@/types/project-form";
+
+type ProjectEditPageClientProps = {
+  initialProject: SerializedOwnerProjectDto;
+};
+
+export function ProjectEditPageClient({ initialProject }: ProjectEditPageClientProps) {
+  const router = useRouter();
+  const [project, setProject] = useState(initialProject);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string> | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+
+  const initialValues = useMemo<ProjectFormValues>(() => {
+    return fromOwnerProjectToFormValues(project);
+  }, [project]);
+
+  async function handleUpdate(values: ProjectFormValues) {
+    setIsSubmitting(true);
+    setError(null);
+    setFieldErrors(null);
+    setMessage(null);
+
+    const response = await fetch(`/api/app/projects/${project.id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(toProjectUpdatePayload(values)),
+    });
+    const parsed = await parseApiResponse<SerializedOwnerProjectDto>(response);
+    if (parsed.error || !parsed.data) {
+      setError(parsed.error ?? "프로젝트 수정에 실패했습니다.");
+      setFieldErrors(parsed.fields);
+      setIsSubmitting(false);
+      return;
+    }
+
+    setProject(parsed.data);
+    setMessage("프로젝트가 수정되었습니다.");
+    setIsSubmitting(false);
+  }
+
+  async function handleDelete() {
+    const shouldDelete = confirm(`"${project.title}" 프로젝트를 삭제하시겠습니까?`);
+    if (!shouldDelete) {
+      return;
+    }
+
+    setIsDeleting(true);
+    setError(null);
+    setMessage(null);
+
+    const response = await fetch(`/api/app/projects/${project.id}`, { method: "DELETE" });
+    const parsed = await parseApiResponse<{ id: string }>(response);
+    if (parsed.error) {
+      setError(parsed.error);
+      setFieldErrors(parsed.fields);
+      setIsDeleting(false);
+      return;
+    }
+
+    setIsDeleting(false);
+    router.push("/app/projects");
+  }
+
+  return (
+    <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-6 py-12">
+      <header className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p className="text-xs uppercase tracking-[0.3em] text-black/60">관리</p>
+          <h1 className="mt-2 text-3xl font-semibold">프로젝트 편집</h1>
+          <p className="mt-3 text-sm text-black/60">
+            제목, 공개 상태, 대표 노출 여부를 포함한 프로젝트 정보를 수정합니다.
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Link
+            href="/app/projects"
+            className="rounded-lg border border-black/15 bg-white px-3 py-2 text-sm text-black/75 hover:text-black"
+          >
+            목록으로
+          </Link>
+          <button
+            type="button"
+            onClick={() => void handleDelete()}
+            disabled={isDeleting}
+            className="rounded-lg border border-rose-300 px-4 py-2 text-sm text-rose-700 disabled:opacity-60"
+          >
+            {isDeleting ? "삭제 중..." : "삭제"}
+          </button>
+        </div>
+      </header>
+
+      {message ? (
+        <p className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          {message}
+        </p>
+      ) : null}
+
+      <section className="mt-8 rounded-2xl border border-black/10 bg-[#faf9f6] p-6">
+        <ProjectForm
+          initialValues={initialValues}
+          submitLabel="프로젝트 저장"
+          submitting={isSubmitting}
+          serverError={error}
+          serverFields={fieldErrors}
+          onSubmit={handleUpdate}
+        />
+      </section>
+    </main>
+  );
+}
