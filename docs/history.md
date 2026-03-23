@@ -1757,13 +1757,153 @@ Phase 4: 최종 검증
 
 ---
 
+### Sprint 6 (M15) 계획 수립 + 아키텍처 진단 (2026-03-23)
+
+**범위**: Sprint 5 코드 리뷰 → 체감 속도 병목 진단 → Sprint 6 계획 수립
+
+**핵심 결정**:
+
+1. **Sprint 5 성과 한계 식별** — dynamic 분리/prefetch 최적화는 모달 클릭 시 최적화로 페이지 진입 체감에는 효과 미미 (< 6%)
+2. **진짜 병목 진단** — Private 29페이지 중 17개가 `"use client"` 전체 + useEffect fetch 워터폴 패턴. 3단계(JS→hydration→fetch) vs Server Component 1단계(서버 쿼리→HTML) 체감 차이 400~600ms vs 150~250ms
+3. **Sprint 6 방향 확정** — Server/Client 하이브리드 전환 (14개 페이지, 3개 생성폼 제외)
+4. **외부 리뷰 반영** — 8/10 → 8.5~9/10
+   - ✅ KPI "빈 화면 제거" → "스켈레톤 체류시간 단축" 정정
+   - ✅ 측정 규약: cold 3회 + warm 3회, 중앙값(median) 기준
+   - ✅ T107 stop-loss: settings/resumes-edit warm 개선폭 < 50ms → Sprint 7 이관
+   - ✅ 의도적 제외 10개 항목에 복귀 조건(backlog trigger) 명시
+   - ❌ 거부: Server Actions(Sprint 7 1순위), TanStack Query(기술스택 추가), 인증 중복(P2 기분류), FOUC(별도 이슈), Virtualization(현재 문제 아님)
+
+**Sprint 6 구조 (T104~T107)**:
+```
+T104: 기준선 측정 + feedback, audit 전환 (2개, 패턴 확립)
+T105: testimonials, projects/edit, notes/edit, feedback/[id], feedback/new (5개)
+T106: job-tracker, company-targets, experience-stories, domain-links, blog/edit (5개)
+T107: portfolio/settings(969줄) + resumes/edit(1,331줄) + After 측정 + 배포
+```
+
+**문서 반영**: plan.md, task.md, checklist.md 전면 재작성 (Sprint 6 전용)
+
+### T104: 읽기 전용 2개 페이지 RSC 전환 — 패턴 확립 (2026-03-23) ✅
+
+**범위**: feedback/page.tsx (120줄), audit/page.tsx (160줄) → Server+Client 하이브리드 전환
+
+**핵심 변경**:
+
+1. **feedback/page.tsx → Server Component + FeedbackPageClient.tsx**
+   - `createFeedbackService({ prisma })` → `listFeedbackRequestsForOwner(ownerId)` 서버 호출
+   - `serializeFeedbackRequestList` 신규 추가 (server-serializers.ts)
+   - useEffect 초기 fetch 제거, isLoading 초기 상태 제거
+
+2. **audit/page.tsx → Server Component + AuditPageClient.tsx**
+   - Prisma 직접 쿼리 (별도 모듈 없음, API route 패턴 복제)
+   - 초기 20건 서버 로드, cursor pagination(`handleLoadMore`)은 client fetch 유지
+   - useEffect 초기 fetch 제거
+
+3. **server-serializers.ts 확장**
+   - `SerializedOwnerFeedbackRequestListItemDto` 타입 + `serializeFeedbackRequestList` 함수 추가
+
+**확립된 전환 패턴**:
+- Server Component: `getRequiredOwnerSession` → 서비스/Prisma 직접 호출 → serializer → props 전달
+- Client Component: `useState(initialData)` — useEffect 초기 fetch 제거, CRUD/인터랙션은 client fetch 유지
+- Date → ISO string 직렬화는 server-serializers.ts 중앙 관리
+
+**게이트**: lint 0 errors / build 성공 / jest 74 suites, 540 tests / E2E 17/17 통과
+
+**잔여**:
+- Before 측정 (5개 페이지 cold/warm 중앙값) — 수동 Chrome DevTools 측정 필요 (T107 After 측정 시 일괄 수행 가능)
+- 스모크 테스트 — 프로덕션 배포 후 수동 확인 필요
+
+### Session B: projects/edit + notes/edit + company-targets + experience-stories RSC 전환 (2026-03-23) ✅
+
+**범위**: T105 중 2개 + T106 중 2개 — Session B 담당 4개 페이지
+
+**핵심 변경**:
+
+1. **projects/[id]/edit/page.tsx → Server Component + ProjectEditPageClient.tsx**
+   - `createProjectsService` → `getProjectForOwner(ownerId, id)` 서버 호출
+   - `serializeOwnerProject` 신규 추가 (단일 항목 직렬화)
+   - useEffect 초기 fetch 제거, isLoading 초기 상태 제거
+
+2. **notes/[id]/edit/page.tsx → Server Component + NoteEditPageClient.tsx**
+   - `Promise.all([getNoteForOwner, listNotebooksForOwner])` 서버 병렬 쿼리
+   - `serializeOwnerNoteDetail` + `serializeOwnerNotebookList` 직렬화
+   - 이중 API fetch → 서버 내 직접 쿼리로 전환
+
+3. **company-targets/page.tsx → Server Component + CompanyTargetsPageClient.tsx**
+   - `createCompanyTargetsService` → `listTargetsForOwner(ownerId, {})` 서버 호출
+   - `serializeCompanyTargetsList` 신규 추가 (appliedAt + updatedAt 직렬화)
+   - 필터(status/q) 변경 시 재조회는 client fetch 유지
+   - useEffect → 렌더 중 비교 패턴으로 전환 (status 변경 감지)
+
+4. **experience-stories/page.tsx → Server Component + ExperienceStoriesPageClient.tsx**
+   - `Promise.all([listExperiencesForOwner, listStoriesForOwner])` 서버 병렬 쿼리
+   - `serializeExperienceStoriesList` + `serializeOwnerExperienceList` 직렬화
+   - selectedExperienceId 변경 시 스토리 재조회는 client fetch 유지
+
+5. **server-serializers.ts 확장**
+   - `SerializedOwnerProjectDto` 단일 직렬화, `SerializedOwnerNoteDetailDto`, `SerializedOwnerCompanyTargetDto`, `SerializedCompanyTargetsListResult`, `SerializedOwnerExperienceStoryDto`, `SerializedExperienceStoriesListResult` 타입 + 함수 추가
+
+**게이트**: build 성공 / jest 74 suites, 540 tests 통과 (lint 2 errors는 .claude/hooks 파일 — Session B 무관)
+
+**잔여**: CRUD 스모크 — 프로덕션 배포 후 수동 확인 필요
+
+---
+
+### Phase 2 통합 게이트 (2026-03-23) ✅
+
+**범위**: Session A + B + C 병합 후 통합 검증 + lint 수정 4건
+
+**게이트 결과**:
+- `npm run lint`: **0 errors, 9 warnings** (기준선 동일)
+- `npm run build`: **성공** (73 routes, Turbopack 4.7s)
+- `npx jest --runInBand`: **74 suites, 540 tests** 통과
+- E2E: **17/17 passed** (13.1s)
+
+**수정 사항**:
+1. `CompanyTargetsPageClient.tsx` — `buildEditors` 컴포넌트 외부 추출 (선언 전 사용 lint 에러)
+2. `ExperienceStoriesPageClient.tsx` — 동일 수정
+3. `FeedbackDetailPageClient.tsx` — 미사용 `setRequestList` 제거
+4. `TestimonialsPageClient.tsx` — 미사용 `reloadTestimonials` + `useCallback` import 제거
+
+**잔여**: CRUD 스모크 10개 페이지 — 프로덕션 배포 후 수동 확인 필요
+
+---
+
 ## 현재 진행 맥락
 
-### Sprint 5 완료 + 코드 리뷰 수정 완료 — 다음 Sprint 계획 필요
+### Phase 2 통합 게이트 통과 — Phase 3 (T107) 진입 대기 (2026-03-23)
 
-- Sprint 1~5 전체 완료 + 코드 리뷰 수정사항 반영
-- 최종 기준선: Jest 74 suites, 540 tests + E2E 17 tests
-- lint: 0 errors, 9 warnings
+- T104 ✅: 패턴 확립 + feedback/audit 2개 전환
+- T105 ✅: testimonials/projects-edit/notes-edit/feedback-detail/feedback-new 5개 전환
+- T106 ✅: job-tracker/company-targets/experience-stories/domain-links/blog-edit 5개 전환
+- Phase 2 통합 게이트 ✅: lint 0 errors / build / jest 540 / E2E 17/17
+- **다음 단계**: Phase 3 (T107: settings 969줄 + resumes/edit 1,331줄) → After 측정 → 배포
 - 브랜치: main
-- prefetch 분류 재검토: 2026-03-29까지 실사용 후 재분류
-- 다음: Sprint 6 기획 (plan.md 신규 마일스톤 작성)
+- Sprint 7 1순위: Server Actions + optimistic UI
+
+### Session A: testimonials + feedback/[id] + feedback/new + job-tracker RSC 전환 (2026-03-23) ✅
+
+- **범위**: T105(testimonials, feedback/[id], feedback/new) + T106(job-tracker) — Session A 담당 4개 페이지
+- **변경 내역**:
+  - `server-serializers.ts`: TestimonialDto, FeedbackRequestDetail, FeedbackTarget, Board 직렬화 타입+함수 추가
+  - `testimonials/page.tsx` → Server Component + `TestimonialsPageClient.tsx` 분리
+  - `feedback/[id]/page.tsx` → Server Component + `FeedbackDetailPageClient.tsx` 분리 (이중 fetch → 서버 Promise.all)
+  - `feedback/new/page.tsx` → Server Component + `FeedbackNewPageClient.tsx` 분리 (기본 RESUME 타겟 사전 로드, targetType 변경 시 client fetch 유지)
+  - `job-tracker/page.tsx` → Server Component + `JobTrackerPageClient.tsx` 분리 (dynamic JobCardDetailModal 유지)
+- **패턴**: T104 확립 패턴 100% 준수 — Server에서 getRequiredOwnerSession + 서비스 직접 호출 → serialize → PageClient에 initialData 전달
+- **게이트**: build 통과 / jest 74 suites 540 tests 통과 / lint 0 errors (hook 파일 기존 에러만)
+- **잔여**: CRUD 스모크는 프로덕션 배포 후 수동 확인 필요 / E2E는 Phase 2 통합 게이트에서 실행
+- **다음**: Session C (domain-links + blog/edit) 완료 대기 → Phase 2 통합 게이트 → Phase 3
+
+### Session C: domain-links + blog/edit RSC 전환 (2026-03-23) ✅
+
+- **범위**: T106(domain-links, blog/edit) — Session C 담당 2개 페이지
+- **변경 내역**:
+  - `server-serializers.ts`: DomainLink, BlogPostDetail, BlogExportArtifact 직렬화 타입+함수 추가
+  - `domain-links/page.tsx` → Server Component + `DomainLinksPageClient.tsx` 분리 (7개 병렬 쿼리: projects+experiences+skills+resumes+notes+blogPosts+domainLinks → 서버 Promise.all)
+  - `blog/[id]/edit/page.tsx` → Server Component + `BlogEditPageClient.tsx` 분리 (이중 fetch → 서버 getPostForOwner+listExportsForPost)
+  - domain-links: 6개 API 라운드트립 → 서버 내 DB 직접 쿼리 7개 병렬 (가장 큰 개선 기대)
+  - blog/edit: useParams 제거 (postId를 Server Component params에서 수신), notFound() 처리 추가
+- **패턴**: T104 확립 패턴 100% 준수 — Server에서 getRequiredOwnerSession + 서비스 직접 호출 → serialize → PageClient에 initialData 전달
+- **게이트**: build 통과 / jest 74 suites 540 tests 통과
+- **잔여**: CRUD 스모크는 프로덕션 배포 후 수동 확인 필요 / E2E는 Phase 2 통합 게이트에서 실행

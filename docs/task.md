@@ -1,424 +1,364 @@
 # PoReSt 작업 상세 계획서
 
-기준일: 2026-03-22
+기준일: 2026-03-23
 문서 정의: `plan.md`에서 할당된 현재 기능 단위의 작업 상세 설계. 완료 시 `history.md`로 이동.
 관련 문서: `plan.md`(전체 계획), `checklist.md`(검증 체크리스트), `history.md`(완료 이력)
 
 ---
 
-## Sprint 4 (T95~T98) ✅ 완료
+## Sprint 5 (T99~T103) ✅ 완료
 
-> history.md 참조. 최종 기준선: 71 suites, 519 tests + E2E 17 tests.
-
----
-
-> **T99 완료 ✅** — 다음: T100 + T102 병렬 진입 (Phase 2)
+> history.md 참조. 최종 기준선: 74 suites, 540 tests + E2E 17 tests.
 
 ---
 
 ## 병렬 실행 구조
 
-### 파일 충돌 분석
+### 파일 충돌 분석 결과: 0건 — 14개 페이지 완전 독립
 
-| 태스크 | 수정 대상 파일 | 충돌 |
-|---|---|---|
-| T100-A | `cover-letters/CoverLettersPageClient.tsx` + 신규 2개 + 테스트 | 없음 |
-| T100-B | `portfolio/settings/page.tsx` + 신규 1개 + 테스트 | T101#3 |
-| T100-C | `job-tracker/page.tsx` + 신규 1개 + 테스트 | 없음 |
-| T102 | `components/app/AppSidebar.tsx` | 없음 |
-| T101#1 | `resumes/[id]/edit/page.tsx` | 없음 |
-| T101#2 | `resumes/[id]/edit/page.tsx` | T101#1 (직렬) |
-| T101#3 | `portfolio/settings/page.tsx` | T100-B (직렬) |
+각 페이지는 자기 디렉토리의 `page.tsx` 수정 + `XxxPageClient.tsx` 신규 생성만 해당.
+공유 파일(`server-serializers.ts`, `server-auth.ts`, `admin-api.ts`) 수정 없음.
+서비스 모듈(`modules/`)은 import만, 수정 없음.
 
-### Phase 1 — T99 (직렬 필수, 단일 세션)
+### Phase 1 — T104 (직렬 필수, 단일 세션)
 
-기준선 측정. 모든 후속 태스크의 before 수치가 여기서 확정되므로 반드시 먼저 완료.
+Before 측정 + 패턴 확립. 모든 후속 세션의 전환 패턴이 여기서 확정되므로 반드시 먼저 완료.
 
-### Phase 2 — T100 + T102 + T101#1 (병렬 3세션)
+### Phase 2 — T105 + T106 (병렬 3세션)
 
-> T99 완료 후 동시 진입. 각 세션은 서로 다른 파일을 수정하므로 충돌 없음.
+> T104 완료 후 동시 진입. 10개 페이지를 3세션으로 균등 분배.
 
-| 세션 | 태스크 | 수정 파일 | 작업 내용 |
+| 세션 | 페이지 | 총 줄수 | 작업 내용 |
 |---|---|---|---|
-| **Session A** | T100-A | `cover-letters/CoverLettersPageClient.tsx` + 신규 모달 2개 + RTL 테스트 | AI 생성 모달 + 합격본 등록 모달 dynamic 분리 |
-| **Session B** | T100-B → T102 | `portfolio/settings/page.tsx` + 신규 오버레이 + RTL 테스트 → `AppSidebar.tsx` | 미리보기 오버레이 dynamic 분리 → prefetch 전략 적용 |
-| **Session C** | T100-C → T101#1 | `job-tracker/page.tsx` + 신규 모달 + RTL 테스트 → `resumes/[id]/edit/page.tsx` | 칸반 모달 dynamic 분리 → PDF import 동적 전환 |
+| **Session A** ✅ | testimonials (447), feedback/[id] (334), feedback/new (239), job-tracker (314) | ~1,334줄 | 목록 CRUD + 칸반 보드 |
+| **Session B** ✅ | projects/edit (192), notes/edit (285), company-targets (596), experience-stories (603) | ~1,676줄 | 편집 폼 + 인라인 편집 Record 패턴 |
+| **Session C** ✅ | domain-links (369), blog/edit (615) | ~984줄 | 다중 엔티티 fetch + 편집 |
 
-**세션 내 순서**: 각 세션 안에서는 직렬 (앞 작업 커밋 후 다음 진행)
-**세션 간**: 완전 독립 — 동시 실행 가능
+**세션 내 순서**: 줄수 적은 것부터 → 패턴 반복으로 속도 가속
+**세션 간**: 완전 독립 — 동시 실행 가능, merge conflict 없음
 
-### Phase 2 통합 게이트
+### Phase 2 통합 게이트 ✅ (2026-03-23)
 
 3세션 전부 완료 후 병합 → 통합 게이트 실행:
 
 ```
-1. 3세션 브랜치/변경사항 main에 병합
-2. npm run lint (0 errors)
-3. npm run build (성공)
-4. npx jest --runInBand (519 + RTL 신규분)
-5. E2E 17개 통과
-6. route별 First Load JS 중간 측정 (T99 대비)
+1. 3세션 변경사항 main에 병합 ✅
+2. npm run lint (0 errors, 9 warnings) ✅
+3. npm run build (73 routes, Turbopack 4.7s) ✅
+4. npx jest --runInBand (74 suites, 540 tests) ✅
+5. E2E 17/17 passed ✅
+6. 전환된 10개 페이지 CRUD 스모크 — 프로덕션 배포 후 수동 확인 필요
 ```
 
-### Phase 3 — T101#2~#3 (조건부, 직렬)
+### Phase 3 — T107 (병렬 2세션)
 
-> 통합 게이트 후 KPI 확인 결과에 따라 진행 여부 결정
+> 통합 게이트 후 진입. 2개 거대 페이지는 독립 디렉토리이므로 병렬 가능.
 
-- T100/T102만으로 핵심 3개 route 감소 달성 → **T101#2 생략 가능**
-- T100-B에서 settings 미리보기 이미 처리 → **T101#3 skip**
-- KPI 미달 시에만 T101#2(프리뷰 결과 본문) + 2차 분해 진행
+| 세션 | 페이지 | 줄수 | 작업 내용 |
+|---|---|---|---|
+| **Session D** | portfolio/settings | 969줄 | 설정 폼 + 아바타 업로드 + 미리보기 모달 |
+| **Session E** | resumes/[id]/edit | 1,331줄 | 항목 CRUD + BulletsEditor/MetricsEditor + PDF |
 
-### Phase 4 — T103 (직렬 필수, 단일 세션)
+### Phase 4 — 최종 측정 + 배포 (직렬 필수, 단일 세션)
 
-최종 검증 + 프로덕션 배포. 모든 변경이 반영된 상태에서 실행.
+After 측정 + 통합 게이트 최종 + 프로덕션 배포. 모든 전환이 반영된 상태에서 실행.
 
 ### 실행 흐름도
 
 ```
-Phase 1 (직렬)          Phase 2 (병렬 3세션)                    Phase 3       Phase 4
-──────────────      ────────────────────────────────      ──────────    ──────────
-T99 (기준선)
+Phase 1 (직렬)     Phase 2 (병렬 3세션)              Phase 3 (병렬 2세션)   Phase 4
+──────────────  ────────────────────────────────  ──────────────────────  ──────────
+T104
+Before 측정
++ 패턴 확립 2개
       ↓
-                    ┌─ Session A: T100-A (cover-letters)
-                    ├─ Session B: T100-B (settings) → T102 (sidebar)   → 통합     → T101#2~#3  → T103
-                    └─ Session C: T100-C (job-tracker) → T101#1 (PDF)     게이트     (조건부)     (최종)
+                ┌─ Session A: testimonials +
+                │  feedback/[id] + feedback/new
+                │  + job-tracker
+                │
+                ├─ Session B: projects/edit +     → 통합  ┌─ Session D:     → After 측정
+                │  notes/edit + company-targets      게이트 │  settings (969)  + 최종 게이트
+                │  + experience-stories              │     │                  + 프로덕션 배포
+                │                                    │     └─ Session E:
+                └─ Session C: domain-links +         │        resumes/edit
+                   blog/edit                         │        (1,331)
 ```
 
 ---
 
-## T99 — 번들 분석 기준선 확립
+## 전환 패턴 레퍼런스
 
-### 배경
-
-Sprint 5는 리팩토링 Sprint다. "감이 아닌 숫자"로 판단하려면 변경 전 기준선이 반드시 필요하다.
-총 static/chunks 2.6MB이지만 **route별 First Load JS**가 측정되지 않은 상태.
-
-코드 스플리팅은 총량이 약간 늘어도 정상이다. 성공 기준은 **route별 초기 JS 감소**다.
-Lighthouse만으로는 인증된 private 화면 최적화를 판별하기 어려우므로,
-`npm run build` 출력의 route별 크기 + Network 탭 실측을 병행한다.
-
-### 작업 항목
-
-| #   | 내용                                                                                    | 상태 |
-| --- | --------------------------------------------------------------------------------------- | ---- |
-| 1   | `@next/bundle-analyzer` devDependency 설치                                              | ✅   |
-| 2   | `next.config.ts`에 `ANALYZE=true` 조건부 래핑                                           | ✅   |
-| 3   | 번들 분석 빌드 실행 → 리포트 생성 (cross-env 또는 `$env:ANALYZE="true"; npm run build`) | ✅   |
-| 4   | 상위 10개 청크 내용물 식별 (어떤 모듈이 큰 청크에 들어가는지)                           | ✅   |
-| 5   | **route별 First Load JS 표** 작성 (핵심 측정 대상)                                      | ✅   |
-| 6   | 사이드바 진입 후 자동 prefetch 요청 수 기록 **(보조지표, 수동 측정 — 참고용)**          | ✅   |
-| 7   | 기준선 수치를 history.md에 기록                                                         | ✅   |
-
-### prefetch / Network 측정 조건 (Sprint 5 전체 공통)
-
-prefetch 비교는 dev 모드가 아닌 **production 빌드 기준**으로 측정한다:
-
-```
-1. npm run build && npm run start (로컬 프로덕션) 또는 Vercel Preview
-2. 로그인 상태에서 측정
-3. Hard Reload (Ctrl+Shift+R) 후 캐시 비움
-4. 동일 브라우저 (Chrome), 동일 네트워크 조건
-5. Network 탭: Disable cache ON, 기록 시작 후 사이드바 진입
-```
-
-### 핵심 측정 대상 route (인증된 private 페이지)
-
-| Route                     | 이유                                 |
-| ------------------------- | ------------------------------------ |
-| `/app/resumes/[id]/edit`  | 1,330줄 거대 컴포넌트 — T101 대상    |
-| `/app/portfolio/settings` | 980줄 거대 컴포넌트 — T100/T101 대상 |
-| `/app/cover-letters`      | 500줄 + 인라인 모달 2개 — T100 대상  |
-| `/app/job-tracker`        | 529줄 + 칸반 모달 — T100 대상        |
-| `/app` (홈)               | 기본 대시보드 — 비교 기준            |
-
-### 제약 사항
-
-- 프로덕션 코드 변경 없음 (devDependency + config만)
-- 게이트 4종 통과 유지
-- 기존 테스트 기준선 유지 (71 suites, 519 tests)
-
----
-
-## T100 — next/dynamic 무거운 인라인 UI Lazy 로딩
-
-### 배경
-
-현재 UI 레벨 `next/dynamic` 사용 0건. 무거운 인라인 모달/폼/미리보기가 페이지 초기 JS에 전부 포함된다.
-모달은 사용자가 버튼을 클릭하기 전까지 화면에 없으므로 lazy 로딩의 가장 안전한 후보다.
-
-> 참고: `src/lib/pdf-download.ts`에서 native `import()` 기반 분할은 이미 적용됨.
-> 이 태스크는 **UI 컴포넌트 레벨의 next/dynamic**을 도입한다.
-
-### 대상 선별 기준
-
-- ✅ **무거운 조건부 인라인 폼/미리보기** (100줄+ JSX 블록, `{isOpen && ...}` 패턴) → dynamic 후보
-- ❌ **경량 공용 컴포넌트** (`ConfirmDialog` 59줄 등) → 이득 없음, 제외
-- ❌ **항상 렌더되는 폼** (`experience-stories` :354, `company-targets` :321) → 조건부 UI 아님, lazy 부적합
-- ❌ **20줄 이하 단순 조건부 UI** → overhead가 이득보다 큼, 제외
-
-### 확정 대상
-
-> 라인 번호는 작성 시점(2026-03-22) 스냅샷. 실제 작업 시 컴포넌트명 및 조건부 렌더 패턴(`{isOpen && ...}`)으로 재확인.
-
-| #   | 파일                                       | 대상 (라인, 참고)              | 추출 컴포넌트명            | 상태 |
-| --- | ------------------------------------------ | ------------------------------ | -------------------------- | ---- |
-| 1   | `cover-letters/CoverLettersPageClient.tsx` | AI 생성 모달 (:301~398)        | `GenerateCoverLetterModal` | ✅   |
-| 2   | `cover-letters/CoverLettersPageClient.tsx` | 합격본 등록 모달 (:401~498)    | `RegisterCoverLetterModal` | ✅   |
-| 3   | `portfolio/settings/page.tsx`              | 미리보기 오버레이 (:930~980)   | `PortfolioPreviewOverlay`  | ✅   |
-| 4   | `job-tracker/page.tsx`                     | 칸반 카드 상세 모달 (:361~526) | `JobCardDetailModal`       | ✅   |
-
-### ssr 정책
-
-`ssr: false`는 기본값으로 쓰지 않는다.
-
-- **ssr: false 적용**: 브라우저 API(window, document, localStorage) 직접 의존하는 컴포넌트만
-- **ssr 기본 유지 (eager)**: 핵심 편집 UI, 상태 관리 컴포넌트
-
-### loading fallback 정책
-
-모달 lazy 시 첫 클릭이 비어 보이지 않도록 반드시 fallback 제공:
+프로젝트 내 이미 검증된 Server+PageClient 하이브리드 패턴:
 
 ```tsx
-const HeavyModal = dynamic(() => import("./HeavyModal"), {
-  loading: () => (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="w-full max-w-lg rounded-2xl border border-black/10 bg-white p-6 shadow-xl">
-        <div className="h-6 w-32 animate-pulse rounded bg-black/10" />
-        <div className="mt-4 space-y-3">
-          <div className="h-4 w-full animate-pulse rounded bg-black/10" />
-          <div className="h-4 w-3/4 animate-pulse rounded bg-black/10" />
-        </div>
-      </div>
-    </div>
-  ),
-});
+// ① page.tsx — Server Component (데이터 조회)
+import { getRequiredOwnerSession } from "@/app/(private)/app/_lib/server-auth";
+import { listForOwner } from "@/modules/cover-letters";
+import { serializeOwnerCoverLetterList } from "@/app/(private)/app/_lib/server-serializers";
+import { CoverLettersPageClient } from "./CoverLettersPageClient";
+
+export default async function CoverLettersPage() {
+  const { ownerId } = await getRequiredOwnerSession("/app/cover-letters");
+  const coverLetters = await listForOwner(ownerId);
+  return <CoverLettersPageClient initialCoverLetters={serializeOwnerCoverLetterList(coverLetters)} />;
+}
+
+// ② PageClient.tsx — Client Component (인터랙션)
+"use client";
+export function CoverLettersPageClient({ initialCoverLetters }) {
+  const [coverLetters, setCoverLetters] = useState(initialCoverLetters);
+  // useEffect 초기 fetch 제거됨
+  // CRUD 핸들러(reloadCoverLetters, handleDelete 등)는 그대로 유지
+}
 ```
 
-→ 오버레이 배경 dim + 모달 셸 골격 + 스켈레톤으로 "열리는 중"임을 즉시 전달
-
-### 작업 절차 (파일 단위 커밋 — 3단계)
-
-T100은 파일별로 독립 커밋하여 문제 발생 시 해당 파일만 revert 가능하게 한다.
-
-#### T100-A: cover-letters (모달 2개)
-
-```
-1. CoverLettersPageClient.tsx 읽기 → AI 생성 모달 + 합격본 등록 모달 식별
-2. GenerateCoverLetterModal 추출 + dynamic 적용
-3. RegisterCoverLetterModal 추출 + dynamic 적용
-4. npm run build 확인
-5. RTL 테스트 작성 (2개 모달)
-6. 회귀 스모크: 모달 열기/닫기/제출/취소
-7. route별 First Load JS 변화 확인
-8. 커밋: "refactor(cover-letters): 모달 2개 dynamic 분리"
-```
-
-#### T100-B: portfolio/settings (오버레이 1개)
-
-```
-1. settings/page.tsx 읽기 → 미리보기 오버레이 식별
-2. PortfolioPreviewOverlay 추출 + dynamic 적용
-3. npm run build 확인
-4. RTL 테스트 작성
-5. 회귀 스모크: 미리보기 열기/닫기
-6. route별 First Load JS 변화 확인
-7. 커밋: "refactor(settings): 미리보기 오버레이 dynamic 분리"
-```
-
-#### T100-C: job-tracker (모달 1개)
-
-```
-1. job-tracker/page.tsx 읽기 → 칸반 상세 모달 식별
-2. JobCardDetailModal 추출 + dynamic 적용
-3. npm run build 확인
-4. RTL 테스트 작성
-5. 회귀 스모크: 카드 클릭 → 상세 → 상태 변경 → 닫기
-6. route별 First Load JS 변화 확인
-7. 커밋: "refactor(job-tracker): 칸반 상세 모달 dynamic 분리"
-```
-
-> 각 단계 완료 후 게이트 4종 확인. 실패 시 해당 단계만 revert.
-
-### 회귀 방어
-
-기존 E2E 17개는 public 전용이므로 private 모달 회귀를 커버하지 못한다.
-**자동화 + 수동 스모크 병행 전략**으로 방어한다.
-
-#### 자동화 (Jest/RTL — 각 모달별 최소 1개)
-
-dynamic 전환 후 각 추출 컴포넌트에 대해 RTL 테스트 추가:
-
-| 대상 컴포넌트             | 테스트 범위                                       |
-| ------------------------- | ------------------------------------------------- |
-| `GenerateCoverLetterModal` | 열기 → 필드 렌더 → 닫기                          |
-| `RegisterCoverLetterModal` | 열기 → 제목/본문 필드 렌더 → 닫기                |
-| `PortfolioPreviewOverlay`  | 열기 → PortfolioFullPreview 렌더 → 닫기          |
-| `JobCardDetailModal`       | 열기 → 상세 정보 렌더 → 닫기                     |
-
-> RTL 테스트 실패 시 해당 모달의 dynamic 전환을 즉시 revert, 원인 분석 후 재적용.
-
-#### 수동 스모크 (RTL 보완 — 제출/취소 등 서버 연동 흐름)
-
-> **측정 환경**: production 빌드 기준 (`npm run build && npm run start`). T99의 prefetch/Network 측정 조건과 동일 적용.
-
-| 대상              | 스모크 항목                                                              |
-| ----------------- | ------------------------------------------------------------------------ |
-| AI 생성 모달      | 열기 → loading fallback 표시 → 4필드 입력 → 생성 클릭 → 결과 확인 → 닫기 |
-| 합격본 등록 모달  | 열기 → loading fallback 표시 → 제목+본문 입력 → 등록 → 목록 반영 → 닫기  |
-| 미리보기 오버레이 | 열기 → loading fallback 표시 → PortfolioFullPreview 렌더링 → 닫기        |
-| 칸반 상세 모달    | 카드 클릭 → loading fallback 표시 → 상세 표시 → 상태 변경 → 닫기         |
-
-### 제약 사항
-
-- 기존 기능 동작 100% 보존
-- 게이트 4종 + E2E 17개 통과 유지
-- **Jest/RTL 모달 회귀 테스트 전부 통과** (신규 게이트)
-- ConfirmDialog 등 경량 공용 컴포넌트는 건드리지 않음
-- experience-stories/company-targets 항상 렌더되는 폼은 건드리지 않음
-- 외부 라이브러리 추가 없음
+**핵심 규칙**:
+- Server Component: `getRequiredOwnerSession` → 서비스 직접 호출 → props 전달
+- Client Component: `useState(initialData)` — useEffect 초기 fetch 제거
+- CRUD(생성/수정/삭제) 핸들러는 기존 `fetch('/api/...')` 그대로 유지
+- Date/BigInt 등 직렬화 필요 시 `server-serializers.ts`에 추가
+- 동적 reload(필터 변경 등)는 client에서 기존 fetch 유지
 
 ---
 
-## T102 — 네비게이션 prefetch 전략 최적화
+## T104 — 기준선 측정 + 읽기 전용 2개 전환 (패턴 확립) ✅
 
 ### 배경
 
-현재 AppSidebar의 Link 20+개 전부 `prefetch` 미지정 → Next.js 기본 동작으로 자동 프리페치.
-사용자가 사이드바를 보기만 해도 20개 페이지의 JS/데이터를 미리 요청한다.
-T96에서 모든 페이지에 loading.tsx 스켈레톤을 추가했으므로, prefetch 비활성화해도 체감 저하 가능성 낮음.
+가장 단순한 2개 페이지로 전환 패턴을 확립하고, Before/After 측정 기반을 만든다.
 
-### 분류
+### Before 측정 — 스켈레톤 체류시간 (ms)
 
-> 분류 근거: 최근 dogfooding 사용 빈도 기반. PageViews 모듈은 public 포트폴리오 방문 분석 전용이므로 private workspace 메뉴 사용 빈도 데이터는 현재 없음. 정밀 분류는 workspace navigation telemetry 도입 후 후속 과제.
+프로덕션 빌드(`npm run build && npm run start`) 기준, 대표 5개 페이지.
 
-| 그룹       | 메뉴                                                                                                                          | prefetch           | 근거                                  |
-| ---------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------ | ------------------------------------- |
-| **핵심**   | 홈, 프로젝트, 이력서, 경력, 노트, 자기소개서                                                                                  | 유지 (기본)        | dogfooding 기간 일상 접근 메뉴        |
-| **저빈도** | 블로그, 스킬, 분석, 성장 타임라인, 피드백, 지원 트래커, 추천서, 감사 로그, 기업 분석, 교차 링크, STAR 스토리, 포트폴리오 설정 | `prefetch={false}` | 비일상 메뉴, loading.tsx 스켈레톤 있음 |
+**측정 지표**: 사이드바 메뉴 클릭 → 첫 실제 데이터 DOM 노드 렌더까지 ms (스켈레톤이 데이터로 교체되는 시점)
 
-### 작업 항목
+**측정 규약**:
+- 환경: 프로덕션 빌드(`npm run build && npm run start`), Chrome DevTools Performance 탭, Disable cache, 로그인 상태
+- 횟수: **cold 3회 + warm 3회**, 각 **중앙값(median)** 기준
+- cold: 서버 재시작 직후 첫 접근 / warm: 동일 페이지 2회째 이후 접근
+- pass/fail 판정은 **warm 중앙값** 기준, cold는 참고 기록
 
-| #   | 내용                                                                                      | 상태 |
-| --- | ----------------------------------------------------------------------------------------- | ---- |
-| 1   | AppSidebar.tsx 내 NAV_GROUPS 구조 확인                                                    | ✅   |
-| 2   | 저빈도 메뉴 Link에 `prefetch={false}` 추가                                                | ✅   |
-| 3   | NAV_GROUPS 코드에 분류 근거 주석 추가 (향후 재분류 시 판단 기준 보존)                     | ✅   |
-| 4   | 빌드 확인                                                                                 | ✅   |
-| 5   | 핵심 메뉴 네비게이션 체감 확인 (변화 없음)                                                | ✅   |
-| 6   | 저빈도 메뉴 클릭 → loading.tsx 스켈레톤 표시 → 정상 로드 확인                             | ✅   |
-| 7   | Network 탭: 사이드바 진입 후 prefetch 요청 수 before/after 비교 **(보조지표, 참고 기록)** | ✅   |
+| 페이지 | cold 중앙값 (ms) | warm 중앙값 (ms) | 비고 |
+|---|---|---|---|
+| `/app/audit` | — | — | 읽기 전용, 가장 단순 |
+| `/app/feedback` | — | — | 읽기 전용, 링크만 |
+| `/app/job-tracker` | — | — | 칸반 보드 |
+| `/app/portfolio/settings` | — | — | 969줄 거대 폼 |
+| `/app/resumes/[id]/edit` | — | — | 1,331줄 최대 파일 |
 
-### 분류 재검토 계획
+### 전환 대상 1: feedback/page.tsx (120줄)
 
-프로덕션 배포 후 1주일 실사용 기반으로 분류 재검토한다.
-NAV_GROUPS 코드에 `// prefetch 분류: 핵심(dogfooding 일상 접근) vs 저빈도(비일상). 2026-03-22 기준. telemetry 도입 후 재분류 예정` 주석을 남겨 향후 판단 근거를 보존한다.
+**현재 구조**:
+```
+"use client" → useEffect → fetch('/api/app/feedback') → setState → 렌더
+```
+
+**전환 후**:
+```
+page.tsx (Server): getRequiredOwnerSession → listFeedbackRequestsForOwner → FeedbackPageClient
+FeedbackPageClient.tsx ("use client"): useState(initialRequests) — useEffect 제거
+```
+
+**작업 절차**:
+1. 현재 page.tsx 읽기 → 데이터 로딩 로직과 렌더링 로직 분리 지점 확인
+2. page.tsx → Server Component로 전환 (getRequiredOwnerSession + 서비스 호출)
+3. 기존 코드를 FeedbackPageClient.tsx로 이동
+4. initialRequests props 추가, useEffect 초기 fetch 제거
+5. 빌드 확인 + 페이지 동작 스모크
+6. 커밋
+
+### 전환 대상 2: audit/page.tsx (160줄)
+
+**현재 구조**:
+```
+"use client" → useEffect → fetch('/api/app/audit?limit=20') → setState → 커서 페이지네이션
+```
+
+**전환 후**:
+```
+page.tsx (Server): getRequiredOwnerSession → listAuditLogsForOwner(ownerId, {limit: 20}) → AuditPageClient
+AuditPageClient.tsx ("use client"): useState(initialLogs) — useEffect 제거, handleLoadMore는 client fetch 유지
+```
+
+**특이사항**: 커서 페이지네이션의 `handleLoadMore`는 client fetch 유지 (추가 로드는 인터랙션)
 
 ### 제약 사항
 
-- 동작 변화 없음 (로딩 타이밍만 변경)
-- 체감 저하 가능성 낮음 — 핵심 메뉴 prefetch 유지 + loading.tsx 스켈레톤 이미 있음
+- 기능 동작 100% 보존
 - 게이트 4종 + E2E 17개 통과 유지
+- 페이지 단위 커밋
 
 ---
 
-## T101 — 초기 화면 불필요 섹션 lazy 분리
+## T105 — 단일 fetch 페이지 5개 전환 ✅
 
 ### 배경
 
-`resumes/[id]/edit/page.tsx` (1,330줄)과 `portfolio/settings/page.tsx` (980줄)은
-단일 `'use client'` 파일에 전체 로직이 들어있다.
-**전체를 분할하지 않는다.** 초기 화면에 안 필요한 섹션만 추출 + dynamic 적용한다.
+T104에서 확립한 패턴을 단일/이중 fetch + CRUD 페이지에 적용한다.
 
-### 핵심 원칙
+### 전환 대상
 
-- **"거대 파일 분할" 자체가 목표가 아니다** — 초기 화면 불필요 영역만 lazy
-- **1차 적용 후 수치 확인** → 부족할 때만 2차 분해
-- 상태(state)와 핸들러는 부모에서 props로 전달
-- 로직 변경 X — 기존 JSX 블록을 그대로 컴포넌트로 잘라내기
+#### 1. testimonials/page.tsx (447줄)
 
-### 1차 대상 — 명확하게 지연 로딩 효과가 있는 영역
+**현재**: useEffect → `fetch('/api/app/testimonials')` + 인라인 CRUD(생성/상태변경/공개토글/삭제)
+**전환**: Server에서 `listForOwner` → TestimonialsPageClient에 `initialTestimonials` 전달
+**CRUD 유지**: handleCreate, handleStatusChange, handleTogglePublic, handleDelete → client fetch 유지
 
-> 라인 번호는 작성 시점(2026-03-22) 스냅샷. 실제 작업 시 함수명/import 경로로 재확인.
-> T100/T102만으로 KPI 달성 시 #2(프리뷰 결과 본문)는 생략 가능.
+#### 2. projects/[id]/edit/page.tsx (192줄, 최단 편집)
 
-| 우선순위 | 파일                          | 대상                                                   | 구현 방향                                                                                                                                      | 기대 효과              | 상태 |
-| -------- | ----------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- | ---- |
-| **1**    | `resumes/[id]/edit/page.tsx`  | PDF: `_lib/pdf` on-demand import (:13→동적, :846 호출) | 현재 정적 `import { openResumePdfPrintWindow }` → 버튼 클릭 시 `const { openResumePdfPrintWindow } = await import(...)`                        | route JS 직접 절감 (주의: pdf-download.ts 내부의 jsPDF/html2canvas-pro는 이미 native import()로 분리됨. 래퍼 함수 자체의 route chunk 기여도를 T99에서 먼저 확인 필요. 기여도 낮을 시 #2를 1순위로 승격) | ✅   |
-| 2        | `resumes/[id]/edit/page.tsx`  | 프리뷰 **결과 본문** (:1272~1327)                      | 헤더/버튼/빈 상태 문구(:1244~1270)는 부모에 남기고, `{preview && <ResumePreviewResult/>}` 부분만 dynamic 분리. preview 상태가 있을 때만 mount. | 소폭 감소, 보조 최적화 | **생략** (KPI 달성) |
-| 3        | `portfolio/settings/page.tsx` | 미리보기 모달 (:930~980)                               | T100에서 이미 분리 시 skip, 아니면 여기서 처리                                                                                                 | T100 의존              | ✅ T100-B에서 처리 |
+**현재**: useEffect → `fetch('/api/app/projects/{id}')` + ProjectForm 위임
+**전환**: Server에서 `getForOwner(ownerId, id)` → ProjectEditPageClient에 `initialProject` 전달
+**CRUD 유지**: handleUpdate, handleDelete → client fetch 유지
 
-**제외 (이번 Sprint에서 대상 아님)**:
+#### 3. notes/[id]/edit/page.tsx (285줄)
 
-- `ShareLinksSection` (:336~) — mount 시 useEffect로 즉시 fetch하는 구조. 단순 dynamic만 하면 초기 hydration 직후 import+fetch가 이어져서 지연 로딩 효과 제한적. 명시적 "펼치기" 액션 추가 시에만 의미 있으므로 후속 항목으로 이동.
+**현재**: useEffect → `Promise.all([note, notebooks])` 이중 fetch
+**전환**: Server에서 `Promise.all([getNote, listNotebooks])` → NoteEditPageClient에 `initialNote, initialNotebooks` 전달
+**CRUD 유지**: handleSave, handleDelete → client fetch 유지
 
-### 2차 대상 (수치 부족 시에만)
+#### 4. feedback/[id]/page.tsx (334줄)
 
-- resume edit: 기본 정보/항목 CRUD 영역 세분화
-- settings: 폼 영역별 (기본정보/연락처/구직/레이아웃) 분할
-- ShareLinksSection: "공유 링크 펼치기" UI 전환 후 lazy mount (아키텍처 변경 필요)
+**현재**: useEffect → `fetch('/api/app/feedback/{id}')` + 비교 기능
+**전환**: Server에서 `getFeedbackDetail(ownerId, id)` → FeedbackDetailPageClient에 `initialDetail` 전달
+**CRUD 유지**: handleRun, handleCompare, handleDelete → client fetch 유지
 
-### 작업 절차
+#### 5. feedback/new/page.tsx (239줄)
+
+**현재**: useEffect → `fetch('/api/app/feedback/targets?type=')` 동적 reload
+**전환**: Server에서 기본 targetType의 initialTargets 전달 → FeedbackNewPageClient
+**특이사항**: targetType 변경 시 재조회는 client fetch 유지 (동적 reload)
+
+### 작업 절차 (5개 공통)
 
 ```
-1. (1순위) PDF import 동적 전환 — resume edit 읽기 → openResumePdfPrintWindow import 확인 → await import() 전환 → 빌드 확인
-2. route별 First Load JS 확인 → 효과 측정
-3. (2순위, KPI 달성 시 생략 가능) 프리뷰 결과 본문 경계 확인 → props 인터페이스 설계 → ResumePreviewResult 추출 + dynamic → 빌드 확인
-4. route별 First Load JS 재확인
-5. settings 동일 절차 (T100 미처리 영역만)
-6. 1차 수치 확인 → 목표 미달 시에만 2차 분해 진행
-7. 회귀 스모크: 이력서 편집 전 기능 (항목 추가/수정/삭제/순서변경/저장/프리뷰/PDF)
+1. 현재 page.tsx 읽기 → useEffect fetch 대상 식별
+2. 서비스 모듈에서 해당 함수 import 경로 확인
+3. page.tsx → Server Component 전환 (getRequiredOwnerSession + 서비스 호출)
+4. 기존 코드를 XxxPageClient.tsx로 이동
+5. initialData props 추가, useEffect 초기 fetch 제거
+6. 직렬화 필요 여부 확인 (Date → ISO string 등)
+7. 빌드 확인 + 기능 스모크 (CRUD 동작)
+8. 커밋
 ```
-
-### 회귀 방어
-
-| 대상          | 스모크 항목                                                      |
-| ------------- | ---------------------------------------------------------------- |
-| 이력서 편집   | 항목 추가 → 수정 → 순서 변경 → 저장 → 프리뷰 갱신 → PDF 다운로드 |
-| 공유 링크     | 링크 생성 → 복사 → 비활성화                                      |
-| 설정 미리보기 | 설정 변경 → 미리보기 열기 → 닫기 → 저장                          |
 
 ### 제약 사항
 
-- 기존 기능 동작 100% 보존
-- 상태 흐름 변경 없음 (props 전달만)
-- 게이트 4종 + E2E 17개 통과 유지
-- 파일 1개 완료 후 다음 진행
+- 동일: 기능 보존, 게이트 통과, 페이지 단위 커밋
 
 ---
 
-## T103 — 최종 route별 First Load JS 비교 + 프로덕션 배포 검증
+## T106 — 복합 fetch 페이지 5개 전환 ✅
 
 ### 배경
 
-Sprint 5 전체 리팩토링 완료 후 T99 기준선 대비 route별 before/after를 비교하고 프로덕션 배포한다.
+다중 fetch + 인라인 편집 패턴의 복잡한 페이지들. 서버에서 병렬 쿼리로 전환하면 API 라운드트립 제거 + DB 직접 쿼리로 더 빠름.
 
-### 작업 항목
+### 전환 대상
 
-| #   | 내용                                                                                                        | 상태 |
-| --- | ----------------------------------------------------------------------------------------------------------- | ---- |
-| 1   | 번들 분석 빌드 최종 실행 → 리포트 (cross-env 또는 `$env:ANALYZE="true"; npm run build`)                     | ✅   |
-| 2   | T99 기준선 대비 **route별 First Load JS 변화표** (핵심 5개)                                                 | ✅   |
-| 3   | 사이드바 prefetch 요청 수 before/after                                                                      | ✅   |
-| 4   | lazy 대상 모달 초기 번들 미포함 확인 (bundle analyzer route chunk 제외 + Network waterfall 미포함 2중 확인) | ✅   |
-| 5   | 게이트 4종 최종 통과 (lint/build/jest/vercel-build)                                                         | ✅   |
-| 6   | E2E 17개 최종 통과                                                                                          | ✅   |
-| 7   | 프로덕션 배포 + HTTP 200 확인                                                                               | ✅   |
-| 8   | 프로덕션 스모크: resumes/edit, settings, cover-letters, 저빈도 메뉴 1개 클릭                                | ✅   |
-| 9   | T102 prefetch 분류 재검토 기록 (배포 후 1주일 실사용 후 재분류 계획 history.md 기록)                         | ✅   |
-| 10  | history.md Sprint 5 완료 기록                                                                               | ✅   |
-| 11  | plan.md Phase 체크                                                                                          | ✅   |
+#### 1. job-tracker/page.tsx (314줄)
 
-### 성공 판정 기준
+**현재**: useEffect → `fetch('/api/app/job-tracker')` → 칸반 보드
+**전환**: Server에서 `getBoardForOwner(ownerId)` → JobTrackerPageClient에 `initialBoard` 전달
+**Sprint 5 연계**: JobCardDetailModal dynamic 유지, types.ts import 유지
+**CRUD 유지**: handleStatusChange, handleJdMatch, loadEvents → client fetch
 
-| KPI                          | 기준                                                                                                                                    | 구분                        |
-| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- |
-| route별 First Load JS       | 핵심 3개(resumes/edit, settings, cover-letters)에서 T99 대비 감소. 나머지 2개(job-tracker, 홈)는 보조 지표이며 비정상 증가 시 원인 확인 | **pass/fail 주지표 (유일)** |
-| 모달 초기 번들 포함          | lazy 대상 전부 제거 확인 (bundle analyzer route chunk + Network waterfall 2중)                                                          | 필수 확인                   |
-| 기능 회귀                    | Jest 519+ / E2E 17 / RTL 모달 테스트 (열기/닫기) / 수동 스모크 (제출/취소) 전부 통과                                                    | 필수 확인                   |
-| 프로덕션 스모크              | edit, settings, cover-letters, 저빈도 메뉴 1개 정상                                                                                     | 필수 확인                   |
-| prefetch 요청 수             | T99 대비 감소 (수동 측정, 참고 기록)                                                                                                    | 보조지표                    |
+#### 2. company-targets/page.tsx (596줄)
+
+**현재**: useEffect → `fetch('/api/app/company-targets?status=&q=')` + 인라인 편집 Record 패턴
+**전환**: Server에서 `listForOwner(ownerId)` → CompanyTargetsPageClient에 `initialTargets` 전달
+**특이사항**: 필터(status, q) 변경 시 재조회는 client fetch 유지
+
+#### 3. experience-stories/page.tsx (603줄)
+
+**현재**: useEffect → `Promise.all([experiences, stories])` + 인라인 STAR 편집
+**전환**: Server에서 `Promise.all([listExperiences, listStories])` → ExperienceStoriesPageClient
+**특이사항**: selectedExperienceId 변경 시 스토리 재조회는 client fetch 유지
+
+#### 4. domain-links/page.tsx (369줄) ✅ Session C
+
+**현재**: useEffect → **6개 엔티티 병렬 fetch** (projects, experiences, skills, resumes, notes, blogs) + domain-links
+**전환**: Server에서 `Promise.all` 7개 병렬 쿼리 → DomainLinksPageClient에 전부 전달
+**기대 효과**: 가장 큰 개선 — 6개 API 라운드트립이 서버 내 DB 직접 쿼리 1회로
+
+#### 5. blog/[id]/edit/page.tsx (615줄) ✅ Session C
+
+**현재**: useEffect → `fetch('/api/app/blog/posts/{id}')` + lint/export 부가 기능
+**전환**: Server에서 `getForOwner(ownerId, id)` → BlogEditPageClient에 `initialPost` 전달
+**CRUD 유지**: handleSave, handleDelete, handleLint, handleExport → client fetch
 
 ### 제약 사항
 
-- 총 번들 크기 소폭 증가는 허용 (route별 감소가 KPI)
-- 전 기능 회귀 없음 확인
+- 인라인 편집 Record 패턴(company-targets, experience-stories)은 client 상태 유지
+- 필터/정렬 변경 후 재조회는 client fetch 유지
+- Sprint 5 dynamic import(job-tracker 모달) 구조 보존
+
+---
+
+## T107 — 거대 페이지 2개 + 최종 측정 + 프로덕션 배포
+
+### 배경
+
+프로젝트 내 가장 큰 2개 파일. Phase 1~3에서 숙달한 패턴으로 도전.
+
+### 전환 대상
+
+#### 1. portfolio/settings/page.tsx (969줄)
+
+**현재**: useEffect → `fetch('/api/app/portfolio/settings')` + `fetch('/api/app/resumes')` + 아바타 업로드 + 미리보기
+**전환**: Server에서 `getSettingsForOwner(ownerId)` + `listResumesForOwner(ownerId)` → PortfolioSettingsPageClient
+**전달 데이터**: initialSettings, initialResumes
+**client 유지**: 폼 상태 15+ useState, 아바타 업로드, 미리보기 모달(dynamic), handleSave
+**Sprint 5 연계**: PortfolioPreviewOverlay dynamic import 유지
+
+#### 2. resumes/[id]/edit/page.tsx (1,331줄)
+
+**현재**: useEffect → `fetch('/api/app/resumes/{id}')` + `fetch('/api/app/experiences')` + 복합 편집 UI
+**전환**: Server에서 `getResumeForOwner(ownerId, id)` + `listExperiencesForOwner(ownerId)` → ResumeEditPageClient
+**전달 데이터**: initialResume, initialExperiences
+**client 유지**: 항목 CRUD, BulletsEditor, MetricsEditor, 순서 변경, 프리뷰, PDF, 공유 링크
+**Sprint 5 연계**: PDF `await import()` 동적 전환 유지
+
+### After 측정 — 스켈레톤 체류시간 (ms)
+
+T104 Before와 동일 조건(프로덕션 빌드, warm, Chrome Performance 탭)으로 재측정.
+
+| 페이지 | Before (ms) | After (ms) | 단축 (ms) | 단축 (%) |
+|---|---|---|---|---|
+| `/app/audit` | — | — | — | — |
+| `/app/feedback` | — | — | — | — |
+| `/app/job-tracker` | — | — | — | — |
+| `/app/portfolio/settings` | — | — | — | — |
+| `/app/resumes/[id]/edit` | — | — | — | — |
+
+### T107 중단 기준 (stop-loss)
+
+settings 또는 resumes/edit의 **warm 중앙값 개선폭이 50ms 미만**이면:
+- 해당 페이지는 RSC 전환만으로는 효과 부족으로 판정
+- Sprint 6 안에서 2차 분해를 시도하지 않음 — **Sprint 7로 이관**
+- 나머지 12개 페이지 전환 성과는 유지 (revert 대상 아님)
+
+### 후속 판단 (Sprint 7 우선순위)
+
+1. **Server Actions + optimistic UI** — Sprint 6 RSC 전환 완료 즉시 진입 (mutation 체감 속도)
+2. **settings/resumes-edit 2차 분해** — T107 stop-loss 해당 페이지만 (ShareLinksSection lazy mount 등)
+
+### 프로덕션 배포 + 스모크
+
+| # | 내용 |
+|---|---|
+| 1 | 게이트 4종 최종 통과 |
+| 2 | E2E 17개 최종 통과 |
+| 3 | 프로덕션 배포 + HTTP 200 확인 |
+| 4 | 스모크: audit 로그 로드 + 페이지네이션 |
+| 5 | 스모크: testimonials CRUD (생성/상태변경/삭제) |
+| 6 | 스모크: job-tracker 칸반 + 상세 모달 |
+| 7 | 스모크: settings 폼 + 미리보기 |
+| 8 | 스모크: resumes/edit 항목 추가/편집/순서변경/PDF |
+| 9 | history.md Sprint 6 완료 기록 |
+| 10 | plan.md Phase 체크 |
+
+### 제약 사항
+
+- 거대 파일 전환 실패 시 해당 페이지만 revert (나머지 12개 전환은 유지)
+- 프로덕션 코드 기능 변경 ZERO
