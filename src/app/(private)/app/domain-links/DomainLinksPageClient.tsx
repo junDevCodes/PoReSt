@@ -1,0 +1,269 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { parseApiResponse } from "@/app/(private)/app/_lib/admin-api";
+import type { SerializedOwnerDomainLinkDto } from "@/app/(private)/app/_lib/server-serializers";
+
+type DomainType = "PROJECT" | "EXPERIENCE" | "SKILL" | "RESUME" | "NOTE" | "BLOG_POST";
+
+type EntityOption = {
+  id: string;
+  label: string;
+};
+
+export type DomainOptionsState = Record<DomainType, EntityOption[]>;
+
+const DOMAIN_TYPE_LABEL: Record<DomainType, string> = {
+  PROJECT: "프로젝트",
+  EXPERIENCE: "경력",
+  SKILL: "기술",
+  RESUME: "이력서",
+  NOTE: "노트",
+  BLOG_POST: "블로그",
+};
+
+function formatDate(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "-";
+  }
+  return date.toISOString().slice(0, 16).replace("T", " ");
+}
+
+function findLabel(options: DomainOptionsState, type: DomainType, id: string): string {
+  const item = options[type].find((candidate) => candidate.id === id);
+  return item ? item.label : `${DOMAIN_TYPE_LABEL[type]} (${id.slice(0, 8)})`;
+}
+
+type DomainLinksPageClientProps = {
+  initialOptions: DomainOptionsState;
+  initialLinks: SerializedOwnerDomainLinkDto[];
+};
+
+export function DomainLinksPageClient({ initialOptions, initialLinks }: DomainLinksPageClientProps) {
+  const [options] = useState<DomainOptionsState>(initialOptions);
+  const [links, setLinks] = useState<SerializedOwnerDomainLinkDto[]>(initialLinks);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [sourceType, setSourceType] = useState<DomainType>("PROJECT");
+  const [sourceId, setSourceId] = useState("");
+  const [targetType, setTargetType] = useState<DomainType>("NOTE");
+  const [targetId, setTargetId] = useState("");
+  const [context, setContext] = useState("");
+
+  const sourceOptions = useMemo(() => options[sourceType], [options, sourceType]);
+  const targetOptions = useMemo(() => options[targetType], [options, targetType]);
+  const effectiveSourceId =
+    sourceOptions.find((option) => option.id === sourceId)?.id ?? sourceOptions[0]?.id ?? "";
+  const effectiveTargetId =
+    targetOptions.find((option) => option.id === targetId)?.id ?? targetOptions[0]?.id ?? "";
+
+  async function loadLinks() {
+    const response = await fetch("/api/app/domain-links?limit=100", { method: "GET" });
+    const parsed = await parseApiResponse<SerializedOwnerDomainLinkDto[]>(response);
+    if (parsed.error) {
+      setError(parsed.error);
+      return;
+    }
+    setLinks(parsed.data ?? []);
+  }
+
+  async function handleCreateLink(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!effectiveSourceId || !effectiveTargetId) {
+      setError("source/target 엔티티를 모두 선택해주세요.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError(null);
+
+    const response = await fetch("/api/app/domain-links", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        sourceType,
+        sourceId: effectiveSourceId,
+        targetType,
+        targetId: effectiveTargetId,
+        context: context.trim() ? context.trim() : null,
+      }),
+    });
+    const parsed = await parseApiResponse<SerializedOwnerDomainLinkDto>(response);
+    if (parsed.error) {
+      setError(parsed.error);
+      setIsSubmitting(false);
+      return;
+    }
+
+    setContext("");
+    await loadLinks();
+    setIsSubmitting(false);
+  }
+
+  async function handleDeleteLink(linkId: string) {
+    setError(null);
+    const response = await fetch(`/api/app/domain-links/${linkId}`, {
+      method: "DELETE",
+    });
+    const parsed = await parseApiResponse<{ id: string }>(response);
+    if (parsed.error) {
+      setError(parsed.error);
+      return;
+    }
+    await loadLinks();
+  }
+
+  return (
+    <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6 py-12">
+      <header>
+        <p className="text-xs uppercase tracking-[0.3em] text-black/60">Graph</p>
+        <h1 className="mt-2 text-3xl font-semibold">Cross-domain Links</h1>
+        <p className="mt-3 text-sm text-black/65">
+          프로젝트/경력/이력서/노트/블로그 간 연결을 생성하고 관리합니다.
+        </p>
+      </header>
+
+      {error ? (
+        <p className="mt-6 rounded-xl border border-rose-400/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-600">
+          {error}
+        </p>
+      ) : null}
+
+      <section className="mt-8 rounded-2xl border border-black/10 bg-white p-6">
+        <h2 className="text-lg font-semibold text-black">링크 생성</h2>
+        <form
+          className="mt-4 grid gap-4 md:grid-cols-2"
+          onSubmit={(event) => void handleCreateLink(event)}
+        >
+          <label className="flex flex-col gap-2 text-sm text-black/70">
+            Source 타입
+            <select
+              value={sourceType}
+              onChange={(event) => setSourceType(event.target.value as DomainType)}
+              className="rounded-lg border border-black/15 bg-white px-3 py-2 text-black"
+            >
+              {Object.entries(DOMAIN_TYPE_LABEL).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="flex flex-col gap-2 text-sm text-black/70">
+            Source 엔티티
+            <select
+              value={effectiveSourceId}
+              onChange={(event) => setSourceId(event.target.value)}
+              className="rounded-lg border border-black/15 bg-white px-3 py-2 text-black"
+              disabled={sourceOptions.length === 0}
+            >
+              {sourceOptions.length === 0 ? (
+                <option value="">선택 가능한 항목 없음</option>
+              ) : (
+                sourceOptions.map((option) => (
+                  <option key={option.id} value={option.id}>
+                    {option.label}
+                  </option>
+                ))
+              )}
+            </select>
+          </label>
+
+          <label className="flex flex-col gap-2 text-sm text-black/70">
+            Target 타입
+            <select
+              value={targetType}
+              onChange={(event) => setTargetType(event.target.value as DomainType)}
+              className="rounded-lg border border-black/15 bg-white px-3 py-2 text-black"
+            >
+              {Object.entries(DOMAIN_TYPE_LABEL).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="flex flex-col gap-2 text-sm text-black/70">
+            Target 엔티티
+            <select
+              value={effectiveTargetId}
+              onChange={(event) => setTargetId(event.target.value)}
+              className="rounded-lg border border-black/15 bg-white px-3 py-2 text-black"
+              disabled={targetOptions.length === 0}
+            >
+              {targetOptions.length === 0 ? (
+                <option value="">선택 가능한 항목 없음</option>
+              ) : (
+                targetOptions.map((option) => (
+                  <option key={option.id} value={option.id}>
+                    {option.label}
+                  </option>
+                ))
+              )}
+            </select>
+          </label>
+
+          <label className="flex flex-col gap-2 text-sm text-black/70 md:col-span-2">
+            연결 설명 (선택)
+            <input
+              value={context}
+              onChange={(event) => setContext(event.target.value)}
+              className="rounded-lg border border-black/15 bg-white px-3 py-2 text-black"
+              placeholder="예: 프로젝트 구현 배경 노트"
+              maxLength={200}
+            />
+          </label>
+
+          <div className="md:col-span-2">
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-black disabled:opacity-60"
+            >
+              {isSubmitting ? "생성 중..." : "링크 생성"}
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <section className="mt-6 rounded-2xl border border-black/10 bg-white p-6">
+        <h2 className="text-lg font-semibold text-black">링크 목록</h2>
+        {links.length === 0 ? (
+          <p className="mt-3 text-sm text-black/60">등록된 링크가 없습니다.</p>
+        ) : (
+          <div className="mt-4 space-y-3">
+            {links.map((link) => (
+              <article key={link.id} className="rounded-lg border border-black/10 bg-[#faf9f6] p-4">
+                <p className="text-sm font-semibold text-black">
+                  {DOMAIN_TYPE_LABEL[link.sourceType]}:{" "}
+                  {findLabel(options, link.sourceType, link.sourceId)}
+                </p>
+                <p className="mt-1 text-sm text-black/75">
+                  → {DOMAIN_TYPE_LABEL[link.targetType]}:{" "}
+                  {findLabel(options, link.targetType, link.targetId)}
+                </p>
+                {link.context ? <p className="mt-2 text-xs text-black/65">{link.context}</p> : null}
+                <div className="mt-3 flex items-center justify-between text-xs text-black/55">
+                  <span>수정: {formatDate(link.updatedAt)}</span>
+                  <button
+                    type="button"
+                    onClick={() => void handleDeleteLink(link.id)}
+                    className="rounded border border-rose-300 px-2 py-1 text-rose-800 hover:bg-rose-50"
+                  >
+                    삭제
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+    </main>
+  );
+}
