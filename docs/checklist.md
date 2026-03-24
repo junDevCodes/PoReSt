@@ -155,9 +155,10 @@
 
 - [x] 게이트 4종 통과 (lint 0 errors, 13 warnings / build 73 routes 4.3s / jest 74 suites 539 tests / vercel-build) ✅ 2026-03-24
 - [x] E2E 17/17 통과 (11.1s) ✅ 2026-03-24
-- [ ] Vercel 배포 성공 + HTTP 200 확인 _(배포 대기)_
-- [x] 스모크 3/4: audit 10건 로드 ✅ + job-tracker 칸반 ✅ + settings 폼+미리보기 ✅ (Playwright MCP, 2026-03-24)
-- [ ] 스모크 1/4: resumes/edit PDF _(이력서 0개 — 데이터 생성 후 확인 필요)_
+- [x] Vercel 배포 성공 + HTTP 200 확인 ✅ (커밋 3e531a1 → push → Vercel auto-deploy, 2026-03-24)
+- [x] 스모크 3/4: audit 10건 즉시 렌더 ✅ + job-tracker 칸반 ✅ + settings 폼+미리보기 ✅ (배포 후 Playwright MCP, 2026-03-24)
+- [x] feedback/new 타겟 셀렉트 즉시 로드 ✅ (배포 후 확인, 2026-03-24)
+- [ ] resumes/edit PDF _(이력서 0개 — 데이터 생성 후 확인 필요)_
 
 ### 문서 동기화
 
