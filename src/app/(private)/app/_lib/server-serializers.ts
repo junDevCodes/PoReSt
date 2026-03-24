@@ -1,4 +1,5 @@
-﻿import type { OwnerBlogPostListItemDto, OwnerBlogPostDetailDto, OwnerBlogExportArtifactDto } from "@/modules/blog";
+﻿import type { OwnerPortfolioSettingsDto } from "@/modules/portfolio-settings";
+import type { OwnerBlogPostListItemDto, OwnerBlogPostDetailDto, OwnerBlogExportArtifactDto } from "@/modules/blog";
 import type { OwnerCompanyTargetDto, CompanyTargetsListResult } from "@/modules/company-targets";
 import type { OwnerCoverLetterListItemDto, OwnerCoverLetterDetailDto } from "@/modules/cover-letters";
 import type { OwnerExperienceDto } from "@/modules/experiences";
@@ -9,7 +10,7 @@ import type { TestimonialDto } from "@/modules/testimonials";
 import type { OwnerDomainLinkDto } from "@/modules/domain-links";
 import type { OwnerNoteListItemDto, OwnerNoteDetailDto, OwnerNotebookDto } from "@/modules/notes";
 import type { OwnerProjectDto } from "@/modules/projects";
-import type { OwnerResumeListItemDto } from "@/modules/resumes";
+import type { OwnerResumeListItemDto, OwnerResumeDetailDto, OwnerResumeItemDto } from "@/modules/resumes";
 import type { OwnerSkillDto } from "@/modules/skills";
 
 export type SerializedOwnerCoverLetterListItemDto = Omit<OwnerCoverLetterListItemDto, "updatedAt"> & {
@@ -350,4 +351,50 @@ export function serializeOwnerBlogExportArtifactList(
     ...item,
     createdAt: toIsoString(item.createdAt),
   }));
+}
+
+// ─── Portfolio Settings ──────────────────────────
+
+export type SerializedOwnerPortfolioSettingsDto = Omit<OwnerPortfolioSettingsDto, "updatedAt">;
+
+export function serializeOwnerPortfolioSettings(
+  dto: OwnerPortfolioSettingsDto,
+): SerializedOwnerPortfolioSettingsDto {
+  const { updatedAt: _, ...rest } = dto;
+  return rest;
+}
+
+// ─── Resume Detail ───────────────────────────────
+
+export type SerializedOwnerResumeItemDto = Omit<OwnerResumeItemDto, "updatedAt" | "experience"> & {
+  updatedAt: string;
+  experience: Omit<OwnerResumeItemDto["experience"], "startDate" | "endDate" | "updatedAt"> & {
+    startDate: string;
+    endDate: string | null;
+    updatedAt: string;
+  };
+};
+
+export type SerializedOwnerResumeDetailDto = Omit<OwnerResumeDetailDto, "updatedAt" | "items"> & {
+  updatedAt: string;
+  items: SerializedOwnerResumeItemDto[];
+};
+
+export function serializeOwnerResumeDetail(
+  dto: OwnerResumeDetailDto,
+): SerializedOwnerResumeDetailDto {
+  return {
+    ...dto,
+    updatedAt: toIsoString(dto.updatedAt),
+    items: dto.items.map((item) => ({
+      ...item,
+      updatedAt: toIsoString(item.updatedAt),
+      experience: {
+        ...item.experience,
+        startDate: toIsoString(item.experience.startDate),
+        endDate: toNullableIsoString(item.experience.endDate),
+        updatedAt: toIsoString(item.experience.updatedAt),
+      },
+    })),
+  };
 }

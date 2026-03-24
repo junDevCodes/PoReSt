@@ -1,67 +1,39 @@
 /** @jest-environment jsdom */
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import PortfolioSettingsPage from "@/app/(private)/app/portfolio/settings/page";
+import { PortfolioSettingsPageClient } from "@/app/(private)/app/portfolio/settings/PortfolioSettingsPageClient";
 
-function buildSettingsResponse() {
+function buildInitialSettings() {
   return {
-    data: {
-      id: "settings-1",
-      publicSlug: "tester",
-      isPublic: true,
-      displayName: "테스터",
-      headline: "기본 헤드라인",
-      bio: "기본 소개",
-      avatarUrl: "",
-      email: null,
-      isEmailPublic: false,
-      location: null,
-      availabilityStatus: null,
-      resumeUrl: null,
-      featuredResumeId: null,
-      featuredResumeTitle: null,
-      links: [],
-    },
+    id: "settings-1",
+    publicSlug: "tester",
+    isPublic: true,
+    displayName: "테스터",
+    headline: "기본 헤드라인",
+    bio: "기본 소개",
+    avatarUrl: "",
+    layoutJson: null,
+    email: null,
+    isEmailPublic: false,
+    location: null,
+    availabilityStatus: null,
+    resumeUrl: null,
+    featuredResumeId: null,
+    featuredResumeTitle: null,
+    links: [] as Array<{ id: string; label: string; url: string; order: number; type: string }>,
   };
 }
 
-function buildMockFetchResponse(payload: unknown): Response {
-  return {
-    ok: true,
-    status: 200,
-    json: async () => payload,
-  } as Response;
-}
-
-describe("PortfolioSettingsPage preview", () => {
-  beforeEach(() => {
-    const fetchMock = jest.fn().mockResolvedValue(buildMockFetchResponse(buildSettingsResponse()));
-    global.fetch = fetchMock as unknown as typeof fetch;
-  });
-
-  it("API 호출 실패 시 로딩을 해제하고 오류 배너를 표시해야 한다", async () => {
-    const fetchMock = jest.fn().mockRejectedValue(new TypeError("fetch failed"));
-    global.fetch = fetchMock as unknown as typeof fetch;
-
-    render(<PortfolioSettingsPage />);
-
-    expect(screen.getByText("설정 정보를 불러오는 중입니다.")).toBeInTheDocument();
-
-    await waitFor(() => {
-      expect(
-        screen.getByText("네트워크 연결을 확인해주세요. 잠시 후 다시 시도해주세요."),
-      ).toBeInTheDocument();
-    });
-
-    expect(screen.queryByText("설정 정보를 불러오는 중입니다.")).not.toBeInTheDocument();
-  });
-
+describe("PortfolioSettingsPageClient preview", () => {
   it("미리보기를 열고 입력값이 바뀌면 미리보기가 즉시 갱신되어야 한다", async () => {
-    render(<PortfolioSettingsPage />);
+    render(
+      <PortfolioSettingsPageClient
+        initialSettings={buildInitialSettings()}
+        initialResumes={[]}
+      />,
+    );
 
-    await waitFor(() => {
-      expect(screen.getByDisplayValue("테스터")).toBeInTheDocument();
-    });
+    expect(screen.getByDisplayValue("테스터")).toBeInTheDocument();
 
     // 미리보기 모달 열기
     fireEvent.click(screen.getByRole("button", { name: "미리보기" }));
@@ -81,11 +53,14 @@ describe("PortfolioSettingsPage preview", () => {
   });
 
   it("publicSlug를 변경하면 경고 배너가 노출되어야 한다", async () => {
-    render(<PortfolioSettingsPage />);
+    render(
+      <PortfolioSettingsPageClient
+        initialSettings={buildInitialSettings()}
+        initialResumes={[]}
+      />,
+    );
 
-    await waitFor(() => {
-      expect(screen.getByDisplayValue("tester")).toBeInTheDocument();
-    });
+    expect(screen.getByDisplayValue("tester")).toBeInTheDocument();
 
     const slugInput = screen.getByLabelText("공개 슬러그");
     fireEvent.change(slugInput, { target: { value: "tester-next" } });
