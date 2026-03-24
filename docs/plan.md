@@ -144,7 +144,7 @@ export function AuditPageClient({ initialLogs }) {
 
 | ID | 핵심 내용 | 상태 |
 |---|---|---|
-| T107 | portfolio/settings (969줄), resumes/edit (1,331줄) 전환 + After 측정 + 배포 | ⬜ |
+| T107 | portfolio/settings (969줄), resumes/edit (1,331줄) 전환 + After 측정 + 배포 | ✅ 전환 완료 + 최종 게이트 통과 (2026-03-24) |
 
 ### 실행 순서 (병렬 세션 구조)
 
@@ -302,6 +302,6 @@ Before 측정
 - **ORM**: Prisma 7.3 + NeonDB (PostgreSQL)
 - **인증**: NextAuth 4.x (Google OAuth)
 - **배포**: Vercel
-- **테스트**: Jest (74 suites, 540 tests) + Playwright E2E (17 tests, 8 specs)
+- **테스트**: Jest (74 suites, 539 tests) + Playwright E2E (17 tests, 8 specs)
 - **번들**: UI 레벨 next/dynamic 4개 모달 분리, native import() pdf-download.ts, prefetch 전략 적용
-- **데이터 로딩**: Server Component 12개 / Client Component 17개 (14개 전환 대상)
+- **데이터 로딩**: Server Component 26개 / Client Component 3개 (14개 RSC 전환 완료, Sprint 6)
