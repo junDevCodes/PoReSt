@@ -113,6 +113,29 @@ enum TestimonialStatus {
   REJECTED
 }
 
+enum ControlSystem {
+  LIFE_HACK
+  JARVIS
+  TECH
+  MONEY
+  POREST
+}
+
+enum OperationalStatus {
+  PLANNED
+  READY
+  RUNNING
+  BLOCKED
+  DONE
+  FAILED
+}
+
+enum DecisionStatus {
+  OPEN
+  APPROVED
+  REJECTED
+  CANCELED
+}
 
 // ========== AUTH (Auth.js / Prisma Adapter 기준) ==========
 // 공식 예시를 그대로 사용 (필드명/맵핑 포함)
@@ -157,33 +180,38 @@ model User {
   image         String?
 
   // 서비스 확장 필드 (개인용 1인 운영 기준)
-  isOwner       Boolean   @default(false)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  isOwner   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   accounts Account[]
   sessions Session[]
 
-  portfolioSettings PortfolioSettings?
-  experiences       Experience[]
-  educations        Education[]
-  skills            Skill[]
-  projects          Project[]
-  resumes           Resume[]
-  notebooks         Notebook[]
-  notes             Note[]
-  blogPosts         BlogPost[]
+  portfolioSettings   PortfolioSettings?
+  experiences         Experience[]
+  educations          Education[]
+  skills              Skill[]
+  projects            Project[]
+  resumes             Resume[]
+  notebooks           Notebook[]
+  notes               Note[]
+  blogPosts           BlogPost[]
   blogExportArtifacts BlogExportArtifact[]
-  blogIntegrations  BlogIntegration[]
-  feedbackRequests  FeedbackRequest[]
-  auditLogs         AuditLog[]
-  domainLinks       DomainLink[]
-  experienceStories ExperienceStory[]
-  companyTargets    CompanyTarget[]
-  pageViews         PageView[]
-  testimonials      Testimonial[]
-  growthEvents      GrowthEvent[]
-  coverLetters      CoverLetter[]
+  blogIntegrations    BlogIntegration[]
+  feedbackRequests    FeedbackRequest[]
+  auditLogs           AuditLog[]
+  domainLinks         DomainLink[]
+  experienceStories   ExperienceStory[]
+  companyTargets      CompanyTarget[]
+  pageViews           PageView[]
+  testimonials        Testimonial[]
+  growthEvents        GrowthEvent[]
+  coverLetters        CoverLetter[]
+  systemEvents        SystemEvent[]
+  systemReports       SystemReport[]
+  systemDecisions     SystemDecision[]
+  contentJobs         ContentJob[]
+  workflowRuns        WorkflowRun[]
 
   @@map("users")
 }
@@ -200,137 +228,134 @@ model VerificationToken {
 // ========== PORTFOLIO ==========
 
 model PortfolioSettings {
-  id          String     @id @default(cuid())
-  ownerId     String     @unique
-  owner       User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  id      String @id @default(cuid())
+  ownerId String @unique
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
   // 공개 홈 설정
-  isPublic    Boolean    @default(true)
-  publicSlug  String     @unique
+  isPublic    Boolean @default(true)
+  publicSlug  String  @unique
   displayName String?
   headline    String?
-  bio         String?    @db.Text
+  bio         String? @db.Text
   avatarUrl   String?
 
   // 홈 구성(섹션 순서/대표 프로젝트 등) - v1은 JSON으로 유연하게
-  layoutJson  Json?
+  layoutJson Json?
 
   // T76 신규 추가 — HR 직결 정보
   email              String?
-  isEmailPublic      Boolean  @default(false)
+  isEmailPublic      Boolean @default(false)
   location           String?
-  availabilityStatus String?  // "OPEN" | "CONSIDERING" | "NOT_OPEN" | "HIDDEN"
+  availabilityStatus String? // "OPEN" | "CONSIDERING" | "NOT_OPEN" | "HIDDEN"
   resumeUrl          String?
 
   // T76-R 신규 추가 — 대표 이력서 연동
-  featuredResumeId   String?
-  featuredResume     Resume?  @relation(fields: [featuredResumeId], references: [id], onDelete: SetNull)
+  featuredResumeId String?
+  featuredResume   Resume? @relation(fields: [featuredResumeId], references: [id], onDelete: SetNull)
 
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  links       PortfolioLink[]
+  links PortfolioLink[]
 
   @@map("portfolio_settings")
 }
 
 model PortfolioLink {
-  id          String   @id @default(cuid())
-  settingsId  String
-  settings    PortfolioSettings @relation(fields: [settingsId], references: [id], onDelete: Cascade)
+  id         String            @id @default(cuid())
+  settingsId String
+  settings   PortfolioSettings @relation(fields: [settingsId], references: [id], onDelete: Cascade)
 
-  label       String
-  url         String
-  order       Int              @default(0)
-  type        PortfolioLinkType @default(CUSTOM)
+  label String
+  url   String
+  order Int               @default(0)
+  type  PortfolioLinkType @default(CUSTOM)
 
   @@index([settingsId, order])
   @@map("portfolio_links")
 }
 
 model Experience {
-  id          String     @id @default(cuid())
-  ownerId     String
-  owner       User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  id      String @id @default(cuid())
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
-  visibility  Visibility @default(PUBLIC)
-  isFeatured  Boolean    @default(false) // 대표 노출 여부
+  visibility Visibility @default(PUBLIC)
+  isFeatured Boolean    @default(false) // 대표 노출 여부
 
-  company     String
-  role        String
-  startDate   DateTime
-  endDate     DateTime?
-  isCurrent   Boolean    @default(false)
+  company   String
+  role      String
+  startDate DateTime
+  endDate   DateTime?
+  isCurrent Boolean   @default(false)
 
-  summary     String?    @db.Text
+  summary     String?  @db.Text
   bulletsJson Json?
-  metricsJson Json?      // "30% 개선", "10K+ 사용자" 등
-  techTags    String[]   // 기술 스택
+  metricsJson Json? // "30% 개선", "10K+ 사용자" 등
+  techTags    String[] // 기술 스택
 
-  resumeItems ResumeItem[]  // Resume에서 재사용
+  resumeItems ResumeItem[] // Resume에서 재사용
   stories     ExperienceStory[]
 
-  order       Int        @default(0)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([ownerId, visibility, order])
   @@map("experiences")
 }
 
-
-
 model ExperienceStory {
-  id           String     @id @default(cuid())
-  ownerId      String
-  owner        User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  id      String @id @default(cuid())
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
   experienceId String
   experience   Experience @relation(fields: [experienceId], references: [id], onDelete: Cascade)
 
-  title        String
-  situation    String     @db.Text
-  task         String     @db.Text
-  action       String     @db.Text
-  result       String     @db.Text
+  title     String
+  situation String @db.Text
+  task      String @db.Text
+  action    String @db.Text
+  result    String @db.Text
 
-  tags         String[]
-  metricsJson  Json?
-  linksJson    Json?
+  tags        String[]
+  metricsJson Json?
+  linksJson   Json?
 
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([ownerId, updatedAt])
   @@index([experienceId, updatedAt])
   @@map("experience_stories")
 }
 
-
 model CompanyTarget {
-  id         String              @id @default(cuid())
-  ownerId    String
-  owner      User                @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  id      String @id @default(cuid())
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
-  company    String
-  role       String
-  status     CompanyTargetStatus @default(INTERESTED)
-  priority   Int                 @default(0)
+  company  String
+  role     String
+  status   CompanyTargetStatus @default(INTERESTED)
+  priority Int                 @default(0)
 
-  summary    String?             @db.Text
-  analysisMd String?             @db.Text
+  summary    String?  @db.Text
+  analysisMd String?  @db.Text
   linksJson  Json?
   tags       String[]
 
   // T84: 지원 이력 트래커
-  jobDescriptionMd String?       @db.Text
+  jobDescriptionMd String?   @db.Text
   appliedAt        DateTime?
   matchScoreJson   Json?
 
-  events     ApplicationEvent[]
+  events ApplicationEvent[]
 
-  createdAt  DateTime            @default(now())
-  updatedAt  DateTime            @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([ownerId, company, role])
   @@index([ownerId, status, updatedAt])
@@ -339,56 +364,56 @@ model CompanyTarget {
 }
 
 model ApplicationEvent {
-  id              String              @id @default(cuid())
+  id              String        @id @default(cuid())
   companyTargetId String
-  companyTarget   CompanyTarget       @relation(fields: [companyTargetId], references: [id], onDelete: Cascade)
+  companyTarget   CompanyTarget @relation(fields: [companyTargetId], references: [id], onDelete: Cascade)
 
-  fromStatus      CompanyTargetStatus?
-  toStatus        CompanyTargetStatus
-  note            String?             @db.Text
+  fromStatus CompanyTargetStatus?
+  toStatus   CompanyTargetStatus
+  note       String?              @db.Text
 
-  createdAt       DateTime            @default(now())
+  createdAt DateTime @default(now())
 
   @@index([companyTargetId, createdAt])
   @@map("application_events")
 }
 
 model Education {
-  id          String     @id @default(cuid())
-  ownerId     String
-  owner       User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  id      String @id @default(cuid())
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
-  visibility  Visibility @default(PUBLIC)
+  visibility Visibility @default(PUBLIC)
 
-  school      String
-  major       String?
-  degree      String?
-  startDate   DateTime?
-  endDate     DateTime?
-  summary     String?    @db.Text
+  school    String
+  major     String?
+  degree    String?
+  startDate DateTime?
+  endDate   DateTime?
+  summary   String?   @db.Text
 
-  order       Int        @default(0)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([ownerId, visibility, order])
   @@map("educations")
 }
 
 model Skill {
-  id          String     @id @default(cuid())
-  ownerId     String
-  owner       User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  id      String @id @default(cuid())
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
-  visibility  Visibility @default(PUBLIC)
+  visibility Visibility @default(PUBLIC)
 
-  name        String
-  category    String?    // 예: Frontend/Backend/Infra/Language
-  level       Int?       // 1~5 같은 내부 기준
-  order       Int        @default(0)
+  name     String
+  category String? // 예: Frontend/Backend/Infra/Language
+  level    Int? // 1~5 같은 내부 기준
+  order    Int     @default(0)
 
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([ownerId, name])
   @@index([ownerId, visibility, category, order])
@@ -396,34 +421,34 @@ model Skill {
 }
 
 model Project {
-  id           String     @id @default(cuid())
-  ownerId      String
-  owner        User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  id      String @id @default(cuid())
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
-  visibility   Visibility @default(PUBLIC)
-  isFeatured   Boolean    @default(false)
+  visibility Visibility @default(PUBLIC)
+  isFeatured Boolean    @default(false)
 
-  slug         String     @unique
-  title        String
-  subtitle     String?
-  description  String?    @db.Text
-  contentMd    String     @db.Text
-  techStack    String[]   // v1: 배열로 빠르게(나중에 Tag 테이블로 정규화 가능)
-  startDate    DateTime?
-  endDate      DateTime?
-  isOngoing    Boolean    @default(false)
+  slug        String    @unique
+  title       String
+  subtitle    String?
+  description String?   @db.Text
+  contentMd   String    @db.Text
+  techStack   String[] // v1: 배열로 빠르게(나중에 Tag 테이블로 정규화 가능)
+  startDate   DateTime?
+  endDate     DateTime?
+  isOngoing   Boolean   @default(false)
 
   repoUrl      String?
   demoUrl      String?
   thumbnailUrl String?
 
   highlightsJson Json?
-  order        Int        @default(0)
+  order          Int   @default(0)
 
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  links        ProjectLink[]
+  links ProjectLink[]
 
   @@index([ownerId, visibility, order])
   @@map("projects")
@@ -434,9 +459,9 @@ model ProjectLink {
   projectId String
   project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-  label     String
-  url       String
-  order     Int     @default(0)
+  label String
+  url   String
+  order Int    @default(0)
 
   @@index([projectId, order])
   @@map("project_links")
@@ -445,24 +470,24 @@ model ProjectLink {
 // ========== RESUME (회사별 이력서 관리) — ✅ B 옵션 (조합형) ==========
 
 model Resume {
-  id            String      @id @default(cuid())
-  ownerId       String
-  owner         User        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  id      String @id @default(cuid())
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
-  status        ResumeStatus @default(DRAFT)
+  status ResumeStatus @default(DRAFT)
 
-  title         String       // 내부 관리용 (예: "A사 백엔드 지원 v2")
+  title         String // 내부 관리용 (예: "A사 백엔드 지원 v2")
   targetCompany String?
   targetRole    String?
-  level         String?      // junior/mid/senior
-  summaryMd     String?      @db.Text  // 상단 자기소개/역량 요약
+  level         String? // junior/mid/senior
+  summaryMd     String? @db.Text // 상단 자기소개/역량 요약
 
-  items         ResumeItem[] // Experience 조합
-  shareLinks    ResumeShareLink[]
+  items              ResumeItem[] // Experience 조합
+  shareLinks         ResumeShareLink[]
   featuredBySettings PortfolioSettings[]
 
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([ownerId, status, updatedAt])
   @@index([targetCompany, targetRole])
@@ -470,38 +495,38 @@ model Resume {
 }
 
 model ResumeItem {
-  id                  String   @id @default(cuid())
-  resumeId            String
-  resume              Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  id       String @id @default(cuid())
+  resumeId String
+  resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 
-  experienceId        String
-  experience          Experience @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+  experienceId String
+  experience   Experience @relation(fields: [experienceId], references: [id], onDelete: Cascade)
 
-  sortOrder           Int      // 표시 순서
+  sortOrder Int // 표시 순서
 
   // Override 필드 (이 Resume 전용 커스터마이징)
   overrideBulletsJson Json?
   overrideMetricsJson Json?
   overrideTechTags    String[] // 빈 배열로 대체
 
-  notes               String?  @db.Text  // 내부 메모: "A사에서는 이 경험 강조"
+  notes String? @db.Text // 내부 메모: "A사에서는 이 경험 강조"
 
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@unique([resumeId, experienceId])  // 중복 방지
+  @@unique([resumeId, experienceId]) // 중복 방지
   @@index([resumeId, sortOrder])
   @@map("resume_items")
 }
 
 model ResumeShareLink {
-  id        String   @id @default(cuid())
-  resumeId  String
-  resume    Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  id       String @id @default(cuid())
+  resumeId String
+  resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 
-  token     String   @unique
+  token     String    @unique
   expiresAt DateTime?
-  isRevoked Boolean  @default(false)
+  isRevoked Boolean   @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -513,17 +538,17 @@ model ResumeShareLink {
 // ========== KNOWLEDGE NOTES (지식노트 + 그래프) ==========
 
 model Notebook {
-  id          String   @id @default(cuid())
-  ownerId     String
-  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  id      String @id @default(cuid())
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
-  name        String   // 예: CS, English, Electronics
-  description String?  @db.Text
+  name        String // 예: CS, English, Electronics
+  description String? @db.Text
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  notes       Note[]
+  notes Note[]
 
   @@unique([ownerId, name])
   @@index([ownerId])
@@ -531,29 +556,29 @@ model Notebook {
 }
 
 model Note {
-  id          String     @id @default(cuid())
-  ownerId     String
-  owner       User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  id      String @id @default(cuid())
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
-  notebookId  String
-  notebook    Notebook   @relation(fields: [notebookId], references: [id], onDelete: Cascade)
+  notebookId String
+  notebook   Notebook @relation(fields: [notebookId], references: [id], onDelete: Cascade)
 
-  visibility  Visibility @default(PRIVATE)
+  visibility Visibility @default(PRIVATE)
 
-  title       String
-  contentMd   String     @db.Text
-  summary     String?    @db.Text
-  tags        String[]
+  title     String
+  contentMd String   @db.Text
+  summary   String?  @db.Text
+  tags      String[]
 
   // 자동 연결(그래프) 품질 관리용
   lastLinkedAt DateTime?
   linkMetaJson Json?
 
-  embeddings   NoteEmbedding[]
+  embeddings NoteEmbedding[]
 
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  deletedAt   DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
   outgoingEdges NoteEdge[] @relation("NoteEdgesFrom")
   incomingEdges NoteEdge[] @relation("NoteEdgesTo")
@@ -565,26 +590,26 @@ model Note {
 }
 
 model NoteEdge {
-  id        String        @id @default(cuid())
+  id String @id @default(cuid())
 
-  fromId    String
-  toId      String
+  fromId String
+  toId   String
 
-  from      Note          @relation("NoteEdgesFrom", fields: [fromId], references: [id], onDelete: Cascade)
-  to        Note          @relation("NoteEdgesTo",   fields: [toId],   references: [id], onDelete: Cascade)
+  from Note @relation("NoteEdgesFrom", fields: [fromId], references: [id], onDelete: Cascade)
+  to   Note @relation("NoteEdgesTo", fields: [toId], references: [id], onDelete: Cascade)
 
   // 관계 타입은 v1에선 문자열로 유연하게(예: "prerequisite", "related", "example_of")
   relationType String
 
   // 자동 추천 점수/가중치 (0~1 또는 0~100 등 내부 기준)
-  weight    Float?
+  weight Float?
 
-  status    NoteEdgeStatus @default(CANDIDATE)
-  origin    NoteEdgeOrigin @default(AUTO)
+  status NoteEdgeStatus @default(CANDIDATE)
+  origin NoteEdgeOrigin @default(AUTO)
 
-  reason    String?       @db.Text  // 왜 연결됐는지(모델 근거/키워드 등)
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
+  reason    String?  @db.Text // 왜 연결됐는지(모델 근거/키워드 등)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([fromId, toId, relationType])
   @@index([fromId, status, weight, updatedAt])
@@ -597,21 +622,21 @@ model NoteEdge {
 // Prisma에서 Unsupported 타입은 Client API로 직접 set/create가 안 되는 제약이 있어,
 // v1에서는 "raw SQL로만" 쓰는 용도로 분리해 둡니다.
 model NoteEmbedding {
-  id        String   @id @default(cuid())
-  noteId    String
-  note      Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  noteId String
+  note   Note   @relation(fields: [noteId], references: [id], onDelete: Cascade)
 
-  chunkIndex Int     @default(0)
-  content    String  @db.Text
+  chunkIndex Int    @default(0)
+  content    String @db.Text
 
   // 예: vector(1536) — 차원은 사용하는 임베딩 모델에 맞춰 고정
-  embedding  Unsupported("vector(1536)")?
-  status     NoteEmbeddingStatus @default(PENDING)
+  embedding      Unsupported("vector(1536)")?
+  status         NoteEmbeddingStatus          @default(PENDING)
   lastEmbeddedAt DateTime?
-  error      String?  @db.Text
+  error          String?                      @db.Text
 
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([noteId, chunkIndex])
   @@index([noteId, status, updatedAt])
@@ -622,28 +647,28 @@ model NoteEmbedding {
 // ========== BLOG (내부 작성 + 외부 연동) ==========
 
 model BlogPost {
-  id         String     @id @default(cuid())
-  ownerId    String
-  owner      User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  id      String @id @default(cuid())
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
   status     PostStatus @default(DRAFT)
   visibility Visibility @default(PRIVATE)
 
-  title      String
-  contentMd  String     @db.Text
-  summary    String?    @db.Text
-  tags       String[]
+  title     String
+  contentMd String   @db.Text
+  summary   String?  @db.Text
+  tags      String[]
 
   // 글 검사(표현/규칙) 결과 저장
   lintReportJson Json?
   lastLintedAt   DateTime?
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  deletedAt   DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
-  externals   BlogExternalPost[]
-  exports     BlogExportArtifact[]
+  externals BlogExternalPost[]
+  exports   BlogExportArtifact[]
 
   @@index([ownerId, status, updatedAt])
   @@index([title])
@@ -651,21 +676,21 @@ model BlogPost {
 }
 
 model BlogIntegration {
-  id          String       @id @default(cuid())
-  ownerId     String
-  owner       User         @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  id      String @id @default(cuid())
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
-  platform    BlogPlatform
-  name        String?      // 계정 별칭(예: "네이버-본계정")
-  isEnabled   Boolean      @default(true)
+  platform  BlogPlatform
+  name      String? // 계정 별칭(예: "네이버-본계정")
+  isEnabled Boolean      @default(true)
 
   // 인증 정보(토큰/키 등)는 반드시 암호화 저장 전제로만 사용 (v1은 필드만 확보)
   credentialsJson Json
 
   externalPosts BlogExternalPost[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([ownerId, platform, name])
   @@index([ownerId, platform, isEnabled])
@@ -673,21 +698,21 @@ model BlogIntegration {
 }
 
 model BlogExternalPost {
-  id             String   @id @default(cuid())
+  id String @id @default(cuid())
 
-  blogPostId     String
-  blogPost       BlogPost @relation(fields: [blogPostId], references: [id], onDelete: Cascade)
+  blogPostId String
+  blogPost   BlogPost @relation(fields: [blogPostId], references: [id], onDelete: Cascade)
 
-  integrationId  String
-  integration    BlogIntegration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  integrationId String
+  integration   BlogIntegration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
 
-  externalId     String?  // 외부 플랫폼 글 ID
-  externalUrl    String?
-  lastSyncedAt   DateTime?
-  syncMetaJson   Json?
+  externalId   String? // 외부 플랫폼 글 ID
+  externalUrl  String?
+  lastSyncedAt DateTime?
+  syncMetaJson Json?
 
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([integrationId, externalId])
   @@index([blogPostId])
@@ -695,12 +720,12 @@ model BlogExternalPost {
 }
 
 model BlogExportArtifact {
-  id           String   @id @default(cuid())
-  ownerId      String
-  owner        User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  id      String @id @default(cuid())
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
-  blogPostId   String
-  blogPost     BlogPost @relation(fields: [blogPostId], references: [id], onDelete: Cascade)
+  blogPostId String
+  blogPost   BlogPost @relation(fields: [blogPostId], references: [id], onDelete: Cascade)
 
   format       String
   fileName     String
@@ -709,7 +734,7 @@ model BlogExportArtifact {
   snapshotHash String
   payload      Bytes
 
-  createdAt    DateTime @default(now())
+  createdAt DateTime @default(now())
 
   @@index([ownerId, createdAt])
   @@index([blogPostId, createdAt])
@@ -717,16 +742,16 @@ model BlogExportArtifact {
 }
 
 model AuditLog {
-  id         String   @id @default(cuid())
-  actorId    String
-  actor      User     @relation(fields: [actorId], references: [id], onDelete: Cascade)
+  id      String @id @default(cuid())
+  actorId String
+  actor   User   @relation(fields: [actorId], references: [id], onDelete: Cascade)
 
   action     String
   entityType String
   entityId   String
   metaJson   Json?
 
-  createdAt  DateTime @default(now())
+  createdAt DateTime @default(now())
 
   @@index([actorId, createdAt])
   @@index([entityType, entityId, createdAt])
@@ -734,9 +759,9 @@ model AuditLog {
 }
 
 model DomainLink {
-  id         String               @id @default(cuid())
-  ownerId    String
-  owner      User                 @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  id      String @id @default(cuid())
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
   sourceType DomainLinkEntityType
   sourceId   String
@@ -744,8 +769,8 @@ model DomainLink {
   targetId   String
   context    String?
 
-  createdAt  DateTime             @default(now())
-  updatedAt  DateTime             @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([ownerId, sourceType, sourceId, targetType, targetId])
   @@index([ownerId, sourceType, sourceId, updatedAt])
@@ -756,14 +781,14 @@ model DomainLink {
 // ========== PAGE VIEW (방문 분석) ==========
 
 model PageView {
-  id        String   @id @default(cuid())
-  ownerId   String
-  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  id      String @id @default(cuid())
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
-  pageType  String   // "home" | "experiences" | "projects" | "project_detail"
-  pageSlug  String?  // project detail 등 slug
+  pageType String // "home" | "experiences" | "projects" | "project_detail"
+  pageSlug String? // project detail 등 slug
 
-  referrer  String?  @db.Text
+  referrer String? @db.Text
 
   createdAt DateTime @default(now())
 
@@ -775,31 +800,31 @@ model PageView {
 // ========== TESTIMONIAL (추천서/동료 평가) ==========
 
 model Testimonial {
-  id              String             @id @default(cuid())
-  ownerId         String
-  owner           User               @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  id      String @id @default(cuid())
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
   // 작성자 정보 (외부 작성자가 채움)
-  authorName      String?
-  authorTitle     String?            // "Senior Engineer"
-  authorCompany   String?
-  authorEmail     String?
-  relationship    String?            // "동료", "상사", "멘토", "클라이언트"
+  authorName    String?
+  authorTitle   String? // "Senior Engineer"
+  authorCompany String?
+  authorEmail   String?
+  relationship  String? // "동료", "상사", "멘토", "클라이언트"
 
   // 내용
-  content         String?            @db.Text
-  rating          Int?               // 1~5
+  content String? @db.Text
+  rating  Int? // 1~5
 
   // 상태 관리
-  status          TestimonialStatus  @default(PENDING)
-  shareToken      String             @unique
+  status     TestimonialStatus @default(PENDING)
+  shareToken String            @unique
 
   // 공개 표시
-  isPublic        Boolean            @default(false)
-  displayOrder    Int                @default(0)
+  isPublic     Boolean @default(false)
+  displayOrder Int     @default(0)
 
-  createdAt       DateTime           @default(now())
-  updatedAt       DateTime           @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([ownerId, status])
   @@index([shareToken])
@@ -809,17 +834,17 @@ model Testimonial {
 // ========== GROWTH TIMELINE (성장 타임라인) ==========
 
 model GrowthEvent {
-  id          String   @id @default(cuid())
-  ownerId     String
-  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  id      String @id @default(cuid())
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
-  type        String   // SKILL_ADDED | PROJECT_CREATED | EXPERIENCE_ADDED | RESUME_CREATED | NOTE_CREATED | JOB_APPLIED | OFFER_RECEIVED | CUSTOM
+  type        String // SKILL_ADDED | PROJECT_CREATED | EXPERIENCE_ADDED | RESUME_CREATED | NOTE_CREATED | JOB_APPLIED | OFFER_RECEIVED | CUSTOM
   title       String
-  description String?  @db.Text
-  entityId    String?  // 소스 엔티티 ID (프로젝트, 경력 등)
+  description String? @db.Text
+  entityId    String? // 소스 엔티티 ID (프로젝트, 경력 등)
 
-  occurredAt  DateTime // 이벤트 실제 발생 시점
-  createdAt   DateTime @default(now())
+  occurredAt DateTime // 이벤트 실제 발생 시점
+  createdAt  DateTime @default(now())
 
   @@index([ownerId, occurredAt])
   @@index([ownerId, type])
@@ -829,46 +854,46 @@ model GrowthEvent {
 // ========== FEEDBACK (자동 피드백 요청/결과) ==========
 
 model FeedbackRequest {
-  id           String           @id @default(cuid())
-  ownerId      String
-  owner        User             @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  id      String @id @default(cuid())
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
-  targetType   FeedbackTargetType
-  targetId     String
+  targetType FeedbackTargetType
+  targetId   String
 
   // 포트폴리오/이력서: 지원 회사/직무 컨텍스트
-  contextJson  Json?
+  contextJson Json?
 
   // NOTE/BLOG: 사실성 검증/근거 링크/정정 포인트 등
-  optionsJson  Json?
+  optionsJson Json?
 
-  status       String           @default("QUEUED") // QUEUED/RUNNING/DONE/FAILED 등
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
+  status    String   @default("QUEUED") // QUEUED/RUNNING/DONE/FAILED 등
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  items        FeedbackItem[]
+  items FeedbackItem[]
 
   @@index([ownerId, targetType, createdAt])
   @@map("feedback_requests")
 }
 
 model FeedbackItem {
-  id          String   @id @default(cuid())
-  requestId   String
-  request     FeedbackRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  id        String          @id @default(cuid())
+  requestId String
+  request   FeedbackRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
 
-  severity    String   // INFO/WARN/CRITICAL 등
-  title       String
-  message     String   @db.Text
-  suggestion  String?  @db.Text
+  severity   String // INFO/WARN/CRITICAL 등
+  title      String
+  message    String  @db.Text
+  suggestion String? @db.Text
 
   // 출처/근거(링크/인용 등)
   evidenceJson Json?
 
   // 어떤 부분을 지적했는지(예: resume.section, note.paragraph range)
-  pointerJson  Json?
+  pointerJson Json?
 
-  createdAt   DateTime @default(now())
+  createdAt DateTime @default(now())
 
   @@index([requestId, severity])
   @@map("feedback_items")
@@ -877,26 +902,26 @@ model FeedbackItem {
 // ========== COVER LETTER (합격 자소서 RAG 기반 생성) ==========
 
 model CoverLetter {
-  id            String            @id @default(cuid())
-  ownerId       String
-  owner         User              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  id      String @id @default(cuid())
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
-  status        CoverLetterStatus @default(DRAFT)
-  isReference   Boolean           @default(false) // 합격 자소서 마킹 (RAG 코퍼스)
+  status      CoverLetterStatus @default(DRAFT)
+  isReference Boolean           @default(false) // 합격 자소서 마킹 (RAG 코퍼스)
 
-  title         String            // 내부 관리용 (예: "A사 프론트엔드 합격 자소서")
+  title         String // 내부 관리용 (예: "A사 프론트엔드 합격 자소서")
   targetCompany String?
   targetRole    String?
-  contentMd     String            @db.Text // 자기소개서 본문 (마크다운)
+  contentMd     String  @db.Text // 자기소개서 본문 (마크다운)
 
   // 선택적 연결 — 어떤 이력서/경력 기반으로 작성했는지
-  resumeId      String?
-  experienceId  String?
+  resumeId     String?
+  experienceId String?
 
-  embeddings    CoverLetterEmbedding[]
+  embeddings CoverLetterEmbedding[]
 
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([ownerId, status, updatedAt])
   @@index([ownerId, isReference])
@@ -905,23 +930,131 @@ model CoverLetter {
 }
 
 model CoverLetterEmbedding {
-  id             String                     @id @default(cuid())
-  coverLetterId  String
-  coverLetter    CoverLetter                @relation(fields: [coverLetterId], references: [id], onDelete: Cascade)
+  id            String      @id @default(cuid())
+  coverLetterId String
+  coverLetter   CoverLetter @relation(fields: [coverLetterId], references: [id], onDelete: Cascade)
 
-  chunkIndex     Int                        @default(0)
-  content        String                     @db.Text
+  chunkIndex Int    @default(0)
+  content    String @db.Text
 
   embedding      Unsupported("vector(1536)")?
-  status         CoverLetterEmbeddingStatus @default(PENDING)
+  status         CoverLetterEmbeddingStatus   @default(PENDING)
   lastEmbeddedAt DateTime?
-  error          String?                    @db.Text
+  error          String?                      @db.Text
 
-  createdAt      DateTime                   @default(now())
-  updatedAt      DateTime                   @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([coverLetterId, chunkIndex])
   @@index([coverLetterId, status, updatedAt])
   @@index([status, chunkIndex, updatedAt])
   @@map("cover_letter_embeddings")
+}
+
+// ========== JUNDEV-OS CONTROL PLANE ==========
+
+model SystemEvent {
+  id      String @id @default(cuid())
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  system      ControlSystem
+  type        String
+  title       String
+  summary     String?       @db.Text
+  severity    String        @default("INFO")
+  payloadJson Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([ownerId, createdAt])
+  @@index([ownerId, system, createdAt])
+  @@index([ownerId, type, createdAt])
+  @@map("system_events")
+}
+
+model SystemReport {
+  id      String @id @default(cuid())
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  system      ControlSystem
+  title       String
+  bodyMd      String        @db.Text
+  source      String
+  tags        String[]
+  payloadJson Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerId, system, updatedAt])
+  @@index([ownerId, createdAt])
+  @@map("system_reports")
+}
+
+model SystemDecision {
+  id      String @id @default(cuid())
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  system      ControlSystem
+  title       String
+  description String         @db.Text
+  status      DecisionStatus @default(OPEN)
+  optionsJson Json?
+  result      String?        @db.Text
+  resolvedAt  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerId, status, updatedAt])
+  @@index([ownerId, system, status])
+  @@map("system_decisions")
+}
+
+model ContentJob {
+  id      String @id @default(cuid())
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  system      ControlSystem
+  title       String
+  channel     String
+  status      OperationalStatus @default(PLANNED)
+  priority    Int               @default(2)
+  description String?           @db.Text
+  dueAt       DateTime?
+  payloadJson Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerId, status, updatedAt])
+  @@index([ownerId, system, status])
+  @@index([ownerId, dueAt])
+  @@map("content_jobs")
+}
+
+model WorkflowRun {
+  id      String @id @default(cuid())
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  system      ControlSystem
+  workflowKey String
+  status      OperationalStatus @default(RUNNING)
+  summary     String?           @db.Text
+  metricsJson Json?
+  logJson     Json?
+  startedAt   DateTime          @default(now())
+  finishedAt  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerId, workflowKey, createdAt])
+  @@index([ownerId, system, status])
+  @@map("workflow_runs")
 }

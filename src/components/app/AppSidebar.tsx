@@ -18,6 +18,7 @@ type NavItem = {
 const NAV_GROUPS: NavItem[][] = [
   [
     { href: "/app", label: "대시보드" },
+    { href: "/app/jundev-os", label: "Control Plane", prefetch: false },
     { href: "/app/projects", label: "프로젝트" },
     { href: "/app/experiences", label: "경력" },
     { href: "/app/skills", label: "기술 스택" },
