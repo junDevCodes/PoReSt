@@ -13,6 +13,7 @@ const TYPE_LABEL: Record<JundevOsGraphNode["type"], string> = {
   decision: "decision",
   job: "job",
   report: "report",
+  vault: "vault",
 };
 
 export function GraphView({ graph }: Props) {
