@@ -1,5 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/auth";
 import { getMetadataBase } from "@/lib/site-url";
 import { loadJundevOsSnapshot } from "@/lib/jundevos-snapshot";
 import { GraphView } from "@/components/jundev-os/GraphView";
@@ -50,8 +52,10 @@ function formatTime(iso: string): string {
   return iso.slice(0, 16).replace("T", " ");
 }
 
-export default function HomePage() {
+export default async function HomePage() {
   const snapshot = loadJundevOsSnapshot();
+  const session = await getServerSession(authOptions);
+  const hasSession = Boolean(session?.user?.id);
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#f6f5f2] text-[#1a1a1a]">
@@ -332,12 +336,21 @@ export default function HomePage() {
             >
               PoReSt 소개
             </Link>
-            <Link
-              href="/login"
-              className="rounded-full border border-black/20 px-5 py-3 text-sm font-semibold text-black transition hover:border-black/40"
-            >
-              로그인
-            </Link>
+            {hasSession ? (
+              <Link
+                href="/app"
+                className="rounded-full border border-black/20 px-5 py-3 text-sm font-semibold text-black transition hover:border-black/40"
+              >
+                워크스페이스로 이동
+              </Link>
+            ) : (
+              <Link
+                href="/login"
+                className="rounded-full border border-black/20 px-5 py-3 text-sm font-semibold text-black transition hover:border-black/40"
+              >
+                로그인
+              </Link>
+            )}
             <Link
               href="/projects"
               className="rounded-full border border-black/20 px-5 py-3 text-sm font-semibold text-black transition hover:border-black/40"
