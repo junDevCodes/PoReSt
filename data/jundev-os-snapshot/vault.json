@@ -1,0 +1,147 @@
+{
+  "generated_at": "2026-05-05T14:59:00.000Z",
+  "counts": {
+    "total": 10,
+    "by_category": {
+      "00_Inbox": 1,
+      "30_Areas": 5,
+      "60_Fear_Ledger": 2,
+      "(root)": 1,
+      "vault": 1
+    },
+    "total_wikilinks": 2,
+    "total_words": 2696
+  },
+  "entries": [
+    {
+      "id": "vault-00_Inbox_README_md",
+      "rel_path": "00_Inbox/README.md",
+      "category": "00_Inbox",
+      "title": "Inbox",
+      "mtime": "2026-04-19T21:17:43.833Z",
+      "tags": [],
+      "word_count": 31,
+      "wikilink_count": 0,
+      "backlink_count": 0,
+      "wikilinks_out": []
+    },
+    {
+      "id": "vault-30_Areas_30_1___Health_md",
+      "rel_path": "30_Areas/30.1 - Health.md",
+      "category": "30_Areas",
+      "title": "30.1 건강 (Health)",
+      "mtime": "2026-04-19T22:42:18.763Z",
+      "tags": [],
+      "word_count": 252,
+      "wikilink_count": 0,
+      "backlink_count": 0,
+      "wikilinks_out": []
+    },
+    {
+      "id": "vault-30_Areas_30_2___Knowledge_md",
+      "rel_path": "30_Areas/30.2 - Knowledge.md",
+      "category": "30_Areas",
+      "title": "30.2 지식 (Knowledge)",
+      "mtime": "2026-04-19T22:50:14.073Z",
+      "tags": [],
+      "word_count": 459,
+      "wikilink_count": 0,
+      "backlink_count": 0,
+      "wikilinks_out": []
+    },
+    {
+      "id": "vault-30_Areas_30_3___Language_md",
+      "rel_path": "30_Areas/30.3 - Language.md",
+      "category": "30_Areas",
+      "title": "30.3 언어 (Language)",
+      "mtime": "2026-04-19T22:56:28.944Z",
+      "tags": [],
+      "word_count": 361,
+      "wikilink_count": 0,
+      "backlink_count": 0,
+      "wikilinks_out": []
+    },
+    {
+      "id": "vault-30_Areas_30_4___Success_md",
+      "rel_path": "30_Areas/30.4 - Success.md",
+      "category": "30_Areas",
+      "title": "30.4 성공 (Success)",
+      "mtime": "2026-04-19T23:12:00.043Z",
+      "tags": [],
+      "word_count": 555,
+      "wikilink_count": 0,
+      "backlink_count": 0,
+      "wikilinks_out": []
+    },
+    {
+      "id": "vault-30_Areas_30_5___Relationship_md",
+      "rel_path": "30_Areas/30.5 - Relationship.md",
+      "category": "30_Areas",
+      "title": "30.5 관계 (Relationship)",
+      "mtime": "2026-04-19T23:26:21.384Z",
+      "tags": [],
+      "word_count": 381,
+      "wikilink_count": 0,
+      "backlink_count": 0,
+      "wikilinks_out": []
+    },
+    {
+      "id": "vault-60_Fear_Ledger_60___Q2_2026___Fear_md",
+      "rel_path": "60_Fear_Ledger/60 - Q2 2026 - Fear.md",
+      "category": "60_Fear_Ledger",
+      "title": "Fear Ledger — Q2 2026",
+      "mtime": "2026-04-19T23:12:19.791Z",
+      "tags": [],
+      "word_count": 348,
+      "wikilink_count": 0,
+      "backlink_count": 0,
+      "wikilinks_out": []
+    },
+    {
+      "id": "vault-60_Fear_Ledger_README_md",
+      "rel_path": "60_Fear_Ledger/README.md",
+      "category": "60_Fear_Ledger",
+      "title": "Fear Ledger",
+      "mtime": "2026-04-19T21:17:41.721Z",
+      "tags": [],
+      "word_count": 60,
+      "wikilink_count": 0,
+      "backlink_count": 0,
+      "wikilinks_out": []
+    },
+    {
+      "id": "vault-README_md",
+      "rel_path": "README.md",
+      "category": "(root)",
+      "title": "Life Hack Vault — Thought Layer",
+      "mtime": "2026-04-19T21:16:57.175Z",
+      "tags": [],
+      "word_count": 229,
+      "wikilink_count": 1,
+      "backlink_count": 0,
+      "wikilinks_out": [
+        "wikilink"
+      ]
+    },
+    {
+      "id": "vault-vault________md",
+      "rel_path": "vault/환영합니다!.md",
+      "category": "vault",
+      "title": "환영합니다!",
+      "mtime": "2026-04-19T22:21:03.575Z",
+      "tags": [],
+      "word_count": 20,
+      "wikilink_count": 1,
+      "backlink_count": 0,
+      "wikilinks_out": [
+        "create a link"
+      ]
+    }
+  ],
+  "lint": {
+    "orphans_count": 8,
+    "broken_links_count": 2,
+    "stale_count": 0,
+    "health": "warn"
+  }
+}

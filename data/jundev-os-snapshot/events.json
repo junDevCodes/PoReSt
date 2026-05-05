@@ -1,0 +1,606 @@
+[
+  {
+    "id": "evt-1d49646d-2763-448c-94b1-6abe84dd2f0c",
+    "occurred_at": "2026-05-05T14:53:56.976Z",
+    "source_system": "jarvis",
+    "source_ref": "",
+    "event_type": "workflow.started",
+    "level": "L1",
+    "priority": "normal",
+    "summary": "C cluster (Vault → Graph 통합) — v2.0.0 closing",
+    "payload": {
+      "cluster": "C",
+      "sub_tasks": [
+        "C.1 graph.js vault nodes",
+        "C.2 snapshot TS",
+        "C.3 GraphView style",
+        "C.V e2e"
+      ]
+    },
+    "metadata": {
+      "priority": "normal",
+      "format_hint": "compact",
+      "template": null,
+      "channel_hint": null
+    },
+    "links": [],
+    "status": "new"
+  },
+  {
+    "id": "evt-32a9b43e-e1ea-4d29-8431-e7907927ba4a",
+    "occurred_at": "2026-05-05T14:49:46.718Z",
+    "source_system": "jarvis",
+    "source_ref": "",
+    "event_type": "workflow.completed",
+    "level": "L1",
+    "priority": "normal",
+    "summary": "W4 cluster + jundev-os v2.0.0 complete",
+    "payload": {
+      "cluster": "W4",
+      "version": "v2.0.0",
+      "sub_tasks": [
+        "W4.1 tts.js (zero-dep PS SAPI)",
+        "W4.2 routes.json (decision-required-tts)",
+        "W4.3 autoplay default ON",
+        "W4.4 R7 sink 1→2 (v2 bump)",
+        "W4.V wav 432KB ko-KR Heami"
+      ],
+      "sink_count": 2,
+      "sink_allowlist": [
+        "local-markdown",
+        "tts"
+      ],
+      "npm_test": "pass (TTS mocked)",
+      "operating_rules": "8/8 PASS",
+      "v2_clusters": [
+        "W1",
+        "W2",
+        "W3",
+        "W4"
+      ]
+    },
+    "metadata": {
+      "priority": "normal",
+      "format_hint": "compact",
+      "template": null,
+      "channel_hint": null
+    },
+    "links": [],
+    "status": "new"
+  },
+  {
+    "id": "evt-b6e95b29-36db-4f0d-bff8-6a488b35fd66",
+    "occurred_at": "2026-05-05T14:47:35.383Z",
+    "source_system": "money",
+    "source_ref": "",
+    "event_type": "decision.required",
+    "level": "L3",
+    "priority": "high",
+    "summary": "W4 ���� ���� ��û ? TTS sink �߻� �׽�Ʈ",
+    "payload": {},
+    "metadata": {
+      "priority": "high",
+      "format_hint": "compact",
+      "template": null,
+      "channel_hint": null
+    },
+    "links": [],
+    "status": "new"
+  },
+  {
+    "id": "evt-56438afc-0e35-47a9-b51a-aaba4ec0c939",
+    "occurred_at": "2026-05-05T14:32:57.163Z",
+    "source_system": "jarvis",
+    "source_ref": "",
+    "event_type": "workflow.started",
+    "level": "L1",
+    "priority": "normal",
+    "summary": "W4 (TTS sink) started — PowerShell SAPI, default autoplay ON",
+    "payload": {
+      "cluster": "W4",
+      "decisions": {
+        "provider": "PowerShell SAPI (zero-dep)",
+        "autoplay": "default ON, JUNDEVOS_TTS_AUTOPLAY=0 to disable",
+        "trigger": "decision.required only",
+        "r7": "sink 1→2 (major bump)",
+        "retention": "7 days",
+        "language": "ko-KR"
+      }
+    },
+    "metadata": {
+      "priority": "normal",
+      "format_hint": "compact",
+      "template": null,
+      "channel_hint": null
+    },
+    "links": [],
+    "status": "new"
+  },
+  {
+    "id": "evt-217292ec-1243-492a-b5df-7cb728fc8498",
+    "occurred_at": "2026-05-05T14:14:12.874Z",
+    "source_system": "jarvis",
+    "source_ref": "",
+    "event_type": "workflow.completed",
+    "level": "L1",
+    "priority": "normal",
+    "summary": "W3 cluster complete (Second Brain vault ingest)",
+    "payload": {
+      "cluster": "W3",
+      "sub_tasks": [
+        "W3.1 vault.js scanner",
+        "W3.2 buildVaultIndex",
+        "W3.3 publicVaultIndex (privacy)",
+        "W3.4 dashboard panel",
+        "W3.V e2e 11/11"
+      ],
+      "vault_stats": "10 entries / 2696 words / 2 wikilinks",
+      "lint_health": "warn (orphans 8, broken 2)",
+      "privacy": "body excluded from public deploy, meta only",
+      "e2e": "11/11 pass (5.9s)"
+    },
+    "metadata": {
+      "priority": "normal",
+      "format_hint": "compact",
+      "template": null,
+      "channel_hint": null
+    },
+    "links": [],
+    "status": "new"
+  },
+  {
+    "id": "evt-be96d812-2f51-4d28-b4d6-dfe3a2ec2d36",
+    "occurred_at": "2026-05-05T14:03:56.448Z",
+    "source_system": "jarvis",
+    "source_ref": "",
+    "event_type": "workflow.started",
+    "level": "L1",
+    "priority": "normal",
+    "summary": "W3 (second brain ingest) started — vault scanner + metadata only (privacy)",
+    "payload": {
+      "cluster": "W3",
+      "sub_tasks": [
+        "W3.1 scanner",
+        "W3.2 index",
+        "W3.3 ingest+lint",
+        "W3.4 dashboard",
+        "W3.V e2e"
+      ],
+      "vault_path": "Life Hack/vault",
+      "decision": "metadata-only (no body to public deploy)",
+      "zero_dep": "true (no chokidar, fs.readdirSync recursive)"
+    },
+    "metadata": {
+      "priority": "normal",
+      "format_hint": "compact",
+      "template": null,
+      "channel_hint": null
+    },
+    "links": [],
+    "status": "new"
+  },
+  {
+    "id": "evt-ac5f19ca-5ef3-4e69-b699-37271df9b493",
+    "occurred_at": "2026-05-05T13:57:19.385Z",
+    "source_system": "jarvis",
+    "source_ref": "",
+    "event_type": "workflow.completed",
+    "level": "L1",
+    "priority": "normal",
+    "summary": "W2 cluster complete (knowledge graph live)",
+    "payload": {
+      "cluster": "W2",
+      "sub_tasks": [
+        "W2.1 graph.js",
+        "W2.2 /api/graph",
+        "W2.3 GraphView (cytoscape)",
+        "W2.V e2e 10/10"
+      ],
+      "graph_stats": "31 nodes / 27 edges",
+      "e2e": "10/10 pass (5.9s)",
+      "npm_test": "pass",
+      "operating_rules": "8/8"
+    },
+    "metadata": {
+      "priority": "normal",
+      "format_hint": "compact",
+      "template": null,
+      "channel_hint": null
+    },
+    "links": [],
+    "status": "new"
+  },
+  {
+    "id": "evt-7039fa8f-fd2e-4ac2-9a58-d1096c01c18e",
+    "occurred_at": "2026-05-05T13:25:40.637Z",
+    "source_system": "jarvis",
+    "source_ref": "",
+    "event_type": "workflow.started",
+    "level": "L1",
+    "priority": "normal",
+    "summary": "W2 (knowledge graph) started",
+    "payload": {
+      "cluster": "W2",
+      "sub_tasks": [
+        "W2.1",
+        "W2.2",
+        "W2.3",
+        "W2.V"
+      ]
+    },
+    "metadata": {
+      "priority": "normal",
+      "format_hint": "compact",
+      "template": null,
+      "channel_hint": null
+    },
+    "links": [],
+    "status": "new"
+  },
+  {
+    "id": "evt-11265266-8f23-4753-bf73-f07910e8d956",
+    "occurred_at": "2026-05-05T13:15:04.475Z",
+    "source_system": "jarvis",
+    "source_ref": "",
+    "event_type": "workflow.completed",
+    "level": "L1",
+    "priority": "normal",
+    "summary": "W1 cluster complete (W1.1-W1.4)",
+    "payload": {
+      "cluster": "W1",
+      "sub_tasks_complete": [
+        "W1.1 root page",
+        "W1.2 decision queue + sink summary",
+        "W1.3 e2e (9/9 pass)",
+        "W1.4 Vercel-friendly snapshot path"
+      ],
+      "e2e_results": "9/9 pass (3.6s)",
+      "option_C": "preserved (basePath unused, portfolio SEO intact)",
+      "deploy_status": "local verified, prod push pending user confirm",
+      "artifacts": [
+        "PoReSt/src/app/(public)/page.tsx",
+        "PoReSt/src/app/(public)/landing/page.tsx",
+        "PoReSt/src/lib/jundevos-snapshot.ts",
+        "PoReSt/scripts/copy-jundevos-snapshot.js",
+        "PoReSt/data/jundev-os-snapshot/*.json",
+        "PoReSt/e2e/jundev-os-root.spec.ts",
+        "PoReSt/package.json (vercel-build + snapshot:sync)"
+      ]
+    },
+    "metadata": {
+      "priority": "normal",
+      "format_hint": "compact",
+      "template": null,
+      "channel_hint": null
+    },
+    "links": [],
+    "status": "new"
+  },
+  {
+    "id": "evt-ddc3951b-82ab-4b48-9f31-ab7f00cd2f32",
+    "occurred_at": "2026-05-05T12:49:54.342Z",
+    "source_system": "jarvis",
+    "source_ref": "",
+    "event_type": "workflow.phase.advanced",
+    "level": "L1",
+    "priority": "normal",
+    "summary": "W1.1 complete — jundev-os public dashboard live at jundevcodes.info root",
+    "payload": {
+      "cluster": "W1",
+      "sub_task": "W1.1",
+      "snapshot_source": "live",
+      "option": "C",
+      "paths": [
+        "/",
+        "/landing",
+        "/portfolio/jundevcodes"
+      ]
+    },
+    "metadata": {
+      "priority": "normal",
+      "format_hint": "compact",
+      "template": null,
+      "channel_hint": null
+    },
+    "links": [],
+    "status": "new"
+  },
+  {
+    "id": "evt-3b4cd40e-0901-44b7-a3e2-23e699591e09",
+    "occurred_at": "2026-05-05T12:37:17.992Z",
+    "source_system": "jarvis",
+    "source_ref": "",
+    "event_type": "workflow.started",
+    "level": "L1",
+    "priority": "normal",
+    "summary": "Stage W1 (web infra + dashboard) started + 운영 룰 #2 일시 보류",
+    "payload": {
+      "cluster": "W1",
+      "sub_tasks": [
+        "W1.1",
+        "W1.2",
+        "W1.3",
+        "W1.4",
+        "W1.V"
+      ],
+      "operation_rule_2_paused": "사용자 명시 — 당분간 본업 상관없이 진행",
+      "l2_l3_signals": "still active",
+      "prod_deploy": "still requires explicit confirm"
+    },
+    "metadata": {
+      "priority": "normal",
+      "format_hint": "compact",
+      "template": null,
+      "channel_hint": null
+    },
+    "links": [],
+    "status": "new"
+  },
+  {
+    "id": "evt-36545d0e-7bfd-444a-ba5b-502ec3b6ccb7",
+    "occurred_at": "2026-05-05T12:32:04.070Z",
+    "source_system": "jarvis",
+    "source_ref": "",
+    "event_type": "status.summary",
+    "level": "L1",
+    "priority": "normal",
+    "summary": "v2.0.0 plan approved (4 cluster: W1 web → W2 graph → W3 brain → W4 TTS)",
+    "payload": {
+      "version": "v2.0.0-plan",
+      "clusters": [
+        "W1",
+        "W2",
+        "W3",
+        "W4"
+      ],
+      "deferred_v3": [
+        "STT",
+        "Vision",
+        "Claude Code 대화 ingest"
+      ],
+      "time_split": "80/20 (본업 우선)",
+      "sink_count_change": "1→2 (W4 TTS, major bump 정당화)",
+      "w1_decision": "option C (root page only, SEO 보존)"
+    },
+    "metadata": {
+      "priority": "normal",
+      "format_hint": "compact",
+      "template": null,
+      "channel_hint": null
+    },
+    "links": [],
+    "status": "new"
+  },
+  {
+    "id": "evt-bb8d44aa-0f48-45f3-8b13-5b828eaa87cb",
+    "occurred_at": "2026-05-05T12:03:42.529Z",
+    "source_system": "money",
+    "source_ref": "",
+    "event_type": "policy.blocked",
+    "level": "L2",
+    "priority": "high",
+    "summary": "DEMO: ����ڰ� ���� Ȯ���� �� �ִ� sink ��� ����",
+    "payload": {},
+    "metadata": {
+      "priority": "high",
+      "format_hint": "compact",
+      "template": null,
+      "channel_hint": null
+    },
+    "links": [],
+    "status": "new"
+  },
+  {
+    "id": "evt-a2e28c14-c6e6-4a29-9b17-5af0fb093417",
+    "occurred_at": "2026-05-05T11:57:11.498Z",
+    "source_system": "jarvis",
+    "source_ref": "",
+    "event_type": "status.summary",
+    "level": "L1",
+    "priority": "normal",
+    "summary": "Stage 4 (P5 DEFER 차용) complete + jundev-os v1.0.0",
+    "payload": {
+      "stage": "4",
+      "cluster": "P5",
+      "sub_tasks_completed": [
+        "A1_team_execution",
+        "A2_korea_market",
+        "A3_porest_contract",
+        "A4_obsidian_contract",
+        "A5_explore_rule",
+        "A6_validate_workspace_AsJson",
+        "A7_archive_index"
+      ],
+      "npm_test": "pass",
+      "operating_rule_check": "8/8",
+      "validate_text": "OK 50/Warn 1/Fail 0",
+      "validate_json": "ok=50 warn=1 fail=0 passed=true",
+      "version": "v1.0.0"
+    },
+    "metadata": {
+      "priority": "normal",
+      "format_hint": "compact",
+      "template": null,
+      "channel_hint": null
+    },
+    "links": [],
+    "status": "new"
+  },
+  {
+    "id": "evt-7e96df84-46e5-4fe2-9430-f499dbbee7b4",
+    "occurred_at": "2026-05-05T11:37:15.911Z",
+    "source_system": "jarvis",
+    "source_ref": "",
+    "event_type": "status.summary",
+    "level": "L1",
+    "priority": "normal",
+    "summary": "Stage 4 entered",
+    "payload": {
+      "stage": "4",
+      "cluster": "P5 DEFER 차용",
+      "sub_tasks": [
+        "A1",
+        "A2",
+        "A3",
+        "A4",
+        "A5",
+        "A6",
+        "A7"
+      ]
+    },
+    "metadata": {
+      "priority": "normal",
+      "format_hint": "compact",
+      "template": null,
+      "channel_hint": null
+    },
+    "links": [],
+    "status": "new"
+  },
+  {
+    "id": "evt-2f399aef-a6d5-4002-b50e-f76ef4f74646",
+    "occurred_at": "2026-05-05T11:34:27.543Z",
+    "source_system": "jarvis",
+    "source_ref": "",
+    "event_type": "status.summary",
+    "level": "L1",
+    "priority": "normal",
+    "summary": "Stage 3 (P4 Diagnostic) complete",
+    "payload": {
+      "stage": "3",
+      "cluster": "P4",
+      "sub_tasks": [
+        "P4.1",
+        "P4.2",
+        "P4.3",
+        "P4.4"
+      ],
+      "npm_test": "pass",
+      "operating_rule_check": "8/8",
+      "validate_workspace": "OK 50 / Warn 1 / Fail 0",
+      "getDiagnostic": "overall=ok 5/5"
+    },
+    "metadata": {
+      "priority": "normal",
+      "format_hint": "compact",
+      "template": null,
+      "channel_hint": null
+    },
+    "links": [],
+    "status": "new"
+  },
+  {
+    "id": "evt-f08559b6-cb65-43ec-a4f5-b163681ed230",
+    "occurred_at": "2026-05-05T11:05:10.246Z",
+    "source_system": "jarvis",
+    "source_ref": "docs/parallel-execution-plan.md#Stage-2B",
+    "event_type": "status.summary",
+    "level": "L1",
+    "priority": "normal",
+    "summary": "Stage 2B completed — P2.10/P2.11/P3.1/P3.2/P3.3/P2.6 = 6 sub-task",
+    "payload": {
+      "stage": "2B",
+      "cluster": "P2+P3 code",
+      "sub_tasks_completed": 6,
+      "next_stage": "3",
+      "next_cluster": "P4 Diagnostic",
+      "next_sub_tasks": [
+        "P4.1",
+        "P4.2",
+        "P4.3",
+        "P4.4"
+      ]
+    },
+    "metadata": {
+      "priority": "normal",
+      "format_hint": "compact",
+      "template": null,
+      "channel_hint": null
+    },
+    "links": [],
+    "status": "new"
+  },
+  {
+    "id": "evt-6af12f97-a40c-4b0f-a9ec-2a9f668beb21",
+    "occurred_at": "2026-05-05T09:55:46.366Z",
+    "source_system": "jarvis",
+    "source_ref": "docs/parallel-execution-plan.md#Stage-2A",
+    "event_type": "status.summary",
+    "level": "L1",
+    "priority": "normal",
+    "summary": "Stage 2A completed — P2 docs (7 sub-task) + P3 docs (8 sub-task) = 15 sub-task",
+    "payload": {
+      "stage": "2A",
+      "cluster": "P2+P3 docs",
+      "sub_tasks_completed": 15,
+      "next_stage": "2B",
+      "next_cluster": "P2+P3 code",
+      "next_sub_tasks": [
+        "P2.10",
+        "P2.11",
+        "P3.1",
+        "P3.2",
+        "P3.3",
+        "P2.6"
+      ]
+    },
+    "metadata": {
+      "priority": "normal",
+      "format_hint": "compact",
+      "template": null,
+      "channel_hint": null
+    },
+    "links": [],
+    "status": "new"
+  },
+  {
+    "id": "evt-6720ff60-0ec8-49ca-8eb3-e562e3ca6aad",
+    "occurred_at": "2026-05-05T07:34:02.170Z",
+    "source_system": "money",
+    "source_ref": "",
+    "event_type": "policy.blocked",
+    "level": "L2",
+    "priority": "high",
+    "summary": "curl test event",
+    "payload": {},
+    "metadata": {
+      "priority": "high",
+      "format_hint": "compact",
+      "template": null,
+      "channel_hint": null
+    },
+    "links": [],
+    "status": "new"
+  },
+  {
+    "id": "evt-d84d0205-dfa4-49ec-8a19-9ea9cbdbe1d9",
+    "occurred_at": "2026-04-27T13:22:10.223Z",
+    "source_system": "money",
+    "source_ref": "money/jobs/content-3c07dd72-f04f-41ca-9089-35e547b6bfde",
+    "event_type": "decision.required",
+    "level": "L3",
+    "priority": "high",
+    "summary": "Publish approval required: 면접 전날 루틴",
+    "payload": {
+      "job_id": "content-3c07dd72-f04f-41ca-9089-35e547b6bfde",
+      "recommendation": "defer until localization and asset license checks pass"
+    },
+    "links": [],
+    "status": "new"
+  },
+  {
+    "id": "evt-9028f7d6-7668-481f-acfd-a4ee274c6f46",
+    "occurred_at": "2026-04-27T13:22:10.222Z",
+    "source_system": "money",
+    "source_ref": "money/jobs/content-3c07dd72-f04f-41ca-9089-35e547b6bfde",
+    "event_type": "job.created",
+    "level": "L1",
+    "priority": "normal",
+    "summary": "Content job created: 면접 전날 루틴",
+    "payload": {
+      "job_id": "content-3c07dd72-f04f-41ca-9089-35e547b6bfde"
+    },
+    "links": [],
+    "status": "new"
+  }
+]

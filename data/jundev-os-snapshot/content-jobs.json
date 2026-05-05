@@ -1,0 +1,36 @@
+[
+  {
+    "id": "content-3c07dd72-f04f-41ca-9089-35e547b6bfde",
+    "created_at": "2026-04-27T13:22:10.221Z",
+    "status": "asset_plan",
+    "topic": "면접 전날 루틴",
+    "audience": "취업 준비생",
+    "language": "ko-KR",
+    "platform_hypothesis": [
+      "YouTube Shorts",
+      "Instagram Reels"
+    ],
+    "script_draft": {
+      "hook": "면접 전날은 더 적게 남기는 날이다.",
+      "body": "이동 시간, 자기소개 첫 문장, 마지막 질문 하나만 확인한다.",
+      "cta": "다음 행동을 하나 정한다.",
+      "duration_seconds_target": 30
+    },
+    "asset_plan": {
+      "visuals": [
+        "self-made visuals"
+      ],
+      "voice": "Korean neutral TTS",
+      "subtitle": "short Korean subtitles",
+      "music": "commercial-use allowed only",
+      "source_policy": "licensed or self-made assets only"
+    },
+    "localization_checks": [],
+    "approval": {
+      "required": true,
+      "status": "requested",
+      "decision_request": "dec-9c54562a-445d-406f-9732-42727900d139"
+    },
+    "metrics": {}
+  }
+]

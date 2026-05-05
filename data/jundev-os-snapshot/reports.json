@@ -1,0 +1,337 @@
+[
+  {
+    "id": "rep-fae15428-a880-47f2-863b-faf3a469ee9f",
+    "created_at": "2026-05-05T14:53:56.978Z",
+    "period": "daily",
+    "level": "L1",
+    "source_events": [
+      "evt-1d49646d-2763-448c-94b1-6abe84dd2f0c"
+    ],
+    "title": "jarvis: C cluster (Vault → Graph 통합) — v2.0.0 closing",
+    "summary": "C cluster (Vault → Graph 통합) — v2.0.0 closing",
+    "completed": [],
+    "failed": [],
+    "decisions": [],
+    "next_actions": []
+  },
+  {
+    "id": "rep-40cb6a9b-aedf-41bf-ab92-d94fde53c5a3",
+    "created_at": "2026-05-05T14:49:46.720Z",
+    "period": "daily",
+    "level": "L1",
+    "source_events": [
+      "evt-32a9b43e-e1ea-4d29-8431-e7907927ba4a"
+    ],
+    "title": "jarvis: W4 cluster + jundev-os v2.0.0 complete",
+    "summary": "W4 cluster + jundev-os v2.0.0 complete",
+    "completed": [
+      "W4 cluster + jundev-os v2.0.0 complete"
+    ],
+    "failed": [],
+    "decisions": [],
+    "next_actions": []
+  },
+  {
+    "id": "rep-2f62e837-ab3a-4170-960c-a44a521ffc3e",
+    "created_at": "2026-05-05T14:47:35.384Z",
+    "period": "instant",
+    "level": "L3",
+    "source_events": [
+      "evt-b6e95b29-36db-4f0d-bff8-6a488b35fd66"
+    ],
+    "title": "money: W4 ���� ���� ��û ? TTS sink �߻� �׽�Ʈ",
+    "summary": "W4 ���� ���� ��û ? TTS sink �߻� �׽�Ʈ",
+    "completed": [],
+    "failed": [],
+    "decisions": [
+      "W4 ���� ���� ��û ? TTS sink �߻� �׽�Ʈ"
+    ],
+    "next_actions": [
+      "Resolve the decision request"
+    ]
+  },
+  {
+    "id": "rep-63df2f1f-bb9a-4428-9ee7-9e9900c47993",
+    "created_at": "2026-05-05T14:32:57.164Z",
+    "period": "daily",
+    "level": "L1",
+    "source_events": [
+      "evt-56438afc-0e35-47a9-b51a-aaba4ec0c939"
+    ],
+    "title": "jarvis: W4 (TTS sink) started — PowerShell SAPI, default autoplay ON",
+    "summary": "W4 (TTS sink) started — PowerShell SAPI, default autoplay ON",
+    "completed": [],
+    "failed": [],
+    "decisions": [],
+    "next_actions": []
+  },
+  {
+    "id": "rep-635d2014-55ea-492f-b2c0-3f2f60388bc4",
+    "created_at": "2026-05-05T14:14:12.876Z",
+    "period": "daily",
+    "level": "L1",
+    "source_events": [
+      "evt-217292ec-1243-492a-b5df-7cb728fc8498"
+    ],
+    "title": "jarvis: W3 cluster complete (Second Brain vault ingest)",
+    "summary": "W3 cluster complete (Second Brain vault ingest)",
+    "completed": [
+      "W3 cluster complete (Second Brain vault ingest)"
+    ],
+    "failed": [],
+    "decisions": [],
+    "next_actions": []
+  },
+  {
+    "id": "rep-35ca3919-60da-4d03-ba76-01ec37f42d76",
+    "created_at": "2026-05-05T14:03:56.449Z",
+    "period": "daily",
+    "level": "L1",
+    "source_events": [
+      "evt-be96d812-2f51-4d28-b4d6-dfe3a2ec2d36"
+    ],
+    "title": "jarvis: W3 (second brain ingest) started — vault scanner + metadata only (privacy)",
+    "summary": "W3 (second brain ingest) started — vault scanner + metadata only (privacy)",
+    "completed": [],
+    "failed": [],
+    "decisions": [],
+    "next_actions": []
+  },
+  {
+    "id": "rep-8ec74a00-7db8-45b6-acc6-f8b694b4c66d",
+    "created_at": "2026-05-05T13:57:19.386Z",
+    "period": "daily",
+    "level": "L1",
+    "source_events": [
+      "evt-ac5f19ca-5ef3-4e69-b699-37271df9b493"
+    ],
+    "title": "jarvis: W2 cluster complete (knowledge graph live)",
+    "summary": "W2 cluster complete (knowledge graph live)",
+    "completed": [
+      "W2 cluster complete (knowledge graph live)"
+    ],
+    "failed": [],
+    "decisions": [],
+    "next_actions": []
+  },
+  {
+    "id": "rep-d69abbc5-fd2f-4440-aae2-fc10f6aa5b88",
+    "created_at": "2026-05-05T13:25:40.639Z",
+    "period": "daily",
+    "level": "L1",
+    "source_events": [
+      "evt-7039fa8f-fd2e-4ac2-9a58-d1096c01c18e"
+    ],
+    "title": "jarvis: W2 (knowledge graph) started",
+    "summary": "W2 (knowledge graph) started",
+    "completed": [],
+    "failed": [],
+    "decisions": [],
+    "next_actions": []
+  },
+  {
+    "id": "rep-8362ccea-fd57-4d01-8ada-f7bc27809672",
+    "created_at": "2026-05-05T13:15:04.477Z",
+    "period": "daily",
+    "level": "L1",
+    "source_events": [
+      "evt-11265266-8f23-4753-bf73-f07910e8d956"
+    ],
+    "title": "jarvis: W1 cluster complete (W1.1-W1.4)",
+    "summary": "W1 cluster complete (W1.1-W1.4)",
+    "completed": [
+      "W1 cluster complete (W1.1-W1.4)"
+    ],
+    "failed": [],
+    "decisions": [],
+    "next_actions": []
+  },
+  {
+    "id": "rep-c4d600ea-7643-4243-9ca9-50521618266b",
+    "created_at": "2026-05-05T12:49:54.344Z",
+    "period": "daily",
+    "level": "L1",
+    "source_events": [
+      "evt-ddc3951b-82ab-4b48-9f31-ab7f00cd2f32"
+    ],
+    "title": "jarvis: W1.1 complete — jundev-os public dashboard live at jundevcodes.info root",
+    "summary": "W1.1 complete — jundev-os public dashboard live at jundevcodes.info root",
+    "completed": [],
+    "failed": [],
+    "decisions": [],
+    "next_actions": []
+  },
+  {
+    "id": "rep-993bbc61-0831-4ffa-9cb9-49dd1d6f8747",
+    "created_at": "2026-05-05T12:37:17.993Z",
+    "period": "daily",
+    "level": "L1",
+    "source_events": [
+      "evt-3b4cd40e-0901-44b7-a3e2-23e699591e09"
+    ],
+    "title": "jarvis: Stage W1 (web infra + dashboard) started + 운영 룰 #2 일시 보류",
+    "summary": "Stage W1 (web infra + dashboard) started + 운영 룰 #2 일시 보류",
+    "completed": [],
+    "failed": [],
+    "decisions": [],
+    "next_actions": []
+  },
+  {
+    "id": "rep-3f2762cc-d3bd-45ba-9b8d-fb053568def7",
+    "created_at": "2026-05-05T12:32:04.071Z",
+    "period": "daily",
+    "level": "L1",
+    "source_events": [
+      "evt-36545d0e-7bfd-444a-ba5b-502ec3b6ccb7"
+    ],
+    "title": "jarvis: v2.0.0 plan approved (4 cluster: W1 web → W2 graph → W3 brain → W4 TTS)",
+    "summary": "v2.0.0 plan approved (4 cluster: W1 web → W2 graph → W3 brain → W4 TTS)",
+    "completed": [],
+    "failed": [],
+    "decisions": [],
+    "next_actions": []
+  },
+  {
+    "id": "rep-a9f00deb-39cd-438b-aa4c-e50aacd0bf6f",
+    "created_at": "2026-05-05T12:03:42.529Z",
+    "period": "instant",
+    "level": "L2",
+    "source_events": [
+      "evt-bb8d44aa-0f48-45f3-8b13-5b828eaa87cb"
+    ],
+    "title": "money: DEMO: ����ڰ� ���� Ȯ���� �� �ִ� sink ��� ����",
+    "summary": "DEMO: ����ڰ� ���� Ȯ���� �� �ִ� sink ��� ����",
+    "completed": [],
+    "failed": [
+      "DEMO: ����ڰ� ���� Ȯ���� �� �ִ� sink ��� ����"
+    ],
+    "decisions": [],
+    "next_actions": []
+  },
+  {
+    "id": "rep-5a421027-2037-41e1-b31c-66d608e5d8d3",
+    "created_at": "2026-05-05T11:57:11.499Z",
+    "period": "daily",
+    "level": "L1",
+    "source_events": [
+      "evt-a2e28c14-c6e6-4a29-9b17-5af0fb093417"
+    ],
+    "title": "jarvis: Stage 4 (P5 DEFER 차용) complete + jundev-os v1.0.0",
+    "summary": "Stage 4 (P5 DEFER 차용) complete + jundev-os v1.0.0",
+    "completed": [],
+    "failed": [],
+    "decisions": [],
+    "next_actions": []
+  },
+  {
+    "id": "rep-1f3a0906-0e14-4845-9e0a-9a1969a94ec2",
+    "created_at": "2026-05-05T11:37:15.912Z",
+    "period": "daily",
+    "level": "L1",
+    "source_events": [
+      "evt-7e96df84-46e5-4fe2-9430-f499dbbee7b4"
+    ],
+    "title": "jarvis: Stage 4 entered",
+    "summary": "Stage 4 entered",
+    "completed": [],
+    "failed": [],
+    "decisions": [],
+    "next_actions": []
+  },
+  {
+    "id": "rep-d9eed480-d8ef-4515-90ee-1c98eb61b0f6",
+    "created_at": "2026-05-05T11:34:27.544Z",
+    "period": "daily",
+    "level": "L1",
+    "source_events": [
+      "evt-2f399aef-a6d5-4002-b50e-f76ef4f74646"
+    ],
+    "title": "jarvis: Stage 3 (P4 Diagnostic) complete",
+    "summary": "Stage 3 (P4 Diagnostic) complete",
+    "completed": [],
+    "failed": [],
+    "decisions": [],
+    "next_actions": []
+  },
+  {
+    "id": "rep-905a4980-7ea8-4d10-a761-52120037c6f3",
+    "created_at": "2026-05-05T11:05:10.247Z",
+    "period": "daily",
+    "level": "L1",
+    "source_events": [
+      "evt-f08559b6-cb65-43ec-a4f5-b163681ed230"
+    ],
+    "title": "jarvis: Stage 2B completed — P2.10/P2.11/P3.1/P3.2/P3.3/P2.6 = 6 sub-task",
+    "summary": "Stage 2B completed — P2.10/P2.11/P3.1/P3.2/P3.3/P2.6 = 6 sub-task",
+    "completed": [],
+    "failed": [],
+    "decisions": [],
+    "next_actions": []
+  },
+  {
+    "id": "rep-b0091aea-5c65-41db-8e16-8c7e04a27446",
+    "created_at": "2026-05-05T09:55:46.368Z",
+    "period": "daily",
+    "level": "L1",
+    "source_events": [
+      "evt-6af12f97-a40c-4b0f-a9ec-2a9f668beb21"
+    ],
+    "title": "jarvis: Stage 2A completed — P2 docs (7 sub-task) + P3 docs (8 sub-task) = 15 sub-task",
+    "summary": "Stage 2A completed — P2 docs (7 sub-task) + P3 docs (8 sub-task) = 15 sub-task",
+    "completed": [],
+    "failed": [],
+    "decisions": [],
+    "next_actions": []
+  },
+  {
+    "id": "rep-b844ad43-408e-4fca-8148-13c031a40cea",
+    "created_at": "2026-05-05T07:34:02.170Z",
+    "period": "instant",
+    "level": "L2",
+    "source_events": [
+      "evt-6720ff60-0ec8-49ca-8eb3-e562e3ca6aad"
+    ],
+    "title": "money: curl test event",
+    "summary": "curl test event",
+    "completed": [],
+    "failed": [
+      "curl test event"
+    ],
+    "decisions": [],
+    "next_actions": []
+  },
+  {
+    "id": "rep-be417cd1-6879-4d1c-821c-bb23baa3c30d",
+    "created_at": "2026-04-27T13:22:10.224Z",
+    "period": "instant",
+    "level": "L3",
+    "source_events": [
+      "evt-d84d0205-dfa4-49ec-8a19-9ea9cbdbe1d9"
+    ],
+    "title": "money: Publish approval required: 면접 전날 루틴",
+    "summary": "Publish approval required: 면접 전날 루틴",
+    "completed": [],
+    "failed": [],
+    "decisions": [
+      "Publish approval required: 면접 전날 루틴"
+    ],
+    "next_actions": [
+      "Resolve the decision request"
+    ]
+  },
+  {
+    "id": "rep-c01867e3-4a10-4d63-a2e7-40aec91b3d28",
+    "created_at": "2026-04-27T13:22:10.223Z",
+    "period": "daily",
+    "level": "L1",
+    "source_events": [
+      "evt-9028f7d6-7668-481f-acfd-a4ee274c6f46"
+    ],
+    "title": "money: Content job created: 면접 전날 루틴",
+    "summary": "Content job created: 면접 전날 루틴",
+    "completed": [],
+    "failed": [],
+    "decisions": [],
+    "next_actions": []
+  }
+]

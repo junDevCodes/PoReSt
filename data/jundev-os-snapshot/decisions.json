@@ -1,0 +1,38 @@
+[
+  {
+    "id": "dec-f709af43-a83e-41a9-b09b-655900b8a581",
+    "created_at": "2026-05-05T14:47:35.384Z",
+    "source_event": "evt-b6e95b29-36db-4f0d-bff8-6a488b35fd66",
+    "system": "money",
+    "priority": "high",
+    "status": "open",
+    "title": "W4 ���� ���� ��û ? TTS sink �߻� �׽�Ʈ",
+    "context": "Created from decision.required at 2026-05-05T14:47:35.383Z.",
+    "options": [
+      "approve",
+      "defer",
+      "reject"
+    ],
+    "recommendation": "defer until reviewed",
+    "default_if_no_response": "defer",
+    "response": ""
+  },
+  {
+    "id": "dec-9c54562a-445d-406f-9732-42727900d139",
+    "created_at": "2026-04-27T13:22:10.224Z",
+    "source_event": "evt-d84d0205-dfa4-49ec-8a19-9ea9cbdbe1d9",
+    "system": "money",
+    "priority": "high",
+    "status": "open",
+    "title": "Publish approval required: 면접 전날 루틴",
+    "context": "Created from decision.required at 2026-04-27T13:22:10.223Z.",
+    "options": [
+      "approve",
+      "defer",
+      "reject"
+    ],
+    "recommendation": "defer until localization and asset license checks pass",
+    "default_if_no_response": "defer",
+    "response": ""
+  }
+]

@@ -1,0 +1,35 @@
+{
+  "generated_at": "2026-05-05T14:59:00.002Z",
+  "files": [
+    {
+      "file": "events.json",
+      "ok": true,
+      "bytes": 16279
+    },
+    {
+      "file": "reports.json",
+      "ok": true,
+      "bytes": 10304
+    },
+    {
+      "file": "decisions.json",
+      "ok": true,
+      "bytes": 1176
+    },
+    {
+      "file": "content-jobs.json",
+      "ok": true,
+      "bytes": 1071
+    },
+    {
+      "file": "workflow-runs.json",
+      "ok": true,
+      "bytes": 3
+    }
+  ],
+  "vault": {
+    "ok": true,
+    "total": 10,
+    "words": 2696
+  }
+}
