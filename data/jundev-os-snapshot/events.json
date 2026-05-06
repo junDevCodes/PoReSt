@@ -1,5 +1,33 @@
 [
   {
+    "id": "evt-77ff76b1-ca8b-4ba4-bf69-d7dec11b4d94",
+    "occurred_at": "2026-05-06T02:37:04.388Z",
+    "source_system": "jarvis",
+    "source_ref": "",
+    "event_type": "workflow.started",
+    "level": "L1",
+    "priority": "normal",
+    "summary": "V1 (PoReSt DB sync) started — V1.1 Prisma schema",
+    "payload": {
+      "cluster": "V1",
+      "decision": "option B (PoReSt DB sync) — 외부 host 회피",
+      "sub_tasks": [
+        "V1.1 schema",
+        "V1.2 postgres sink",
+        "V1.3 PoReSt fetch",
+        "V1.V verify"
+      ]
+    },
+    "metadata": {
+      "priority": "normal",
+      "format_hint": "compact",
+      "template": null,
+      "channel_hint": null
+    },
+    "links": [],
+    "status": "new"
+  },
+  {
     "id": "evt-89aabf12-f62b-40c9-975d-191528e46a6e",
     "occurred_at": "2026-05-05T16:21:34.686Z",
     "source_system": "porest",

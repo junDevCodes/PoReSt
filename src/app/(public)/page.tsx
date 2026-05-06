@@ -5,6 +5,7 @@ import { authOptions } from "@/auth";
 import { getMetadataBase } from "@/lib/site-url";
 import { loadJundevOsSnapshot } from "@/lib/jundevos-snapshot";
 import { GraphView } from "@/components/jundev-os/GraphView";
+import { RefreshButton } from "@/components/jundev-os/RefreshButton";
 
 const DEFAULT_OG_IMAGE_PATH = "/og-default.png";
 
@@ -77,11 +78,14 @@ export default async function HomePage() {
               본 페이지는 실시간 운영 상태를 build-time snapshot으로 노출합니다.
             </p>
           </div>
-          <div className="hidden items-center gap-2 rounded-full border border-black/10 bg-white/70 px-4 py-2 text-xs font-medium md:flex">
-            <span className={`h-2.5 w-2.5 rounded-full ${STATUS_COLOR[snapshot.overall_status]}`} />
-            overall: {snapshot.overall_status}
-            <span className="text-black/40">·</span>
-            <span className="text-black/50">{snapshot.source === "live" ? "live snapshot" : "mock"}</span>
+          <div className="hidden items-center gap-3 md:flex">
+            <div className="flex items-center gap-2 rounded-full border border-black/10 bg-white/70 px-4 py-2 text-xs font-medium">
+              <span className={`h-2.5 w-2.5 rounded-full ${STATUS_COLOR[snapshot.overall_status]}`} />
+              overall: {snapshot.overall_status}
+              <span className="text-black/40">·</span>
+              <span className="text-black/50">{snapshot.source === "live" ? "live snapshot" : "mock"}</span>
+            </div>
+            <RefreshButton />
           </div>
         </header>
 
