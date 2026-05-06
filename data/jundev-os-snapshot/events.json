@@ -1,5 +1,70 @@
 [
   {
+    "id": "evt-91dafe34-1c7a-4851-b89c-8be990f76a03",
+    "occurred_at": "2026-05-06T11:02:31.426Z",
+    "source_system": "jarvis",
+    "source_ref": "",
+    "event_type": "workflow.completed",
+    "level": "L1",
+    "priority": "normal",
+    "summary": "V3 (Claude Code ingest) complete + jundev-os v3.0.0 완성",
+    "payload": {
+      "cluster": "V3",
+      "version": "v3.0.0",
+      "sub_tasks": [
+        "V3.1 cc source",
+        "V3.2 endpoint",
+        "V3.3 sanitize",
+        "V3.V verify"
+      ],
+      "test_results": "3 projects / 40 sessions / 423 user messages extracted",
+      "privacy": "user-only, Claude 응답 X, 300자 preview, sensitive regex redact",
+      "v3_clusters": [
+        "V1",
+        "V2",
+        "V3"
+      ],
+      "v4_deferred": "Vision/MediaPipe (ROI 약함)"
+    },
+    "metadata": {
+      "priority": "normal",
+      "format_hint": "compact",
+      "template": null,
+      "channel_hint": null
+    },
+    "links": [],
+    "status": "new"
+  },
+  {
+    "id": "evt-14a311c2-9687-4230-9834-11f2cbb6e260",
+    "occurred_at": "2026-05-06T10:50:28.406Z",
+    "source_system": "jarvis",
+    "source_ref": "",
+    "event_type": "workflow.started",
+    "level": "L1",
+    "priority": "normal",
+    "summary": "V3 (Claude Code ingest) started — privacy first, opt-in",
+    "payload": {
+      "cluster": "V3",
+      "sub_tasks": [
+        "V3.1 cc source",
+        "V3.2 endpoint",
+        "V3.3 sanitize",
+        "V3.4 dashboard",
+        "V3.V verify"
+      ],
+      "privacy": "사용자 메시지만 (Claude 응답 제외) + sensitive regex redact"
+    },
+    "metadata": {
+      "priority": "normal",
+      "format_hint": "compact",
+      "template": null,
+      "channel_hint": null
+    },
+    "links": [],
+    "status": "new"
+  },
+  {
     "id": "evt-c164c530-9672-4e85-bfaf-81bd542e5719",
     "occurred_at": "2026-05-06T10:26:10.019Z",
     "source_system": "jarvis",

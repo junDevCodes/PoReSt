@@ -1,5 +1,37 @@
 [
   {
+    "id": "rep-3755d17c-daf8-480b-923a-842867245d23",
+    "created_at": "2026-05-06T11:02:31.428Z",
+    "period": "daily",
+    "level": "L1",
+    "source_events": [
+      "evt-91dafe34-1c7a-4851-b89c-8be990f76a03"
+    ],
+    "title": "jarvis: V3 (Claude Code ingest) complete + jundev-os v3.0.0 완성",
+    "summary": "V3 (Claude Code ingest) complete + jundev-os v3.0.0 완성",
+    "completed": [
+      "V3 (Claude Code ingest) complete + jundev-os v3.0.0 완성"
+    ],
+    "failed": [],
+    "decisions": [],
+    "next_actions": []
+  },
+  {
+    "id": "rep-157fc676-955e-4aae-8e48-26f94374be3c",
+    "created_at": "2026-05-06T10:50:28.407Z",
+    "period": "daily",
+    "level": "L1",
+    "source_events": [
+      "evt-14a311c2-9687-4230-9834-11f2cbb6e260"
+    ],
+    "title": "jarvis: V3 (Claude Code ingest) started — privacy first, opt-in",
+    "summary": "V3 (Claude Code ingest) started — privacy first, opt-in",
+    "completed": [],
+    "failed": [],
+    "decisions": [],
+    "next_actions": []
+  },
+  {
     "id": "rep-3def5c66-8f6b-40f2-8947-0067c8e478f7",
     "created_at": "2026-05-06T10:26:10.020Z",
     "period": "daily",
