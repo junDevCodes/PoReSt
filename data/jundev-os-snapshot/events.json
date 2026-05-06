@@ -1,5 +1,89 @@
 [
   {
+    "id": "evt-89aabf12-f62b-40c9-975d-191528e46a6e",
+    "occurred_at": "2026-05-05T16:21:34.686Z",
+    "source_system": "porest",
+    "source_ref": "",
+    "event_type": "workflow.completed",
+    "level": "L1",
+    "priority": "normal",
+    "summary": "jundevcodes.info v2.0.x prod live (commit f188571)",
+    "payload": {
+      "prod_url": "https://www.jundevcodes.info/",
+      "title": "jundev-os — 운영 OS",
+      "ci_status": "success",
+      "vercel_deploy": "success",
+      "content_check": "개인 운영 OS + Knowledge Graph (60 nodes) + Second Brain + live snapshot",
+      "portfolio": "200 (SEO 보존)",
+      "landing": "200 (PoReSt 마케팅 보존)",
+      "commits_pushed": [
+        "9fca554 v2.0.x dashboard",
+        "eab6221 vault Record key fix",
+        "f188571 session-aware CTA fix"
+      ]
+    },
+    "metadata": {
+      "priority": "normal",
+      "format_hint": "compact",
+      "template": null,
+      "channel_hint": null
+    },
+    "links": [],
+    "status": "new"
+  },
+  {
+    "id": "evt-9f79844a-2a88-4a76-a2c8-3e336e5a480b",
+    "occurred_at": "2026-05-05T15:21:25.646Z",
+    "source_system": "porest",
+    "source_ref": "",
+    "event_type": "workflow.completed",
+    "level": "L1",
+    "priority": "normal",
+    "summary": "PoReSt prod push complete (commit 9fca554) — Vercel auto-deploy triggered",
+    "payload": {
+      "commit": "9fca554",
+      "files": 17,
+      "insertions": 2574,
+      "deletions": 143,
+      "target": "jundevcodes.info root",
+      "scope": "v2.0.x dashboard + 별건.1"
+    },
+    "metadata": {
+      "priority": "normal",
+      "format_hint": "compact",
+      "template": null,
+      "channel_hint": null
+    },
+    "links": [],
+    "status": "new"
+  },
+  {
+    "id": "evt-cc99597c-36ee-4705-a46e-1709fe139dbe",
+    "occurred_at": "2026-05-05T14:59:48.253Z",
+    "source_system": "jarvis",
+    "source_ref": "",
+    "event_type": "workflow.completed",
+    "level": "L1",
+    "priority": "normal",
+    "summary": "C cluster complete (Vault → Graph 통합) — v2.0.1",
+    "payload": {
+      "cluster": "C",
+      "version": "v2.0.1",
+      "graph_stats": "60 nodes / 46 edges (vault 10 추가)",
+      "e2e": "11/11 pass",
+      "npm_test": "pass",
+      "operating_rules": "8/8"
+    },
+    "metadata": {
+      "priority": "normal",
+      "format_hint": "compact",
+      "template": null,
+      "channel_hint": null
+    },
+    "links": [],
+    "status": "new"
+  },
+  {
     "id": "evt-1d49646d-2763-448c-94b1-6abe84dd2f0c",
     "occurred_at": "2026-05-05T14:53:56.976Z",
     "source_system": "jarvis",

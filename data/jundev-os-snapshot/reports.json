@@ -1,5 +1,56 @@
 [
   {
+    "id": "rep-d368de26-5461-402e-b6f3-f179e7e21863",
+    "created_at": "2026-05-05T16:21:34.687Z",
+    "period": "daily",
+    "level": "L1",
+    "source_events": [
+      "evt-89aabf12-f62b-40c9-975d-191528e46a6e"
+    ],
+    "title": "porest: jundevcodes.info v2.0.x prod live (commit f188571)",
+    "summary": "jundevcodes.info v2.0.x prod live (commit f188571)",
+    "completed": [
+      "jundevcodes.info v2.0.x prod live (commit f188571)"
+    ],
+    "failed": [],
+    "decisions": [],
+    "next_actions": []
+  },
+  {
+    "id": "rep-93b9ea2c-ca5a-48f1-afcc-5f9bb1d501b7",
+    "created_at": "2026-05-05T15:21:25.648Z",
+    "period": "daily",
+    "level": "L1",
+    "source_events": [
+      "evt-9f79844a-2a88-4a76-a2c8-3e336e5a480b"
+    ],
+    "title": "porest: PoReSt prod push complete (commit 9fca554) — Vercel auto-deploy triggered",
+    "summary": "PoReSt prod push complete (commit 9fca554) — Vercel auto-deploy triggered",
+    "completed": [
+      "PoReSt prod push complete (commit 9fca554) — Vercel auto-deploy triggered"
+    ],
+    "failed": [],
+    "decisions": [],
+    "next_actions": []
+  },
+  {
+    "id": "rep-3479e2e9-198b-4f60-a3c5-6def710c0f99",
+    "created_at": "2026-05-05T14:59:48.255Z",
+    "period": "daily",
+    "level": "L1",
+    "source_events": [
+      "evt-cc99597c-36ee-4705-a46e-1709fe139dbe"
+    ],
+    "title": "jarvis: C cluster complete (Vault → Graph 통합) — v2.0.1",
+    "summary": "C cluster complete (Vault → Graph 통합) — v2.0.1",
+    "completed": [
+      "C cluster complete (Vault → Graph 통합) — v2.0.1"
+    ],
+    "failed": [],
+    "decisions": [],
+    "next_actions": []
+  },
+  {
     "id": "rep-fae15428-a880-47f2-863b-faf3a469ee9f",
     "created_at": "2026-05-05T14:53:56.978Z",
     "period": "daily",
