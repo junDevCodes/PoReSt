@@ -8,6 +8,11 @@ jest.mock("next-auth", () => ({
   getServerSession: jest.fn(),
 }));
 
+// V1.2 RefreshButton (use client) 가 useRouter 호출 — jest 환경에서 mock 필요
+jest.mock("next/navigation", () => ({
+  useRouter: () => ({ refresh: jest.fn(), push: jest.fn(), replace: jest.fn() }),
+}));
+
 jest.mock("@/auth", () => ({
   authOptions: {},
 }));
