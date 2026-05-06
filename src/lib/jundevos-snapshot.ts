@@ -84,6 +84,21 @@ export type JundevOsVaultSummary = {
   lint: { orphans_count: number; broken_links_count: number; stale_count: number; health: string };
 };
 
+export type JundevOsCcProject = {
+  project: string;
+  sessions_count: number;
+  total_messages: number;
+  latest_mtime: string | null;
+};
+
+export type JundevOsCcSummary = {
+  available: boolean;
+  projects_total: number;
+  sessions_total: number;
+  messages_total: number;
+  projects: JundevOsCcProject[];
+};
+
 export type JundevOsSnapshot = {
   generated_at: string;
   overall_status: JundevOsSystemStatus;
@@ -93,6 +108,7 @@ export type JundevOsSnapshot = {
   sink_summary: JundevOsSinkSummary;
   graph: JundevOsGraph;
   vault: JundevOsVaultSummary;
+  cc: JundevOsCcSummary;
   counts: { events: number; reports: number; decisions: number; jobs: number; runs: number };
   source: "live" | "mock";
   debug?: { cwd: string; tried: Array<{ dir: string; reason: string; exists: boolean }>; error?: string };
@@ -133,6 +149,7 @@ const MOCK_SNAPSHOT: JundevOsSnapshot = {
   ],
   sink_summary: { total_dispatches: 0, failures: 0, failure_ratio: 0 },
   graph: { nodes: [], edges: [], counts: { nodes: 0, edges: 0 } },
+  cc: { available: false, projects_total: 0, sessions_total: 0, messages_total: 0, projects: [] },
   vault: {
     available: false,
     total: 0,
@@ -281,6 +298,30 @@ function buildGraph(
   return { nodes, edges, counts: { nodes: nodes.length, edges: edges.length } };
 }
 
+function loadCcSummary(snapshotDir: string): JundevOsCcSummary {
+  const candidatePath = path.join(snapshotDir, "cc-summary.json");
+  const empty: JundevOsCcSummary = {
+    available: false,
+    projects_total: 0,
+    sessions_total: 0,
+    messages_total: 0,
+    projects: [],
+  };
+  if (!fs.existsSync(candidatePath)) return empty;
+  try {
+    const raw = JSON.parse(fs.readFileSync(candidatePath, "utf8"));
+    return {
+      available: true,
+      projects_total: raw.projects_total ?? 0,
+      sessions_total: raw.sessions_total ?? 0,
+      messages_total: raw.messages_total ?? 0,
+      projects: Array.isArray(raw.projects) ? raw.projects.slice(0, 6) : [],
+    };
+  } catch {
+    return empty;
+  }
+}
+
 function loadVaultEntries(snapshotDir: string): JundevOsVaultEntry[] {
   const candidatePath = path.join(snapshotDir, "vault.json");
   if (!fs.existsSync(candidatePath)) return [];
@@ -421,6 +462,7 @@ export function loadJundevOsSnapshot(): JundevOsSnapshot {
     const vaultEntries = loadVaultEntries(dir);
     const graph = buildGraph(events, decisions, jobs, reports, vaultEntries, 30);
     const vault = loadVaultSummary(dir);
+    const cc = loadCcSummary(dir);
 
     return {
       generated_at: new Date().toISOString(),
@@ -431,6 +473,7 @@ export function loadJundevOsSnapshot(): JundevOsSnapshot {
       sink_summary: sinkSummary,
       graph,
       vault,
+      cc,
       counts: {
         events: events.length,
         reports: reports.length,

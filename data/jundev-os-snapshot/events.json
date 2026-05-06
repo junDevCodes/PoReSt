@@ -1,5 +1,27 @@
 [
   {
+    "id": "evt-1da864a6-bce1-4ef9-b00e-a0c85d676d45",
+    "occurred_at": "2026-05-06T11:26:30.208Z",
+    "source_system": "jarvis",
+    "source_ref": "",
+    "event_type": "workflow.started",
+    "level": "L1",
+    "priority": "normal",
+    "summary": "V3.4 (PoReSt cc-summary panel) started — counts only privacy",
+    "payload": {
+      "cluster": "V3.4",
+      "privacy": "counts only"
+    },
+    "metadata": {
+      "priority": "normal",
+      "format_hint": "compact",
+      "template": null,
+      "channel_hint": null
+    },
+    "links": [],
+    "status": "new"
+  },
+  {
     "id": "evt-91dafe34-1c7a-4851-b89c-8be990f76a03",
     "occurred_at": "2026-05-06T11:02:31.426Z",
     "source_system": "jarvis",

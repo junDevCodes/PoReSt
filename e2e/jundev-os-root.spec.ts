@@ -53,6 +53,13 @@ test.describe("jundev-os public dashboard (root)", () => {
     await expect(page.getByText(/total words/)).toBeVisible();
   });
 
+  test("Claude Code 학습 누적 panel이 cc stats를 표시한다 (V3.4)", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.getByRole("heading", { name: "Claude Code 학습 누적" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "cc stats" })).toBeVisible();
+    await expect(page.getByText(/user messages/)).toBeVisible();
+  });
+
   test("결정 대기열에 음성 명령 버튼이 렌더링된다 (V2)", async ({ page }) => {
     await page.goto("/");
     // 결정 대기열에 1+ open decision이 있으면 음성 버튼 또는 미지원 표시 노출

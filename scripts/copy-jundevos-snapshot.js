@@ -64,10 +64,43 @@ if (fs.existsSync(VAULT_LIB)) {
 }
 console.log(`  ${vaultStatus.ok ? "✓" : "○"} vault.json — ${JSON.stringify(vaultStatus)}`);
 
+// Claude Code summary (V3.4 — privacy: counts only. preview / first_message / last_message 영구 X)
+const CC_LIB = path.resolve(__dirname, "..", "..", "services", "control-plane", "lib", "sources", "claude-code.js");
+let ccStatus = { ok: false, reason: "lib not found" };
+if (fs.existsSync(CC_LIB)) {
+  try {
+    const { ingestAll: ccIngestAll } = require(CC_LIB);
+    const full = ccIngestAll({ limit: 10 });
+    const sanitized = {
+      generated_at: full.generated_at,
+      privacy: "counts only — preview / first_message / last_message 제외 (sensitive 회피)",
+      projects_total: full.projects_total,
+      sessions_total: full.sessions_total,
+      messages_total: full.messages_total,
+      projects: full.projects.map((p) => ({
+        project: p.project,
+        sessions_count: p.sessions_count,
+        total_messages: p.total_messages,
+        latest_mtime: p.sessions[0]?.mtime ?? null,
+      })),
+    };
+    fs.writeFileSync(path.join(DST_DIR, "cc-summary.json"), JSON.stringify(sanitized, null, 2));
+    ccStatus = {
+      ok: true,
+      projects: sanitized.projects_total,
+      sessions: sanitized.sessions_total,
+      messages: sanitized.messages_total,
+    };
+  } catch (err) {
+    ccStatus = { ok: false, reason: err.message };
+  }
+}
+console.log(`  ${ccStatus.ok ? "✓" : "○"} cc-summary.json — ${JSON.stringify(ccStatus)}`);
+
 const stamp = new Date().toISOString();
 fs.writeFileSync(
   path.join(DST_DIR, "_meta.json"),
-  JSON.stringify({ generated_at: stamp, files: summary, vault: vaultStatus }, null, 2),
+  JSON.stringify({ generated_at: stamp, files: summary, vault: vaultStatus, cc: ccStatus }, null, 2),
 );
 
 console.log(`[copy-jundevos-snapshot] ${summary.filter((s) => s.ok).length}/${FILES.length} files synced at ${stamp}`);

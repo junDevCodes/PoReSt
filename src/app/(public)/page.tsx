@@ -324,6 +324,59 @@ export default async function HomePage() {
           </article>
         </section>
 
+        <section className="mt-10 grid gap-6 lg:grid-cols-3">
+          <article className="rounded-2xl border border-black/10 bg-white/75 p-6 shadow-[0_10px_30px_rgba(0,0,0,0.08)] lg:col-span-2">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-semibold">Claude Code 학습 누적</h2>
+              <span className="text-xs text-black/50">사용자 메시지 통계 (counts only — privacy)</span>
+            </div>
+            {snapshot.cc.available && snapshot.cc.projects.length > 0 ? (
+              <ul className="mt-4 space-y-2">
+                {snapshot.cc.projects.map((p) => (
+                  <li key={p.project} className="rounded-xl border border-black/10 bg-[#faf9f6] p-3">
+                    <div className="flex items-baseline justify-between gap-3">
+                      <p className="truncate text-sm font-medium" title={p.project}>
+                        {p.project.replace(/^C--Users-jylee-/, "").replace(/^Desktop-/, "").replace(/-/g, " / ")}
+                      </p>
+                      <div className="flex items-center gap-3 text-[11px] text-black/50 whitespace-nowrap">
+                        <span>📁 {p.sessions_count} sessions</span>
+                        <span>💬 {p.total_messages} msgs</span>
+                        {p.latest_mtime ? <span>{formatTime(p.latest_mtime)}</span> : null}
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-4 rounded-xl border border-black/10 bg-[#faf9f6] px-4 py-3 text-sm text-black/60">
+                cc-summary.json 미연결. `npm run snapshot:sync` 후 다시 빌드.
+              </p>
+            )}
+          </article>
+
+          <article className="rounded-2xl border border-black/10 bg-white/75 p-6 shadow-[0_10px_30px_rgba(0,0,0,0.08)]">
+            <h2 className="text-2xl font-semibold">cc stats</h2>
+            <p className="mt-1 text-xs text-black/50">~/.claude/projects/ 누적</p>
+            <dl className="mt-4 space-y-2 text-sm">
+              <div className="flex items-baseline justify-between border-b border-black/5 pb-2">
+                <dt className="text-black/60">projects</dt>
+                <dd className="text-lg font-semibold tabular-nums">{snapshot.cc.projects_total}</dd>
+              </div>
+              <div className="flex items-baseline justify-between border-b border-black/5 pb-2">
+                <dt className="text-black/60">sessions</dt>
+                <dd className="text-lg font-semibold tabular-nums">{snapshot.cc.sessions_total}</dd>
+              </div>
+              <div className="flex items-baseline justify-between">
+                <dt className="text-black/60">user messages</dt>
+                <dd className="text-lg font-semibold tabular-nums">{snapshot.cc.messages_total}</dd>
+              </div>
+            </dl>
+            <p className="mt-3 text-[11px] leading-4 text-black/40">
+              사용자 메시지만 (Claude 응답 제외). preview / first_message 영구 X — counts만 prod 노출.
+            </p>
+          </article>
+        </section>
+
         <section className="mt-10 rounded-2xl border border-black/10 bg-white/75 p-6">
           <h2 className="text-2xl font-semibold">PoReSt 제품 진입</h2>
           <p className="mt-2 text-sm text-black/65">

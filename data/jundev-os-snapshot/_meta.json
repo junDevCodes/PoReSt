@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-05-06T11:06:39.844Z",
+  "generated_at": "2026-05-06T11:27:20.392Z",
   "files": [
     {
       "file": "events.json",
       "ok": true,
-      "bytes": 22161
+      "bytes": 22741
     },
     {
       "file": "reports.json",
       "ok": true,
-      "bytes": 13894
+      "bytes": 14375
     },
     {
       "file": "decisions.json",
@@ -31,5 +31,11 @@
     "ok": true,
     "total": 10,
     "words": 2696
+  },
+  "cc": {
+    "ok": true,
+    "projects": 6,
+    "sessions": 40,
+    "messages": 424
   }
 }

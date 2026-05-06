@@ -1,0 +1,45 @@
+{
+  "generated_at": "2026-05-06T11:27:20.392Z",
+  "privacy": "counts only — preview / first_message / last_message 제외 (sensitive 회피)",
+  "projects_total": 6,
+  "sessions_total": 40,
+  "messages_total": 424,
+  "projects": [
+    {
+      "project": "C--Users-jylee-Desktop-jundev-os",
+      "sessions_count": 20,
+      "total_messages": 100,
+      "latest_mtime": "2026-05-06T11:27:15.100Z"
+    },
+    {
+      "project": "C--Users-jylee-Desktop-jundev-os-Life-Hack",
+      "sessions_count": 3,
+      "total_messages": 2,
+      "latest_mtime": "2026-04-25T12:05:43.267Z"
+    },
+    {
+      "project": "C--Users-jylee-Desktop-Life-Hack",
+      "sessions_count": 17,
+      "total_messages": 322,
+      "latest_mtime": "2026-04-25T10:40:21.297Z"
+    },
+    {
+      "project": "C--workspace-Portfolio-PoReSt",
+      "sessions_count": 0,
+      "total_messages": 0,
+      "latest_mtime": null
+    },
+    {
+      "project": "D--workspace-advanced-harness-window",
+      "sessions_count": 0,
+      "total_messages": 0,
+      "latest_mtime": null
+    },
+    {
+      "project": "D--workspace-Portfolio-PoReSt",
+      "sessions_count": 0,
+      "total_messages": 0,
+      "latest_mtime": null
+    }
+  ]
+}
