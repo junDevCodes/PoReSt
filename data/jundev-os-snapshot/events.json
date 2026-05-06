@@ -1,5 +1,38 @@
 [
   {
+    "id": "evt-c164c530-9672-4e85-bfaf-81bd542e5719",
+    "occurred_at": "2026-05-06T10:26:10.019Z",
+    "source_system": "jarvis",
+    "source_ref": "",
+    "event_type": "workflow.started",
+    "level": "L1",
+    "priority": "normal",
+    "summary": "V2 (STT 음성 입력) started — Web Speech API ko-KR",
+    "payload": {
+      "cluster": "V2",
+      "sub_tasks": [
+        "V2.1 VoiceCommand",
+        "V2.2 vocabulary",
+        "V2.3 decision integration",
+        "V2.V test"
+      ],
+      "decisions": {
+        "provider": "Web Speech API (browser native, free)",
+        "language": "ko-KR",
+        "scope": "localhost only (control-plane :4173 호출)",
+        "permission": "default OFF, browser prompt"
+      }
+    },
+    "metadata": {
+      "priority": "normal",
+      "format_hint": "compact",
+      "template": null,
+      "channel_hint": null
+    },
+    "links": [],
+    "status": "new"
+  },
+  {
     "id": "evt-77ff76b1-ca8b-4ba4-bf69-d7dec11b4d94",
     "occurred_at": "2026-05-06T02:37:04.388Z",
     "source_system": "jarvis",

@@ -6,6 +6,7 @@ import { getMetadataBase } from "@/lib/site-url";
 import { loadJundevOsSnapshot } from "@/lib/jundevos-snapshot";
 import { GraphView } from "@/components/jundev-os/GraphView";
 import { RefreshButton } from "@/components/jundev-os/RefreshButton";
+import { VoiceCommand } from "@/components/jundev-os/VoiceCommand";
 
 const DEFAULT_OG_IMAGE_PATH = "/og-default.png";
 
@@ -211,6 +212,7 @@ export default async function HomePage() {
                           {decision.created_at ? ` ${formatTime(decision.created_at)}` : ""}
                         </p>
                       </div>
+                      <VoiceCommand decision={{ id: decision.id, question: decision.question, level: decision.level }} />
                     </div>
                   </li>
                 ))}

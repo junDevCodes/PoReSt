@@ -53,6 +53,15 @@ test.describe("jundev-os public dashboard (root)", () => {
     await expect(page.getByText(/total words/)).toBeVisible();
   });
 
+  test("결정 대기열에 음성 명령 버튼이 렌더링된다 (V2)", async ({ page }) => {
+    await page.goto("/");
+    // 결정 대기열에 1+ open decision이 있으면 음성 버튼 또는 미지원 표시 노출
+    const voiceButtons = page.getByRole("button", { name: "음성 명령" });
+    const unsupported = page.getByText("🎤 미지원");
+    const total = (await voiceButtons.count()) + (await unsupported.count());
+    expect(total).toBeGreaterThanOrEqual(1);
+  });
+
   test("Knowledge Graph 섹션과 legend가 렌더링된다", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByRole("heading", { name: "Knowledge Graph" })).toBeVisible();

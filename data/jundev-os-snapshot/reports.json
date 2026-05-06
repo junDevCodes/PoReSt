@@ -1,5 +1,20 @@
 [
   {
+    "id": "rep-3def5c66-8f6b-40f2-8947-0067c8e478f7",
+    "created_at": "2026-05-06T10:26:10.020Z",
+    "period": "daily",
+    "level": "L1",
+    "source_events": [
+      "evt-c164c530-9672-4e85-bfaf-81bd542e5719"
+    ],
+    "title": "jarvis: V2 (STT 음성 입력) started — Web Speech API ko-KR",
+    "summary": "V2 (STT 음성 입력) started — Web Speech API ko-KR",
+    "completed": [],
+    "failed": [],
+    "decisions": [],
+    "next_actions": []
+  },
+  {
     "id": "rep-1be7d9d6-4779-472e-acd6-0d583747f1a5",
     "created_at": "2026-05-06T02:37:04.389Z",
     "period": "daily",
