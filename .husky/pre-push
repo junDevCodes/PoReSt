@@ -1,0 +1,16 @@
+#!/usr/bin/env sh
+# pre-push hook — CI 회귀 사전 차단 (tsc + jest)
+# 운영 룰: V1.2 useRouter mock 회귀 / TYPE_LABEL Record 회귀 같은 사례 사전 발견.
+# 회피 방법: git push --no-verify (사용자 명시 시만)
+
+set -e
+
+echo "[pre-push] TypeScript strict check (production code only)..."
+npx tsc --noEmit -p tsconfig.pre-push.json
+echo "[pre-push] ✓ tsc passed"
+
+echo "[pre-push] Jest tests (changed scope)..."
+npx jest --bail --silent 2>&1 | tail -5
+echo "[pre-push] ✓ jest passed"
+
+echo "[pre-push] All checks passed — push 진행."
